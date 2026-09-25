@@ -116,8 +116,8 @@ class Crud_builder
 			if (in_array($input_type, $list_all_field_custom_value_type)) {
 				foreach ($contains[$field_name]['custom_option'] as $idx => $field_option) {
 					$error = false;
-					if (empty( $field_option['value']) 
-					OR empty( $field_option['label'])  )
+					if (($field_option['value'] === '' || $field_option['value'] === null) 
+					OR ($field_option['label'] === '' || $field_option['label'] === null) )
 					{
 						$error = true;
 					}

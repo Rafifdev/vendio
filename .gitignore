@@ -45,4 +45,8 @@ phploy.ini
 *.tmPreferences.cache
 *.stTheme.cache
 *.sublime-workspace
-*.sublime-project
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
