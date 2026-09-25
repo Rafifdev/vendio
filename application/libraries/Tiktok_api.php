@@ -226,8 +226,13 @@ class Tiktok_api
             $params['shop_cipher'] = $shop->shop_cipher;
         }
 
-        // Generate Signature
-        $params['sign'] = $this->generate_signature($path, $params, $body, $app_secret);
+        // Generate Signature dengan payload body yang konsisten
+        $body_string = null;
+        if ($body !== null) {
+            $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string)$body;
+        }
+
+        $params['sign'] = $this->generate_signature($path, $params, $body_string, $app_secret);
 
         $url = rtrim($this->api_base_url, '/') . $path . '?' . http_build_query($params);
 
@@ -236,7 +241,7 @@ class Tiktok_api
             'x-tts-access-token: ' . $shop->access_token,
         ];
 
-        return $this->http_request($method, $url, $body, $headers);
+        return $this->http_request($method, $url, $body_string, $headers);
     }
 
     /**
@@ -310,7 +315,7 @@ class Tiktok_api
         }
 
         if (!empty($body)) {
-            $payload = is_array($body) ? json_encode($body) : $body;
+            $payload = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $body;
             $options[CURLOPT_POSTFIELDS] = $payload;
         }
 
@@ -354,4 +359,170 @@ class Tiktok_api
             'raw'     => $response
         ];
     }
+
+    /**
+     * =========================================================================
+     * PRODUCT API HELPERS (Katalog, Stok, Harga, Status)
+     * =========================================================================
+     */
+
+    /**
+     * Ambil / cari daftar produk dari TikTok Shop
+     * POST /product/202309/products/search
+     */
+    public function search_products(array $body = [], array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        return $this->request('/product/202309/products/search', 'POST', $params, $body, $shop_identifier);
+    }
+
+    /**
+     * Ambil detail lengkap satu produk TikTok
+     * GET /product/202309/products/{product_id}
+     */
+    public function get_product_detail($product_id, array $params = [], $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/' . $product_id, 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Update stok varian produk TikTok
+     * POST /product/202309/products/{product_id}/inventory/update
+     */
+    public function update_inventory($product_id, array $skus, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/' . $product_id . '/inventory/update', 'POST', [], ['skus' => $skus], $shop_identifier);
+    }
+
+    /**
+     * Update harga varian produk TikTok
+     * POST /product/202309/products/{product_id}/prices/update
+     */
+    public function update_prices($product_id, array $skus, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/' . $product_id . '/prices/update', 'POST', [], ['skus' => $skus], $shop_identifier);
+    }
+
+    /**
+     * Aktifkan produk di etalase TikTok
+     * POST /product/202309/products/activate
+     */
+    public function activate_products(array $product_ids, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/activate', 'POST', [], ['product_ids' => $product_ids], $shop_identifier);
+    }
+
+    /**
+     * Nonaktifkan produk dari etalase TikTok
+     * POST /product/202309/products/deactivate
+     */
+    public function deactivate_products(array $product_ids, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/deactivate', 'POST', [], ['product_ids' => $product_ids], $shop_identifier);
+    }
+
+    /**
+     * Hapus produk dari TikTok Shop
+     * DELETE /product/202309/products
+     */
+    public function delete_products(array $product_ids, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products', 'DELETE', [], ['product_ids' => $product_ids], $shop_identifier);
+    }
+
+    /**
+     * Upload gambar produk ke TikTok Shop
+     * POST /product/202309/images/upload
+     */
+    public function upload_image($image_path, $shop_identifier = null)
+    {
+        $shop = $this->get_shop($shop_identifier);
+        if (!$shop) {
+            return ['success' => false, 'message' => 'Toko TikTok belum terhubung.'];
+        }
+
+        $app_key    = $shop->app_key ?: $this->default_app_key;
+        $app_secret = $shop->app_secret ?: $this->default_app_secret;
+
+        $path   = '/product/202309/images/upload';
+        $params = [
+            'app_key'   => $app_key,
+            'timestamp' => time(),
+        ];
+        $params['sign'] = $this->generate_signature($path, $params, null, $app_secret);
+        $url = rtrim($this->api_base_url, '/') . $path . '?' . http_build_query($params);
+
+        $headers = [
+            'x-tts-access-token: ' . $shop->access_token,
+            'Content-Type: multipart/form-data',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ['data' => new CURLFile($image_path)]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $res = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($res, true);
+        if (isset($data['code']) && $data['code'] === 0) {
+            return ['success' => true, 'data' => $data['data']];
+        }
+        return ['success' => false, 'message' => $data['message'] ?? 'Gagal upload gambar ke TikTok'];
+    }
+
+    /**
+     * Buat produk baru di TikTok Shop
+     * POST /product/202309/products
+     */
+    public function create_product(array $product_payload, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products', 'POST', ['category_version' => 'v2'], $product_payload, $shop_identifier);
+    }
+
+    /**
+     * Edit / Update produk TikTok
+     * PUT /product/202309/products/{product_id}
+     */
+    public function update_product($product_id, array $product_payload, $shop_identifier = null)
+    {
+        return $this->request('/product/202309/products/' . $product_id, 'PUT', ['category_version' => 'v2'], $product_payload, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar gudang toko TikTok
+     * GET /logistics/202309/warehouses
+     */
+    public function get_warehouses($shop_identifier = null)
+    {
+        return $this->request('/logistics/202309/warehouses', 'GET', [], null, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar kategori produk TikTok
+     * GET /product/202309/categories
+     */
+    public function get_categories(array $params = [], $shop_identifier = null)
+    {
+        $params['category_version'] = $params['category_version'] ?? 'v2';
+        return $this->request('/product/202309/categories', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar brand TikTok sesuai kategori
+     * GET /product/202309/brands
+     */
+    public function get_brands($category_id = null, array $params = [], $shop_identifier = null)
+    {
+        $params['category_version'] = $params['category_version'] ?? 'v2';
+        $params['page_size'] = $params['page_size'] ?? 100;
+        if (!empty($category_id)) {
+            $params['category_id'] = $category_id;
+        }
+        return $this->request('/product/202309/brands', 'GET', $params, null, $shop_identifier);
+    }
 }
+
