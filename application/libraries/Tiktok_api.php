@@ -524,5 +524,94 @@ class Tiktok_api
         }
         return $this->request('/product/202309/brands', 'GET', $params, null, $shop_identifier);
     }
+    /**
+     * =========================================================================
+     * ORDER & FULFILLMENT API HELPERS (Pesanan, Pengiriman, Resi AWB)
+     * =========================================================================
+     */
+
+    /**
+     * Ambil / cari daftar pesanan dari TikTok Shop
+     * POST /order/202309/orders/search
+     */
+    public function search_orders(array $body = [], array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        return $this->request('/order/202309/orders/search', 'POST', $params, $body, $shop_identifier);
+    }
+
+    /**
+     * Ambil detail lengkap satu pesanan TikTok
+     * GET /order/202309/orders/{order_id}
+     */
+    public function get_order_detail($order_id, array $params = [], $shop_identifier = null)
+    {
+        return $this->request('/order/202309/orders/' . $order_id, 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil dokumen pengiriman (Label Resi / Shipping Label AWB PDF)
+     * GET /fulfillment/202309/packages/{package_id}/shipping_documents
+     */
+    public function get_shipping_documents($package_id, $document_type = 'SHIPPING_LABEL', array $params = [], $shop_identifier = null)
+    {
+        $params['document_type'] = $document_type;
+        $params['document_size'] = $params['document_size'] ?? 'A6';
+        return $this->request('/fulfillment/202309/packages/' . $package_id . '/shipping_documents', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Konfirmasi pengiriman paket / Handover (Drop-off / Pickup)
+     * POST /fulfillment/202309/packages/{package_id}/ship
+     */
+    public function ship_package($package_id, array $body = [], $shop_identifier = null)
+    {
+        return $this->request('/fulfillment/202309/packages/' . $package_id . '/ship', 'POST', [], $body, $shop_identifier);
+    }
+
+    /**
+     * Batalkan pesanan TikTok Shop dari sisi penjual (Seller Cancel Order)
+     * POST /return_refund/202309/cancellations
+     *
+     * @param string $order_id ID pesanan TikTok Shop
+     * @param string $reason Alasan pembatalan (default: seller_cancel_reason_out_of_stock)
+     * @param mixed $shop_identifier ID atau objek toko
+     * @return array
+     */
+    public function cancel_order($order_id, $reason = 'seller_cancel_reason_out_of_stock', $shop_identifier = null)
+    {
+        $body = [
+            'order_id'      => (string) $order_id,
+            'cancel_reason' => $reason
+        ];
+        return $this->request('/return_refund/202309/cancellations', 'POST', [], $body, $shop_identifier);
+    }
+
+    /**
+     * =========================================================================
+     * FINANCE & RETURN API HELPERS (Keuangan & Retur - Developer 3)
+     * =========================================================================
+     */
+
+    /**
+     * Tarik Rekap Pencairan Dana (Settlement Statements)
+     * GET /finance/202309/statements
+     */
+    public function get_statements(array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        $params['sort_field'] = $params['sort_field'] ?? 'statement_time';
+        return $this->request('/finance/202309/statements', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Tarik data retur / komplain customer
+     * POST /return_refund/202309/returns/search
+     */
+    public function search_returns(array $body = [], array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        return $this->request('/return_refund/202309/returns/search', 'POST', $params, $body, $shop_identifier);
+    }
 }
 
