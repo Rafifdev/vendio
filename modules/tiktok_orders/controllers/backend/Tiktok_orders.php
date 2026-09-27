@@ -48,7 +48,7 @@ class Tiktok_orders extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->template->title('Order TikTok List');
+		$this->template->title('Pesanan Penjualan List');
 		$this->render('backend/standart/administrator/tiktok_orders/tiktok_orders_list', $this->data);
 	}
 	
@@ -118,6 +118,15 @@ class Tiktok_orders extends Admin
 					'cancel_reason' => 'seller_cancel_reason_out_of_stock',
 					'updated_at'    => date('Y-m-d H:i:s')
 				]);
+				$this->db->insert('tiktok_order_status_logs', [
+					'tiktok_order_id' => $order->id,
+					'order_id'        => $order->order_id,
+					'previous_status' => $order->order_status,
+					'new_status'      => 'CANCELLED',
+					'reason'          => 'Dibatalkan oleh penjual: Stok Habis (Out of stock)',
+					'source'          => 'SELLER_MANUAL',
+					'created_at'      => date('Y-m-d H:i:s'),
+				]);
 				$success_count++;
 			} else {
 				$err_msg = $cancel_res['message'] ?? 'Gagal membatalkan di TikTok Shop.';
@@ -171,8 +180,10 @@ class Tiktok_orders extends Admin
 		}
 
 		$this->data['order_items'] = $this->db->get_where('tiktok_order_items', ['tiktok_order_id' => $id])->result();
+		$this->data['price_details'] = $this->db->get_where('tiktok_order_price_details', ['tiktok_order_id' => $id])->row();
+		$this->data['status_logs'] = $this->db->order_by('id', 'DESC')->get_where('tiktok_order_status_logs', ['tiktok_order_id' => $id])->result();
 
-		$this->template->title('Order TikTok Detail');
+		$this->template->title('Pesanan Penjualan Detail');
 		$this->render('backend/standart/administrator/tiktok_orders/tiktok_orders_view', $this->data);
 	}
 	
@@ -292,7 +303,9 @@ class Tiktok_orders extends Admin
 				// Ambil detail lengkap pesanan dari API TikTok
 				$detail = $order;
 				$detail_res = $this->tiktok_api->get_order_detail($order_id, [], $shop->id);
-				if (!empty($detail_res['data']['id'])) {
+				if (!empty($detail_res['data']['orders'][0])) {
+					$detail = array_merge($order, $detail_res['data']['orders'][0]);
+				} elseif (!empty($detail_res['data']['id'])) {
 					$detail = array_merge($order, $detail_res['data']);
 				}
 
@@ -367,13 +380,77 @@ class Tiktok_orders extends Admin
 
 				// Cek apakah data order sudah ada di database lokal
 				$existing = $this->db->get_where('tiktok_orders', ['order_id' => $order_id])->row();
+				$prev_status = $existing ? $existing->order_status : null;
+
 				if ($existing) {
 					$this->db->where('id', $existing->id)->update('tiktok_orders', $order_data);
 					$local_order_id = $existing->id;
+
+					if ($prev_status !== $status) {
+						$this->db->insert('tiktok_order_status_logs', [
+							'tiktok_order_id' => $local_order_id,
+							'order_id'        => $order_id,
+							'previous_status' => $prev_status,
+							'new_status'      => $status,
+							'reason'          => 'Perubahan status terdeteksi via sinkronisasi TikTok Shop',
+							'source'          => 'API_SYNC',
+							'created_at'      => date('Y-m-d H:i:s'),
+						]);
+					}
 				} else {
 					$order_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_orders', $order_data);
 					$local_order_id = $this->db->insert_id();
+
+					$this->db->insert('tiktok_order_status_logs', [
+						'tiktok_order_id' => $local_order_id,
+						'order_id'        => $order_id,
+						'previous_status' => null,
+						'new_status'      => $status,
+						'reason'          => 'Pesanan baru ditarik dari TikTok Shop',
+						'source'          => 'API_SYNC',
+						'created_at'      => date('Y-m-d H:i:s'),
+					]);
+				}
+
+				// Simpan Rincian Finansial Lengkap (Price Details Breakdown)
+				$currency = $payment['currency'] ?? 'IDR';
+				$orig_product_price = floatval($payment['original_total_product_price'] ?? 0);
+				$seller_discount = floatval($payment['seller_discount'] ?? 0);
+				$platform_discount = floatval($payment['platform_discount'] ?? 0);
+				$subtotal = floatval($payment['sub_total'] ?? ($orig_product_price - $seller_discount - $platform_discount));
+				$orig_shipping_fee = floatval($payment['original_shipping_fee'] ?? 0);
+				$shipping_seller_disc = floatval($payment['shipping_fee_seller_discount'] ?? 0);
+				$shipping_platform_disc = floatval($payment['shipping_fee_platform_discount'] ?? 0);
+				$buyer_shipping_fee = floatval($payment['shipping_fee'] ?? 0);
+				$tax = floatval($payment['tax'] ?? 0);
+				$total_buyer_payment = floatval($payment['total_amount'] ?? 0);
+				$seller_revenue = max(0, $orig_product_price - $seller_discount);
+
+				$price_data = [
+					'tiktok_order_id'               => $local_order_id,
+					'order_id'                      => $order_id,
+					'currency'                      => $currency,
+					'original_product_price'        => $orig_product_price,
+					'seller_discount'               => $seller_discount,
+					'platform_discount'             => $platform_discount,
+					'subtotal'                      => $subtotal,
+					'original_shipping_fee'         => $orig_shipping_fee,
+					'shipping_fee_seller_discount'  => $shipping_seller_disc,
+					'shipping_fee_platform_discount'=> $shipping_platform_disc,
+					'buyer_shipping_fee'            => $buyer_shipping_fee,
+					'tax'                           => $tax,
+					'total_buyer_payment'           => $total_buyer_payment,
+					'seller_revenue'                => $seller_revenue,
+					'updated_at'                    => date('Y-m-d H:i:s'),
+				];
+
+				$existing_price = $this->db->get_where('tiktok_order_price_details', ['tiktok_order_id' => $local_order_id])->row();
+				if ($existing_price) {
+					$this->db->where('id', $existing_price->id)->update('tiktok_order_price_details', $price_data);
+				} else {
+					$price_data['created_at'] = date('Y-m-d H:i:s');
+					$this->db->insert('tiktok_order_price_details', $price_data);
 				}
 
 				// Sinkronkan Line Items ke tabel tiktok_order_items

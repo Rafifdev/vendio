@@ -18,11 +18,11 @@ jQuery(document).ready(domo);
 <!-- Content Header (Page header) -->
 <section class="content-header">
    <h1>
-      Produk TikTok      <small><?= cclang('detail', ['Produk TikTok']); ?> </small>
+      Katalog Produk      <small><?= cclang('detail', ['Katalog Produk']); ?> </small>
    </h1>
    <ol class="breadcrumb">
       <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-      <li class=""><a  href="<?= site_url('administrator/tiktok_products'); ?>">Produk TikTok</a></li>
+      <li class=""><a  href="<?= site_url('administrator/tiktok_products'); ?>">Katalog Produk</a></li>
       <li class="active"><?= cclang('detail'); ?></li>
    </ol>
 </section>
@@ -43,8 +43,8 @@ jQuery(document).ready(domo);
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/view.png" alt="User Avatar">
                      </div>
                      <!-- /.widget-user-image -->
-                     <h3 class="widget-user-username">Produk TikTok</h3>
-                     <h5 class="widget-user-desc">Detail Produk TikTok</h5>
+                     <h3 class="widget-user-username">Katalog Produk</h3>
+                     <h5 class="widget-user-desc">Detail Katalog Produk</h5>
                      <hr>
                   </div>
 
@@ -118,12 +118,54 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Status </label>
+                        <label for="content" class="col-sm-2 control-label">Status Produk </label>
 
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_products->status); ?>
+                           <?php
+                           $status = strtoupper(trim((string)$tiktok_products->status));
+                           switch ($status) {
+                              case 'ACTIVATE':
+                              case 'LIVE':
+                                 echo '<span class="label label-success">Aktif</span>';
+                                 break;
+                              case 'PENDING':
+                                 echo '<span class="label label-warning">Menunggu Review</span>';
+                                 break;
+                              case 'DRAFT':
+                                 echo '<span class="label label-info">Draft</span>';
+                                 break;
+                              case 'DEACTIVATED':
+                              case 'SELLER_DEACTIVATED':
+                                 echo '<span class="label label-warning">Nonaktif</span>';
+                                 break;
+                              case 'FAILED':
+                              case 'PLATFORM_DEACTIVATED':
+                                 echo '<span class="label label-danger">Ditolak</span>';
+                                 break;
+                              case 'FREEZE':
+                                 echo '<span class="label label-danger">Dibekukan</span>';
+                                 break;
+                              case 'DELETED':
+                                 echo '<span class="label label-danger">Dihapus</span>';
+                                 break;
+                              default:
+                                 echo '<span class="label label-info">' . _ent($tiktok_products->status) . '</span>';
+                           }
+                           ?>
                         </div>
                     </div>
+
+                    <?php if ($status == 'FAILED' && !empty($tiktok_products->reject_reason)): ?>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label text-danger">Alasan Penolakan </label>
+                        <div class="col-sm-8">
+                           <div class="callout callout-danger" style="margin-bottom: 0;">
+                              <h4><i class="icon fa fa-ban"></i> Produk Ditolak oleh Audit TikTok Shop</h4>
+                              <p><?= nl2br(_ent($tiktok_products->reject_reason)); ?></p>
+                           </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                                          
                     <div class="form-group ">
                         <label for="content" class="col-sm-2 control-label">Category Name </label>
@@ -224,10 +266,63 @@ jQuery(document).ready(domo);
                     <br>
                     <br>
 
+                    <!-- Sub-tabel Log Riwayat Sinkronisasi (Pola Varian SKU) -->
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Log Sinkronisasi </label>
+                        <div class="col-sm-8">
+                            <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                <thead>
+                                    <tr class="bg-gray">
+                                        <th style="width: 170px;">Waktu</th>
+                                        <th style="width: 130px;">Aksi</th>
+                                        <th style="width: 100px; text-align: center;">Status</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($sync_logs)): ?>
+                                        <?php foreach ($sync_logs as $log): ?>
+                                        <tr>
+                                            <td><?= date('d/m/Y H:i:s', strtotime($log->created_at)); ?></td>
+                                            <td><strong><?= _ent($log->action); ?></strong></td>
+                                            <td style="text-align: center;">
+                                                <?= $log->status == 'SUCCESS' 
+                                                    ? '<span class="label label-success">Sukses</span>' 
+                                                    : '<span class="label label-danger">Gagal</span>'; ?>
+                                            </td>
+                                            <td><?= _ent($log->response_message ?: '-'); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">Belum ada riwayat aktivitas sinkronisasi untuk produk ini</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <br>
+                    <br>
+
                     <div class="view-nav">
-                        <?php is_allowed('tiktok_products_update', function() use ($tiktok_products){?>
-                        <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype='back' title="edit tiktok_products (Ctrl+e)" href="<?= site_url('administrator/tiktok_products/edit/'.$tiktok_products->id); ?>"><i class="fa fa-edit" ></i> <?= cclang('update', ['Tiktok Products']); ?> </a>
-                        <?php }) ?>
+                        <?php if (in_array($status, ['DEACTIVATED', 'SELLER_DEACTIVATED']) && intval($tiktok_products->total_stock) > 0): ?>
+                           <?php is_allowed('tiktok_products_update', function() use ($tiktok_products){?>
+                           <a class="btn btn-flat btn-success btn_action" title="Aktifkan Produk di TikTok" href="<?= site_url('administrator/tiktok_products/activate/'.$tiktok_products->id); ?>"><i class="fa fa-play"></i> Aktifkan Produk</a>
+                           <?php }) ?>
+                        <?php elseif (in_array($status, ['ACTIVATE', 'LIVE'])): ?>
+                           <?php is_allowed('tiktok_products_update', function() use ($tiktok_products){?>
+                           <a class="btn btn-flat btn-warning btn_action" title="Nonaktifkan Produk dari TikTok" onclick="return confirm('Apakah Anda yakin ingin menonaktifkan produk ini dari etalase TikTok?');" href="<?= site_url('administrator/tiktok_products/deactivate/'.$tiktok_products->id); ?>"><i class="fa fa-pause"></i> Nonaktifkan Produk</a>
+                           <?php }) ?>
+                        <?php endif; ?>
+
+                        <?php if ($status != 'FREEZE'): ?>
+                           <?php is_allowed('tiktok_products_update', function() use ($tiktok_products){?>
+                           <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype='back' title="edit tiktok_products (Ctrl+e)" href="<?= site_url('administrator/tiktok_products/edit/'.$tiktok_products->id); ?>"><i class="fa fa-edit" ></i> <?= cclang('update', ['Tiktok Products']); ?> </a>
+                           <?php }) ?>
+                        <?php endif; ?>
+
                         <a class="btn btn-flat btn-default btn_action" id="btn_back" title="back (Ctrl+x)" href="<?= site_url('administrator/tiktok_products/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Tiktok Products']); ?></a>
                      </div>
                     

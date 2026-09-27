@@ -44,7 +44,7 @@ class Tiktok_returns extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->template->title('Return Order List');
+		$this->template->title('Retur Penjualan List');
 		$this->render('backend/standart/administrator/tiktok_returns/tiktok_returns_list', $this->data);
 	}
 	
@@ -266,7 +266,7 @@ class Tiktok_returns extends Admin
 
 		$this->data['tiktok_returns'] = $this->model_tiktok_returns->join_avaiable()->filter_avaiable()->find($id);
 
-		$this->template->title('Return Order Detail');
+		$this->template->title('Retur Penjualan Detail');
 		$this->render('backend/standart/administrator/tiktok_returns/tiktok_returns_view', $this->data);
 	}
 	

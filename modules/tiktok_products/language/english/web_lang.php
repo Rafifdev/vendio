@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-$lang['tiktok_products'] = 'Produk TikTok';
+$lang['tiktok_products'] = 'Katalog Produk';
 $lang['id'] = 'Id';
 $lang['tiktok_shop_id'] = 'Tiktok Shop Id';
 $lang['product_id'] = 'Product Id';

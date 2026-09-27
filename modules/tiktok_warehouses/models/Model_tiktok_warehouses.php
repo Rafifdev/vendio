@@ -5,7 +5,7 @@ class Model_tiktok_warehouses extends MY_Model {
 
     private $primary_key    = 'id';
     private $table_name     = 'tiktok_warehouses';
-    private $field_search   = ['shop_id', 'tiktok_warehouse_id', 'branch_mapping_id', 'name', 'address', 'warehouse_type', 'effect_status', 'is_default', 'created_at', 'updated_at'];
+    private $field_search   = ['shop_id', 'tiktok_warehouse_id', 'name', 'address', 'warehouse_type', 'effect_status', 'is_default'];
 
     public function __construct()
     {

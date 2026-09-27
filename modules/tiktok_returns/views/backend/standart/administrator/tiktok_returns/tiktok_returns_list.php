@@ -78,30 +78,30 @@ jQuery(document).ready(domo);
                      function format_tiktok_return_status($status) {
                         switch ($status) {
                            case 'RETURN_OR_REFUND_REQUEST_PENDING':
-                              return 'Menunggu Respon Penjual';
+                              return '<span class="label label-warning">Menunggu Respon Penjual</span>';
                            case 'AWAITING_BUYER_SHIP':
-                              return 'Menunggu Pembeli Mengirim Barang';
+                              return '<span class="label label-warning">Menunggu Pembeli Mengirim Barang</span>';
                            case 'BUYER_SHIPPED':
-                              return 'Barang Sedang Dikembalikan';
+                              return '<span class="label label-info">Barang Sedang Dikembalikan</span>';
                            case 'SELLER_RECEIVE_PACKAGE':
                            case 'RETURN_AND_REFUND_PACKAGE_DELIVERED':
-                              return 'Barang Diterima Penjual';
+                              return '<span class="label label-primary">Barang Diterima Penjual</span>';
                            case 'REFUND_PROCESSING':
                            case 'PROCESSING':
-                              return 'Proses Pengembalian Dana';
+                              return '<span class="label label-info">Proses Pengembalian Dana</span>';
                            case 'COMPLETE':
                            case 'COMPLETED':
                            case 'REFUND_SUCCESS':
                            case 'SUCCESS':
-                              return 'Selesai';
+                              return '<span class="label label-success">Selesai</span>';
                            case 'REJECT':
                            case 'REJECTED':
-                              return 'Ditolak';
+                              return '<span class="label label-danger">Ditolak</span>';
                            case 'CANCEL':
                            case 'CANCELLED':
-                              return 'Dibatalkan';
+                              return '<span class="label label-danger">Dibatalkan</span>';
                            default:
-                              return $status ? ucwords(str_replace('_', ' ', strtolower($status))) : '-';
+                              return '<span class="label label-info">' . ($status ? ucwords(str_replace('_', ' ', strtolower($status))) : '-') . '</span>';
                         }
                      }
                   }
@@ -157,19 +157,19 @@ jQuery(document).ready(domo);
                      <thead>
                         <tr style="white-space: nowrap;">
                            <th width="5">
-                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
-                           <th> <?= cclang('tiktok_shop_id') ?></th>
-                           <th> <?= cclang('return_id') ?></th>
-                           <th> <?= cclang('order_id') ?></th>
-                            <th> Produk</th>
-                           <th> <?= cclang('return_type') ?></th>
-                           <th> <?= cclang('return_status') ?></th>
-                           <th> <?= cclang('return_reason') ?></th>
-                           <th> <?= cclang('refund_amount') ?></th>
-                           <th> <?= cclang('tracking_number') ?></th>
-                           <th> <?= cclang('return_created_time') ?></th>
-                           <th class="table-action-col">Action</th>
+                           <th>Nama Toko</th>
+                           <th>ID Retur</th>
+                           <th>ID Pesanan</th>
+                           <th>Produk</th>
+                           <th>Tipe Retur</th>
+                           <th>Status Retur</th>
+                           <th>Alasan Retur</th>
+                           <th>Nominal Pengembalian Dana</th>
+                           <th>Nomor Resi</th>
+                           <th>Tanggal Pengajuan</th>
+                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_returns">
@@ -209,7 +209,7 @@ jQuery(document).ready(domo);
                            <td>Rp <?= number_format($tiktok_returns->refund_amount, 0, ',', '.'); ?></td>
                            <td><?= _ent($tiktok_returns->tracking_number ?: '-'); ?></td>
                            <td><?= $tiktok_returns->return_created_time ? date('d/m/Y H:i', strtotime($tiktok_returns->return_created_time)) : '-'; ?></td>
-                           <td class="table-action-col">
+                           <td style="min-width: 260px; text-align: center;">
                               <?php if ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING'): ?>
                                  <!-- Aksi Seller Center saat Menunggu Respon Penjual -->
                                  <a href="<?= site_url('administrator/tiktok_returns/approve/' . $tiktok_returns->id); ?>" class="label-default btn-approve-return" data-return-id="<?= $tiktok_returns->return_id; ?>" title="Setujui pengembalian"><i class="fa fa-check"></i> Setujui</a>

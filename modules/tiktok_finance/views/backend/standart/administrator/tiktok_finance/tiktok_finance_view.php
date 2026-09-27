@@ -12,11 +12,11 @@ jQuery(document).ready(domo);
 <!-- Content Header (Page header) -->
 <section class="content-header">
    <h1>
-      Keuangan TikTok <small><?= cclang('detail', ['Keuangan TikTok']); ?> </small>
+      Penghasilan Toko <small><?= cclang('detail', ['Penghasilan Toko']); ?> </small>
    </h1>
    <ol class="breadcrumb">
       <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-      <li class=""><a href="<?= site_url('administrator/tiktok_finance'); ?>">Keuangan TikTok</a></li>
+      <li class=""><a href="<?= site_url('administrator/tiktok_finance'); ?>">Penghasilan Toko</a></li>
       <li class="active"><?= cclang('detail'); ?></li>
    </ol>
 </section>
@@ -35,7 +35,7 @@ jQuery(document).ready(domo);
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/view.png" alt="User Avatar">
                      </div>
-                     <h3 class="widget-user-username">Rincian Statement Keuangan TikTok</h3>
+                     <h3 class="widget-user-username">Rincian Statement Penghasilan Toko</h3>
                      <h5 class="widget-user-desc">ID Statement: <?= _ent($tiktok_finance->statement_id); ?></h5>
                      <hr>
                   </div>
@@ -139,7 +139,7 @@ jQuery(document).ready(domo);
                     <br>
 
                     <div class="view-nav">
-                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="back (Ctrl+x)" href="<?= site_url('administrator/tiktok_finance/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Keuangan TikTok']); ?></a>
+                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="back (Ctrl+x)" href="<?= site_url('administrator/tiktok_finance/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Penghasilan Toko']); ?></a>
                      </div>
                     
                   </div>

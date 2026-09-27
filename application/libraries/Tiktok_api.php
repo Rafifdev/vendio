@@ -25,7 +25,7 @@ class Tiktok_api
 
         $config = $this->CI->config->item('tiktok');
         $this->auth_base_url      = $config['tiktok_auth_base_url'] ?? 'https://auth.tiktok-shops.com';
-        $this->api_base_url       = $config['tiktok_api_base_url'] ?? 'https://auth.tiktok-shops.com';
+        $this->api_base_url       = $config['tiktok_api_base_url'] ?? 'https://open-api.tiktokglobalshop.com';
         $this->default_app_key    = $config['tiktok_app_key'] ?? '';
         $this->default_app_secret = $config['tiktok_app_secret'] ?? '';
         $this->redirect_uri       = $config['tiktok_redirect_uri'] ?? site_url('administrator/tiktok/callback');
@@ -324,6 +324,8 @@ class Tiktok_api
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_CUSTOMREQUEST  => strtoupper($method),
+            CURLOPT_ENCODING       => '',
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         ];
 
         if (!empty($headers)) {
@@ -541,6 +543,24 @@ class Tiktok_api
     }
 
     /**
+     * Ambil opsi pengiriman untuk gudang tertentu
+     * GET /logistics/202309/warehouses/{warehouse_id}/delivery_options
+     */
+    public function get_warehouse_delivery_options($warehouse_id, $shop_identifier = null)
+    {
+        return $this->request('/logistics/202309/warehouses/' . $warehouse_id . '/delivery_options', 'GET', [], null, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar kurir / shipping providers untuk delivery option tertentu
+     * GET /logistics/202309/delivery_options/{delivery_option_id}/shipping_providers
+     */
+    public function get_shipping_providers($delivery_option_id, $shop_identifier = null)
+    {
+        return $this->request('/logistics/202309/delivery_options/' . $delivery_option_id . '/shipping_providers', 'GET', [], null, $shop_identifier);
+    }
+
+    /**
      * Ambil daftar kategori produk TikTok
      * GET /product/202309/categories
      */
@@ -548,6 +568,16 @@ class Tiktok_api
     {
         $params['category_version'] = $params['category_version'] ?? 'v2';
         return $this->request('/product/202309/categories', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar atribut untuk kategori tertentu
+     * GET /product/202309/categories/{category_id}/attributes
+     */
+    public function get_category_attributes($category_id, array $params = [], $shop_identifier = null)
+    {
+        $params['category_version'] = $params['category_version'] ?? 'v2';
+        return $this->request('/product/202309/categories/' . $category_id . '/attributes', 'GET', $params, null, $shop_identifier);
     }
 
     /**
@@ -581,11 +611,12 @@ class Tiktok_api
 
     /**
      * Ambil detail lengkap satu pesanan TikTok
-     * GET /order/202309/orders/{order_id}
+     * GET /order/202309/orders?ids={order_id}
      */
     public function get_order_detail($order_id, array $params = [], $shop_identifier = null)
     {
-        return $this->request('/order/202309/orders/' . $order_id, 'GET', $params, null, $shop_identifier);
+        $params['ids'] = (string)$order_id;
+        return $this->request('/order/202309/orders', 'GET', $params, null, $shop_identifier);
     }
 
     /**

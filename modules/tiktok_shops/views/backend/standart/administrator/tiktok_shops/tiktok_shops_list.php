@@ -54,7 +54,6 @@ jQuery(document).ready(domo);
                      <div class="row pull-right">
                         <?php is_allowed('tiktok_shops_add', function(){?>
                         <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_shops')]); ?>  (Ctrl+a)" href="<?=  site_url('administrator/tiktok_shops/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', [cclang('tiktok_shops')]); ?></a>
-                        <a class="btn btn-flat btn-success" id="btn_connect_tiktok" target="_blank" title="Hubungkan Akun TikTok Shop" href="<?= site_url('administrator/tiktok_shops/connect'); ?>"><i class="fa fa-plug"></i> Hubungkan Akun TikTok</a>
                         <?php }) ?>
                         <?php is_allowed('tiktok_shops_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> <?= cclang('tiktok_shops') ?>']); ?>" href="<?= site_url('administrator/tiktok_shops/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
@@ -76,38 +75,31 @@ jQuery(document).ready(domo);
 
                   <div class="table-responsive"> 
                   <table class="table table-bordered table-striped dataTable">
-                      <thead>
-                         <tr>
-                            <th style="width: 40px; text-align: center;">
-                               <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
-                            </th>
-                            <th style="width: 25%;">Nama Toko</th>
-                            <th style="width: 20%;">ID Toko</th>
-                            <th style="width: 12%; text-align: center;">Wilayah</th>
-                            <th style="width: 18%;">Masa Berlaku Token</th>
-                            <th style="width: 10%; text-align: center;">Status</th>
-                            <th style="width: 15%; min-width: 160px; text-align: center;">Aksi</th>
-                         </tr>
-                      </thead>
+                     <thead>
+                        <tr class="">
+                                                     <th>
+                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                           </th>
+                                                    <th> <?= cclang('shop_id') ?></th>
+                           <th> <?= cclang('shop_name') ?></th>
+                           <th> <?= cclang('seller_base_region') ?></th>
+                           <th> <?= cclang('access_token_expire_in') ?></th>
+                           <th> <?= cclang('is_active') ?></th>
+                           <th>Action</th>                        </tr>
+                     </thead>
                      <tbody id="tbody_tiktok_shops">
                      <?php foreach($tiktok_shopss as $tiktok_shops): ?>
                         <tr>
-                            <td style="text-align: center;">
+                                                       <td width="5">
                               <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_shops->id; ?>">
                            </td>
                                                        
-                            <td><?= _ent($tiktok_shops->shop_name); ?></td>
-                            <td><?= _ent($tiktok_shops->shop_id); ?></td>
-                            <td style="text-align: center;"><?= _ent($tiktok_shops->seller_base_region); ?></td>
-                           <td>
-                               <?= !empty($tiktok_shops->access_token_expire_in) ? date('d F Y H:i:s', $tiktok_shops->access_token_expire_in) : '-'; ?>
-                            </td> 
-                            <td style="text-align: center;">
-                              <?= $tiktok_shops->is_active == 1 
-                                 ? '<span class="label label-success"><i class="fa fa-check"></i> Aktif</span>' 
-                                 : '<span class="label label-danger"><i class="fa fa-ban"></i> Nonaktif</span>'; ?>
-                           </td> 
-                            <td style="text-align: center;">
+                           <td><?= _ent($tiktok_shops->shop_id); ?></td> 
+                           <td><?= _ent($tiktok_shops->shop_name); ?></td> 
+                           <td><?= _ent($tiktok_shops->seller_base_region); ?></td> 
+                           <td><?= _ent($tiktok_shops->access_token_expire_in); ?></td> 
+                           <td><?= _ent($tiktok_shops->is_active); ?></td> 
+                           <td width="200">
                             
                                                               <?php is_allowed('tiktok_shops_view', function() use ($tiktok_shops){?>
                                  <a href="<?= site_url('administrator/tiktok_shops/single_pdf/' .$tiktok_shops->id); ?>" class="label-default"><i class="fa fa-file-pdf-o"></i> <?= cclang('PDF') ?>
@@ -115,7 +107,6 @@ jQuery(document).ready(domo);
                               <?php }) ?>
                               <?php is_allowed('tiktok_shops_update', function() use ($tiktok_shops){?>
                               <a href="<?= site_url('administrator/tiktok_shops/edit/' . $tiktok_shops->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
-                               <a href="<?= site_url('administrator/tiktok_shops/refresh_token/' . $tiktok_shops->id); ?>" class="label-default"><i class="fa fa-refresh"></i> Refresh Token</a>
                               <?php }) ?>
                               <?php is_allowed('tiktok_shops_delete', function() use ($tiktok_shops){?>
                               <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_shops/delete/' . $tiktok_shops->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>
@@ -126,7 +117,7 @@ jQuery(document).ready(domo);
                       <?php if ($tiktok_shops_counts == 0) :?>
                          <tr>
                            <td colspan="100">
-                            Data Kelola Toko belum tersedia
+                           Akun Toko data is not available
                            </td>
                          </tr>
                       <?php endif; ?>

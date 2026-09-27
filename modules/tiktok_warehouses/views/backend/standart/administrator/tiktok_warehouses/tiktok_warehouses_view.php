@@ -23,11 +23,11 @@ jQuery(document).ready(domo);
 <!-- Content Header (Page header) -->
 <section class="content-header">
    <h1>
-      Gudang TikTok      <small><?= cclang('detail', ['Gudang TikTok']); ?> </small>
+      Daftar Gudang      <small><?= cclang('detail', ['Daftar Gudang']); ?> </small>
    </h1>
    <ol class="breadcrumb">
       <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-      <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Gudang TikTok</a></li>
+      <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Daftar Gudang</a></li>
       <li class="active"><?= cclang('detail'); ?></li>
    </ol>
 </section>
@@ -48,110 +48,125 @@ jQuery(document).ready(domo);
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/view.png" alt="User Avatar">
                      </div>
                      <!-- /.widget-user-image -->
-                     <h3 class="widget-user-username">Gudang TikTok</h3>
-                     <h5 class="widget-user-desc">Detail Gudang TikTok</h5>
+                     <h3 class="widget-user-username">Daftar Gudang</h3>
+                     <h5 class="widget-user-desc">Detail Daftar Gudang</h5>
                      <hr>
                   </div>
 
                  
                   <div class="form-horizontal" name="form_tiktok_warehouses" id="form_tiktok_warehouses" >
-                   
+                    
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Id </label>
-
+                        <label for="content" class="col-sm-2 control-label">ID </label>
                         <div class="col-sm-8">
                            <?= _ent($tiktok_warehouses->id); ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shop Id </label>
-
-                        <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->shop_id); ?>
-                        </div>
-                    </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Tiktok Warehouse Id </label>
-
-                        <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->tiktok_warehouse_id); ?>
-                        </div>
-                    </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Branch Mapping Id </label>
-
-                        <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->branch_mapping_id); ?>
-                        </div>
-                    </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Name </label>
-
+                        <label for="content" class="col-sm-2 control-label">Nama Gudang </label>
                         <div class="col-sm-8">
                            <?= _ent($tiktok_warehouses->name); ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Address </label>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">ID Gudang TikTok </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->address); ?>
+                           <?= _ent($tiktok_warehouses->tiktok_warehouse_id); ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Warehouse Type </label>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">Tipe Gudang </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->warehouse_type); ?>
+                           <?php 
+                              if ($tiktok_warehouses->warehouse_type == "SALES_WAREHOUSE") {
+                                 echo "Gudang Penjualan";
+                              } elseif ($tiktok_warehouses->warehouse_type == "RETURN_WAREHOUSE") {
+                                 echo "Gudang Retur";
+                              } else {
+                                 echo _ent($tiktok_warehouses->warehouse_type);
+                              }
+                           ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Effect Status </label>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">Alamat Gudang </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->effect_status); ?>
+                           <?= _ent($tiktok_warehouses->address ?: "-"); ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Is Default </label>
 
+
+
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">Gudang Utama </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->is_default); ?>
+                           <?= $tiktok_warehouses->is_default ? "Ya" : "Tidak"; ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Created At </label>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">Status </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->created_at); ?>
+                           <?= in_array(strtoupper($tiktok_warehouses->effect_status), ["ENABLED", "EFFECTIVE"]) ? '<span class="label label-success">Aktif</span>' : '<span class="label label-danger">Non-Aktif</span>'; ?>
                         </div>
                     </div>
-                                         
-                    <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Updated At </label>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">ID Toko </label>
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_warehouses->updated_at); ?>
+                           <?= _ent($tiktok_warehouses->shop_id); ?>
                         </div>
                     </div>
-                                        
-                    <br>
+                                                            <div class="form-group">
+                        <label class="col-sm-2 control-label">Opsi Pengiriman </label>
+                        <div class="col-sm-8">
+                            <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                <thead>
+                                    <tr class="bg-gray">
+                                        <th>Opsi Pengiriman</th>
+                                        <th>Cakupan</th>
+                                        <th>Kurir Logistik</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($tiktok_warehouses->delivery_options)): ?>
+                                        <?php foreach ($tiktok_warehouses->delivery_options as $dopt): ?>
+                                            <tr>
+                                                <td>
+                                                    <strong><?= _ent($dopt->name); ?></strong><br>
+                                                    <small class="text-muted">ID: <?= _ent($dopt->tiktok_delivery_option_id); ?></small>
+                                                </td>
+                                                <td><?= _ent($dopt->scope ?: "-"); ?></td>
+                                                <td>
+                                                    <?php if (!empty($dopt->shipping_providers)): ?>
+                                                        <ul style="padding-left: 20px; margin-bottom: 0;">
+                                                            <?php foreach ($dopt->shipping_providers as $sp): ?>
+                                                                <li><?= _ent($sp->name); ?> <small class="text-muted">(ID: <?= _ent($sp->tiktok_provider_id); ?>)</small></li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    <?php else: ?>
+                                                        <em class="text-muted">Tidak ada kurir terdaftar</em>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">Belum ada data opsi pengiriman. Klik "Tarik Data Gudang" untuk memperbarui.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     <br>
 
                     <div class="view-nav">
-                        <?php is_allowed('tiktok_warehouses_update', function() use ($tiktok_warehouses){?>
-                        <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype='back' title="edit tiktok_warehouses (Ctrl+e)" href="<?= site_url('administrator/tiktok_warehouses/edit/'.$tiktok_warehouses->id); ?>"><i class="fa fa-edit" ></i> <?= cclang('update', ['Tiktok Warehouses']); ?> </a>
-                        <?php }) ?>
-                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="back (Ctrl+x)" href="<?= site_url('administrator/tiktok_warehouses/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Tiktok Warehouses']); ?></a>
+                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="Kembali ke Daftar Gudang" href="<?= site_url('administrator/tiktok_warehouses/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Gudang']); ?></a>
                      </div>
                     
                   </div>

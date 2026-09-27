@@ -76,18 +76,18 @@ jQuery(document).ready(domo);
                      <thead>
                         <tr style="white-space: nowrap;">
                            <th width="20">
-                              <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                              <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
-                           <th>Toko TikTok</th>
+                           <th>Nama Toko</th>
                            <th>ID Statement</th>
-                           <th>Waktu Statement</th>
+                           <th>Tanggal Statement</th>
                            <th>ID Pencairan</th>
-                           <th>Status</th>
+                           <th>Status Pencairan</th>
                            <th>Total Pencairan</th>
                            <th>Omzet Kotor</th>
-                           <th>Ongkir</th>
+                           <th>Biaya Pengiriman</th>
                            <th>Biaya Layanan</th>
-                           <th style="min-width: 140px; text-align: left !important;">Action</th>
+                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_finance">
@@ -162,17 +162,17 @@ jQuery(document).ready(domo);
                      </div>
                      <div class="col-sm-3 padd-left-0 " >
                         <select type="text" class="form-control chosen chosen-select" name="f" id="field" >
-                           <option value=""><?= cclang('all'); ?></option>
-                            <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' :''; ?> value="tiktok_shop_id">Tiktok Shop Id</option>
-                           <option <?= $this->input->get('f') == 'statement_id' ? 'selected' :''; ?> value="statement_id">Statement Id</option>
-                           <option <?= $this->input->get('f') == 'statement_time' ? 'selected' :''; ?> value="statement_time">Statement Time</option>
-                           <option <?= $this->input->get('f') == 'payout_id' ? 'selected' :''; ?> value="payout_id">Payout Id</option>
-                           <option <?= $this->input->get('f') == 'payment_status' ? 'selected' :''; ?> value="payment_status">Payment Status</option>
-                           <option <?= $this->input->get('f') == 'settlement_amount' ? 'selected' :''; ?> value="settlement_amount">Settlement Amount</option>
-                           <option <?= $this->input->get('f') == 'revenue_amount' ? 'selected' :''; ?> value="revenue_amount">Revenue Amount</option>
-                           <option <?= $this->input->get('f') == 'shipping_fee_amount' ? 'selected' :''; ?> value="shipping_fee_amount">Shipping Fee Amount</option>
-                           <option <?= $this->input->get('f') == 'fee_amount' ? 'selected' :''; ?> value="fee_amount">Fee Amount</option>
-                          </select>
+                            <option value=""><?= cclang('all'); ?></option>
+                            <option <?= $this->input->get('f') == 'statement_id' ? 'selected' :''; ?> value="statement_id">ID Statement</option>
+                            <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' :''; ?> value="tiktok_shop_id">Nama Toko</option>
+                            <option <?= $this->input->get('f') == 'statement_time' ? 'selected' :''; ?> value="statement_time">Tanggal Statement</option>
+                            <option <?= $this->input->get('f') == 'payout_id' ? 'selected' :''; ?> value="payout_id">ID Pencairan</option>
+                            <option <?= $this->input->get('f') == 'payment_status' ? 'selected' :''; ?> value="payment_status">Status Pencairan</option>
+                            <option <?= $this->input->get('f') == 'settlement_amount' ? 'selected' :''; ?> value="settlement_amount">Total Pencairan</option>
+                            <option <?= $this->input->get('f') == 'revenue_amount' ? 'selected' :''; ?> value="revenue_amount">Omzet Kotor</option>
+                            <option <?= $this->input->get('f') == 'shipping_fee_amount' ? 'selected' :''; ?> value="shipping_fee_amount">Biaya Pengiriman</option>
+                            <option <?= $this->input->get('f') == 'fee_amount' ? 'selected' :''; ?> value="fee_amount">Biaya Layanan</option>
+                           </select>
                      </div>
                      <div class="col-sm-1 padd-left-0 ">
                         <button type="submit" class="btn btn-flat" name="sbtn" id="sbtn" value="Apply" title="<?= cclang('filter_search'); ?>">

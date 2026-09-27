@@ -97,11 +97,11 @@
                                   <th style="width: 70px; text-align: center;">Gambar</th>
                                   <th style="width: 25%;">Nama Produk</th>
                                   <th style="width: 17%;">ID Produk</th>
-                                  <th style="width: 14%;">Toko</th>
+                                  <th style="width: 14%;">Nama Toko</th>
                                   <th style="width: 9%; text-align: center;">Stok</th>
                                   <th style="width: 13%;">Harga</th>
                                   <th style="width: 10%; text-align: center;">Status</th>
-                                  <th style="width: 12%; min-width: 140px; text-align: center;">Aksi</th>
+                                  <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
                                </tr>
                             </thead>
                            <tbody id="tbody_tiktok_products">
@@ -136,33 +136,59 @@
                                      </td>
                                      <td style="text-align: center;"><?= _ent($tiktok_products->total_stock); ?></td>
                                      <td>Rp <?= number_format($tiktok_products->price, 0, ',', '.'); ?></td>
-                                     <td style="text-align: center;">
-                                        <?php
-                                        $status = strtoupper($tiktok_products->status);
-                                        $badge_class = 'label-default';
-                                        if ($status == 'LIVE' || $status == 'ACTIVATE') {
-                                           $badge_class = 'label-success';
-                                        } elseif ($status == 'DRAFT') {
-                                           $badge_class = 'label-info';
-                                        } elseif ($status == 'FAILED' || $status == 'PLATFORM_DEACTIVATED') {
-                                           $badge_class = 'label-danger';
-                                        } elseif ($status == 'SELLER_DEACTIVATED' || $status == 'FREEZE') {
-                                           $badge_class = 'label-warning';
-                                        }
-                                        ?>
-                                        <span class="label <?= $badge_class; ?>"><?= _ent($tiktok_products->status); ?></span>
+                                                                          <td style="text-align: center;">
+                                         <?php
+                                         $status = strtoupper(trim((string)$tiktok_products->status));
+                                         switch ($status) {
+                                            case 'ACTIVATE':
+                                            case 'LIVE':
+                                               echo '<span class="label label-success">Aktif</span>';
+                                               break;
+                                            case 'PENDING':
+                                               echo '<span class="label label-warning">Menunggu Review</span>';
+                                               break;
+                                            case 'DRAFT':
+                                               echo '<span class="label label-info">Draft</span>';
+                                               break;
+                                            case 'DEACTIVATED':
+                                            case 'SELLER_DEACTIVATED':
+                                               echo '<span class="label label-warning">Nonaktif</span>';
+                                               break;
+                                            case 'FAILED':
+                                            case 'PLATFORM_DEACTIVATED':
+                                               echo '<span class="label label-danger">Ditolak</span>';
+                                               break;
+                                            case 'FREEZE':
+                                               echo '<span class="label label-danger">Dibekukan</span>';
+                                               break;
+                                            case 'DELETED':
+                                               echo '<span class="label label-danger">Dihapus</span>';
+                                               break;
+                                            default:
+                                               echo '<span class="label label-info">' . _ent($tiktok_products->status) . '</span>';
+                                         }
+                                         ?>
                                      </td>
-                                     <td style="text-align: center;">
-                                        <?php is_allowed('tiktok_products_view', function () use ($tiktok_products) { ?>
-                                           <a href="<?= site_url('administrator/tiktok_products/single_pdf/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-file-pdf-o"></i> <?= cclang('PDF') ?></a>
-                                           <a href="<?= site_url('administrator/tiktok_products/view/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?></a>
-                                        <?php }) ?>
-                                        <?php is_allowed('tiktok_products_update', function () use ($tiktok_products) { ?>
-                                           <a href="<?= site_url('administrator/tiktok_products/edit/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
-                                        <?php }) ?>
-                                        <?php is_allowed('tiktok_products_delete', function () use ($tiktok_products) { ?>
-                                           <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_products/delete/' . $tiktok_products->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>
-                                        <?php }) ?>
+                                     <td style="min-width: 260px; text-align: center;">
+                                         <?php is_allowed('tiktok_products_update', function () use ($tiktok_products, $status) { ?>
+                                            <?php if (in_array($status, ['DEACTIVATED', 'SELLER_DEACTIVATED']) && intval($tiktok_products->total_stock) > 0): ?>
+                                               <a href="<?= site_url('administrator/tiktok_products/activate/' . $tiktok_products->id); ?>" class="label-default" title="Aktifkan Produk di TikTok"><i class="fa fa-play "></i> Aktifkan</a>
+                                            <?php elseif (in_array($status, ['ACTIVATE', 'LIVE'])): ?>
+                                               <a href="<?= site_url('administrator/tiktok_products/deactivate/' . $tiktok_products->id); ?>" class="label-default" title="Nonaktifkan Produk dari TikTok" onclick="return confirm('Apakah Anda yakin ingin menonaktifkan produk ini dari etalase TikTok?');"><i class="fa fa-pause "></i> Nonaktifkan</a>
+                                            <?php endif; ?>
+                                         <?php }) ?>
+                                         <?php is_allowed('tiktok_products_view', function () use ($tiktok_products) { ?>
+                                            <a href="<?= site_url('administrator/tiktok_products/single_pdf/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-file-pdf-o"></i> <?= cclang('PDF') ?></a>
+                                            <a href="<?= site_url('administrator/tiktok_products/view/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?></a>
+                                         <?php }) ?>
+                                         <?php if ($status != 'FREEZE'): ?>
+                                            <?php is_allowed('tiktok_products_update', function () use ($tiktok_products) { ?>
+                                               <a href="<?= site_url('administrator/tiktok_products/edit/' . $tiktok_products->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
+                                            <?php }) ?>
+                                            <?php is_allowed('tiktok_products_delete', function () use ($tiktok_products) { ?>
+                                               <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_products/delete/' . $tiktok_products->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>
+                                            <?php }) ?>
+                                         <?php endif; ?>
                                      </td>
                                  </tr>
                               <?php endforeach; ?>
@@ -198,22 +224,15 @@
                      </div>
                      <div class="col-sm-3 padd-left-0 ">
                         <select type="text" class="form-control chosen chosen-select" name="f" id="field">
-                           <option value=""><?= cclang('all'); ?></option>
-                           <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' : ''; ?>
-                              value="tiktok_shop_id">Tiktok Shop Id</option>
-                           <option <?= $this->input->get('f') == 'product_id' ? 'selected' : ''; ?> value="product_id">
-                              Product Id</option>
-                           <option <?= $this->input->get('f') == 'title' ? 'selected' : ''; ?> value="title">Title</option>
-                           <option <?= $this->input->get('f') == 'main_image' ? 'selected' : ''; ?> value="main_image">Main
-                              Image</option>
-                           <option <?= $this->input->get('f') == 'status' ? 'selected' : ''; ?> value="status">Status
-                           </option>
-                           <option <?= $this->input->get('f') == 'seller_sku' ? 'selected' : ''; ?> value="seller_sku">
-                              Seller Sku</option>
-                           <option <?= $this->input->get('f') == 'price' ? 'selected' : ''; ?> value="price">Price</option>
-                           <option <?= $this->input->get('f') == 'total_stock' ? 'selected' : ''; ?> value="total_stock">
-                              Total Stock</option>
-                        </select>
+                            <option value=""><?= cclang('all'); ?></option>
+                            <option <?= $this->input->get('f') == 'title' ? 'selected' : ''; ?> value="title">Nama Produk</option>
+                            <option <?= $this->input->get('f') == 'product_id' ? 'selected' : ''; ?> value="product_id">ID Produk</option>
+                            <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' : ''; ?> value="tiktok_shop_id">Nama Toko</option>
+                            <option <?= $this->input->get('f') == 'total_stock' ? 'selected' : ''; ?> value="total_stock">Stok</option>
+                            <option <?= $this->input->get('f') == 'price' ? 'selected' : ''; ?> value="price">Harga</option>
+                            <option <?= $this->input->get('f') == 'seller_sku' ? 'selected' : ''; ?> value="seller_sku">SKU Penjual</option>
+                            <option <?= $this->input->get('f') == 'status' ? 'selected' : ''; ?> value="status">Status</option>
+                         </select>
                      </div>
                      <div class="col-sm-1 padd-left-0 ">
                         <button type="submit" class="btn btn-flat" name="sbtn" id="sbtn" value="Apply"

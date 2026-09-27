@@ -16,11 +16,11 @@ jQuery(document).ready(domo);
 <!-- Content Header (Page header) -->
 <section class="content-header">
    <h1>
-      Order TikTok      <small><?= cclang('detail', ['Order TikTok']); ?> </small>
+      Pesanan Penjualan      <small><?= cclang('detail', ['Pesanan Penjualan']); ?> </small>
    </h1>
    <ol class="breadcrumb">
       <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-      <li class=""><a  href="<?= site_url('administrator/tiktok_orders'); ?>">Order TikTok</a></li>
+      <li class=""><a  href="<?= site_url('administrator/tiktok_orders'); ?>">Pesanan Penjualan</a></li>
       <li class="active"><?= cclang('detail'); ?></li>
    </ol>
 </section>
@@ -41,8 +41,8 @@ jQuery(document).ready(domo);
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/view.png" alt="User Avatar">
                      </div>
                      <!-- /.widget-user-image -->
-                     <h3 class="widget-user-username">Order TikTok</h3>
-                     <h5 class="widget-user-desc">Detail Order TikTok</h5>
+                     <h3 class="widget-user-username">Pesanan Penjualan</h3>
+                     <h5 class="widget-user-desc">Detail Pesanan Penjualan</h5>
                      <hr>
                   </div>
 
@@ -74,10 +74,42 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Order Status </label>
+                        <label for="content" class="col-sm-2 control-label">Status Pesanan </label>
 
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_orders->order_status); ?>
+                           <?php 
+                           switch ($tiktok_orders->order_status) {
+                              case "UNPAID":
+                                 echo '<span class="label label-info">Belum Bayar</span>';
+                                 break;
+                              case "ON_HOLD":
+                                 echo '<span class="label label-warning">Ditahan</span>';
+                                 break;
+                              case "AWAITING_SHIPMENT":
+                                 echo '<span class="label label-warning">Perlu Dikirim</span>';
+                                 break;
+                              case "AWAITING_COLLECTION":
+                                 echo '<span class="label label-info">Menunggu Kurir</span>';
+                                 break;
+                               case "PARTIALLY_SHIPPING":
+                                  echo '<span class="label label-info">Sebagian Dikirim</span>';
+                                  break;
+                              case "IN_TRANSIT":
+                                 echo '<span class="label label-info">Sedang Dikirim</span>';
+                                 break;
+                              case "DELIVERED":
+                                 echo '<span class="label label-primary">Terkirim</span>';
+                                 break;
+                              case "COMPLETED":
+                                 echo '<span class="label label-success">Selesai</span>';
+                                 break;
+                              case "CANCELLED":
+                                 echo '<span class="label label-danger">Dibatalkan</span>';
+                                 break;
+                              default:
+                                 echo '<span class="label label-info">' . _ent($tiktok_orders->order_status) . '</span>';
+                           }
+                           ?>
                         </div>
                     </div>
                                          
@@ -258,6 +290,143 @@ jQuery(document).ready(domo);
                                     <?php else: ?>
                                         <tr>
                                             <td colspan="5" class="text-center text-muted">Tidak ada rincian produk.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Rincian Finansial Pesanan (Price Detail Breakdown) -->
+                    <div class="form-group">
+                        <label for="content" class="col-sm-2 control-label">Rincian Finansial Pesanan </label>
+                        <div class="col-sm-8">
+                            <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                <thead>
+                                    <tr class="bg-gray">
+                                        <th>Komponen Finansial</th>
+                                        <th style="width: 220px; text-align: right;">Jumlah (IDR)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($price_details)): ?>
+                                        <tr>
+                                            <td>Harga Asli Produk (Subtotal Kotor)</td>
+                                            <td style="text-align: right;">Rp <?= number_format($price_details->original_product_price, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php if ($price_details->seller_discount > 0): ?>
+                                        <tr>
+                                            <td>Diskon Penjual</td>
+                                            <td style="text-align: right; color: #dd4b39;">- Rp <?= number_format($price_details->seller_discount, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <?php if ($price_details->platform_discount > 0): ?>
+                                        <tr>
+                                            <td>Diskon Platform TikTok</td>
+                                            <td style="text-align: right; color: #0073b7;">- Rp <?= number_format($price_details->platform_discount, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <tr>
+                                            <td><strong>Subtotal Produk Bersih</strong></td>
+                                            <td style="text-align: right;"><strong>Rp <?= number_format($price_details->subtotal, 0, ',', '.'); ?></strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Ongkos Kirim Asli</td>
+                                            <td style="text-align: right;">Rp <?= number_format($price_details->original_shipping_fee, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php if ($price_details->shipping_fee_platform_discount > 0): ?>
+                                        <tr>
+                                            <td>Subsidi Ongkir Platform TikTok</td>
+                                            <td style="text-align: right; color: #00a65a;">- Rp <?= number_format($price_details->shipping_fee_platform_discount, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <?php if ($price_details->shipping_fee_seller_discount > 0): ?>
+                                        <tr>
+                                            <td>Diskon Ongkir Penjual</td>
+                                            <td style="text-align: right; color: #dd4b39;">- Rp <?= number_format($price_details->shipping_fee_seller_discount, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <tr>
+                                            <td>Ongkos Kirim Dibayar Pembeli</td>
+                                            <td style="text-align: right;">Rp <?= number_format($price_details->buyer_shipping_fee, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php if ($price_details->tax > 0): ?>
+                                        <tr>
+                                            <td>Pajak</td>
+                                            <td style="text-align: right;">Rp <?= number_format($price_details->tax, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <tr class="info">
+                                            <td><strong>Total Pembayaran Pembeli</strong></td>
+                                            <td style="text-align: right;"><strong>Rp <?= number_format($price_details->total_buyer_payment, 0, ',', '.'); ?></strong></td>
+                                        </tr>
+                                        <tr class="success" style="background-color: #dff0d8;">
+                                            <td><strong>Estimasi Pendapatan Penjual</strong></td>
+                                            <td style="text-align: right; color: #3c763d;"><strong>Rp <?= number_format($price_details->seller_revenue, 0, ',', '.'); ?></strong></td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td>Subtotal Produk</td>
+                                            <td style="text-align: right;">Rp <?= number_format($tiktok_orders->total_amount - $tiktok_orders->shipping_fee, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Ongkos Kirim</td>
+                                            <td style="text-align: right;">Rp <?= number_format($tiktok_orders->shipping_fee, 0, ',', '.'); ?></td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td><strong>Total Pembayaran Pembeli</strong></td>
+                                            <td style="text-align: right;"><strong>Rp <?= number_format($tiktok_orders->total_amount, 0, ',', '.'); ?></strong></td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Riwayat Perubahan Status (Status Logs) -->
+                    <div class="form-group">
+                        <label for="content" class="col-sm-2 control-label">Riwayat Status Pesanan </label>
+                        <div class="col-sm-8">
+                            <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                <thead>
+                                    <tr class="bg-gray">
+                                        <th style="width: 170px;">Waktu</th>
+                                        <th style="width: 150px;">Status Sebelumnya</th>
+                                        <th style="width: 150px;">Status Baru</th>
+                                        <th>Keterangan / Alasan</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($status_logs)): ?>
+                                        <?php 
+                                        function render_log_status_badge($st) {
+                                            $s = strtoupper(trim((string)$st));
+                                            switch ($s) {
+                                                case "UNPAID": return '<span class="label label-info">Belum Bayar</span>';
+                                                case "ON_HOLD": return '<span class="label label-warning">Ditahan</span>';
+                                                case "AWAITING_SHIPMENT": return '<span class="label label-warning">Perlu Dikirim</span>';
+                                                case "AWAITING_COLLECTION": return '<span class="label label-info">Menunggu Kurir</span>';
+                                                case "PARTIALLY_SHIPPING": return '<span class="label label-info">Sebagian Dikirim</span>';
+                                                case "IN_TRANSIT": return '<span class="label label-info">Sedang Dikirim</span>';
+                                                case "DELIVERED": return '<span class="label label-primary">Terkirim</span>';
+                                                case "COMPLETED": return '<span class="label label-success">Selesai</span>';
+                                                case "CANCELLED": return '<span class="label label-danger">Dibatalkan</span>';
+                                                default: return $s ? '<span class="label label-info">' . _ent($s) . '</span>' : '<span class="text-muted">-</span>';
+                                            }
+                                        }
+                                        ?>
+                                        <?php foreach ($status_logs as $log): ?>
+                                            <tr>
+                                                <td style="vertical-align: middle; white-space: nowrap;"><?= date('d/m/Y H:i:s', strtotime($log->created_at)); ?></td>
+                                                <td style="vertical-align: middle;"><?= render_log_status_badge($log->previous_status); ?></td>
+                                                <td style="vertical-align: middle;"><?= render_log_status_badge($log->new_status); ?></td>
+                                                <td style="vertical-align: middle;"><?= _ent($log->reason ?: '-'); ?></td>
+                                                
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">Belum ada riwayat perubahan status tercatat.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

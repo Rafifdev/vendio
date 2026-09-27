@@ -44,7 +44,7 @@ class Tiktok_finance extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->template->title('Keuangan TikTok List');
+		$this->template->title('Penghasilan Toko List');
 		$this->render('backend/standart/administrator/tiktok_finance/tiktok_finance_list', $this->data);
 	}
 	
@@ -270,7 +270,7 @@ class Tiktok_finance extends Admin
 
 		$this->data['tiktok_finance'] = $this->model_tiktok_finance->join_avaiable()->filter_avaiable()->find($id);
 
-		$this->template->title('Keuangan TikTok Detail');
+		$this->template->title('Penghasilan Toko Detail');
 		$this->render('backend/standart/administrator/tiktok_finance/tiktok_finance_view', $this->data);
 	}
 	

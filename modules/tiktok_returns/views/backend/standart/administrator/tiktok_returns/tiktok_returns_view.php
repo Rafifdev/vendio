@@ -99,38 +99,38 @@ jQuery(document).ready(domo);
                            <?php 
                            switch ($tiktok_returns->return_status) {
                               case 'RETURN_OR_REFUND_REQUEST_PENDING':
-                                 echo 'Menunggu Respon Penjual';
+                                 echo '<span class="label label-warning">Menunggu Respon Penjual</span>';
                                  break;
                               case 'AWAITING_BUYER_SHIP':
-                                 echo 'Menunggu Pembeli Mengirim Barang';
+                                 echo '<span class="label label-warning">Menunggu Pembeli Mengirim Barang</span>';
                                  break;
                               case 'BUYER_SHIPPED':
-                                 echo 'Barang Sedang Dikembalikan';
+                                 echo '<span class="label label-info">Barang Sedang Dikembalikan</span>';
                                  break;
                               case 'SELLER_RECEIVE_PACKAGE':
                               case 'RETURN_AND_REFUND_PACKAGE_DELIVERED':
-                                 echo 'Barang Diterima Penjual';
+                                 echo '<span class="label label-primary">Barang Diterima Penjual</span>';
                                  break;
                               case 'REFUND_PROCESSING':
                               case 'PROCESSING':
-                                 echo 'Proses Pengembalian Dana';
+                                 echo '<span class="label label-info">Proses Pengembalian Dana</span>';
                                  break;
                               case 'COMPLETE':
                               case 'COMPLETED':
                               case 'REFUND_SUCCESS':
                               case 'SUCCESS':
-                                 echo 'Selesai';
+                                 echo '<span class="label label-success">Selesai</span>';
                                  break;
                               case 'REJECT':
                               case 'REJECTED':
-                                 echo 'Ditolak';
+                                 echo '<span class="label label-danger">Ditolak</span>';
                                  break;
                               case 'CANCEL':
                               case 'CANCELLED':
-                                 echo 'Dibatalkan';
+                                 echo '<span class="label label-danger">Dibatalkan</span>';
                                  break;
                               default:
-                                 echo _ent($tiktok_returns->return_status ?: '-');
+                                 echo '<span class="label label-info">' . _ent($tiktok_returns->return_status ?: '-') . '</span>';
                            }
                            ?>
                         </div>

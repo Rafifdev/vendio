@@ -50,3 +50,4 @@ phploy.ini
 .env.local
 .env.*.local
 !.env.example
+scratch/

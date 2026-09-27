@@ -44,105 +44,142 @@ class Tiktok_warehouses extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->template->title('Gudang TikTok List');
+		$this->template->title('Daftar Gudang List');
 		$this->render('backend/standart/administrator/tiktok_warehouses/tiktok_warehouses_list', $this->data);
 	}
 	
 	/**
-	* Add new tiktok_warehousess
-	*
+	* Tarik Data Gudang dari TikTok Shop API
 	*/
-	public function add()
+	public function sync()
 	{
-		$this->is_allowed('tiktok_warehouses_add');
+		$this->is_allowed('tiktok_warehouses_list');
+		$this->load->library('tiktok_api');
 
-		$this->template->title('Gudang TikTok New');
-		$this->render('backend/standart/administrator/tiktok_warehouses/tiktok_warehouses_add', $this->data);
-	}
-
-	/**
-	* Add New Tiktok Warehousess
-	*
-	* @return JSON
-	*/
-	public function add_save()
-	{
-		if (!$this->is_allowed('tiktok_warehouses_add', false)) {
-			echo json_encode([
-				'success' => false,
-				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
-			exit;
+		$shop = $this->db->get_where('tiktok_shops', ['status' => 1])->row();
+		if (!$shop) {
+			set_message('Toko TikTok belum aktif atau belum terhubung.', 'error');
+			redirect('administrator/tiktok_warehouses');
+			return;
 		}
 
-		$this->form_validation->set_rules('shop_id', 'Shop Id', 'trim|required');
-		$this->form_validation->set_rules('tiktok_warehouse_id', 'Tiktok Warehouse Id', 'trim|required');
-		$this->form_validation->set_rules('branch_mapping_id', 'Branch Mapping Id', 'trim|required');
-		$this->form_validation->set_rules('name', 'Name', 'trim|required');
-		$this->form_validation->set_rules('address', 'Address', 'trim|required');
-		$this->form_validation->set_rules('warehouse_type', 'Warehouse Type', 'trim|required|max_length[50]');
-		$this->form_validation->set_rules('effect_status', 'Effect Status', 'trim|required');
-		$this->form_validation->set_rules('is_default', 'Is Default', 'trim|required');
-		$this->form_validation->set_rules('created_at', 'Created At', 'trim|required');
-		$this->form_validation->set_rules('updated_at', 'Updated At', 'trim|required');
-		
+		$response = $this->tiktok_api->get_warehouses($shop->id);
+		if (empty($response['success']) && (!isset($response['code']) || $response['code'] !== 0)) {
+			set_message('Gagal menarik data gudang dari TikTok Shop: ' . ($response['message'] ?? 'Error API'), 'error');
+			redirect('administrator/tiktok_warehouses');
+			return;
+		}
 
-		if ($this->form_validation->run()) {
-		
-			$save_data = [
-				'shop_id' => $this->input->post('shop_id'),
-				'tiktok_warehouse_id' => $this->input->post('tiktok_warehouse_id'),
-				'branch_mapping_id' => $this->input->post('branch_mapping_id'),
-				'name' => $this->input->post('name'),
-				'address' => $this->input->post('address'),
-				'warehouse_type' => $this->input->post('warehouse_type'),
-				'effect_status' => $this->input->post('effect_status'),
-				'is_default' => $this->input->post('is_default'),
-				'created_at' => $this->input->post('created_at'),
-				'updated_at' => $this->input->post('updated_at'),
+		$warehouses = $response['data']['warehouses'] ?? [];
+		$synced_count = 0;
+
+		foreach ($warehouses as $wh) {
+			$wh_id = $wh['id'] ?? '';
+			if (empty($wh_id)) continue;
+
+			$address_str = '';
+			if (!empty($wh['address'])) {
+				$addr = $wh['address'];
+				$parts = array_filter([
+					$addr['full_address'] ?? '',
+					$addr['district_name'] ?? '',
+					$addr['city_name'] ?? '',
+					$addr['province_name'] ?? '',
+					$addr['postal_code'] ?? ''
+				]);
+				$address_str = implode(', ', $parts);
+			}
+
+			$data_warehouse = [
+				'shop_id'             => $shop->id,
+				'tiktok_warehouse_id' => $wh_id,
+				'name'                => $wh['name'] ?? '',
+				'warehouse_type'      => $wh['warehouse_type'] ?? 'SALES_WAREHOUSE',
+				'effect_status'       => $wh['effect_status'] ?? 'EFFECTIVE',
+				'is_default'          => !empty($wh['is_default']) ? 1 : 0,
+				'address'             => $address_str,
+				'updated_at'          => date('Y-m-d H:i:s'),
 			];
 
-			
-			$save_tiktok_warehouses = $this->model_tiktok_warehouses->store($save_data);
-            
+			$existing = $this->db->get_where('tiktok_warehouses', [
+				'tiktok_warehouse_id' => $wh_id
+			])->row();
 
-			if ($save_tiktok_warehouses) {
-				if ($this->input->post('save_type') == 'stay') {
-					$this->data['success'] = true;
-					$this->data['id'] 	   = $save_tiktok_warehouses;
-					$this->data['message'] = cclang('success_save_data_stay', [
-						anchor('administrator/tiktok_warehouses/edit/' . $save_tiktok_warehouses, 'Edit Tiktok Warehouses'),
-						anchor('administrator/tiktok_warehouses', ' Go back to list')
-					]);
-				} else {
-					set_message(
-						cclang('success_save_data_redirect', [
-						anchor('administrator/tiktok_warehouses/edit/' . $save_tiktok_warehouses, 'Edit Tiktok Warehouses')
-					]), 'success');
-
-            		$this->data['success'] = true;
-					$this->data['redirect'] = base_url('administrator/tiktok_warehouses');
-				}
+			if ($existing) {
+				$this->db->where('id', $existing->id)->update('tiktok_warehouses', $data_warehouse);
+				$local_wh_id = $existing->id;
 			} else {
-				if ($this->input->post('save_type') == 'stay') {
-					$this->data['success'] = false;
-					$this->data['message'] = cclang('data_not_change');
-				} else {
-            		$this->data['success'] = false;
-            		$this->data['message'] = cclang('data_not_change');
-					$this->data['redirect'] = base_url('administrator/tiktok_warehouses');
+				$data_warehouse['created_at'] = date('Y-m-d H:i:s');
+				$this->db->insert('tiktok_warehouses', $data_warehouse);
+				$local_wh_id = $this->db->insert_id();
+			}
+
+			// Tarik Opsi Pengiriman Gudang
+			$del_res = $this->tiktok_api->get_warehouse_delivery_options($wh_id, $shop->id);
+			if (!empty($del_res['data']['delivery_options'])) {
+				foreach ($del_res['data']['delivery_options'] as $dopt) {
+					$dopt_id = $dopt['id'] ?? '';
+					if (empty($dopt_id)) continue;
+
+					$dopt_data = [
+						'warehouse_id'              => $local_wh_id,
+						'tiktok_delivery_option_id' => $dopt_id,
+						'name'                      => $dopt['name'] ?? '',
+						'scope'                     => $dopt['scope'] ?? '',
+						'is_active'                 => !empty($dopt['is_active']) ? 1 : 1,
+					];
+
+					$exist_dopt = $this->db->get_where('tiktok_delivery_options', [
+						'warehouse_id'              => $local_wh_id,
+						'tiktok_delivery_option_id' => $dopt_id
+					])->row();
+
+					if ($exist_dopt) {
+						$this->db->where('id', $exist_dopt->id)->update('tiktok_delivery_options', $dopt_data);
+						$local_dopt_id = $exist_dopt->id;
+					} else {
+						$dopt_data['created_at'] = date('Y-m-d H:i:s');
+						$this->db->insert('tiktok_delivery_options', $dopt_data);
+						$local_dopt_id = $this->db->insert_id();
+					}
+
+					// Tarik Kurir / Shipping Providers
+					$sp_res = $this->tiktok_api->get_shipping_providers($dopt_id, $shop->id);
+					if (!empty($sp_res['data']['shipping_providers'])) {
+						foreach ($sp_res['data']['shipping_providers'] as $sp) {
+							$sp_id = $sp['id'] ?? '';
+							if (empty($sp_id)) continue;
+
+							$sp_data = [
+								'delivery_option_id' => $local_dopt_id,
+								'tiktok_provider_id' => $sp_id,
+								'name'               => $sp['name'] ?? '',
+							];
+
+							$exist_sp = $this->db->get_where('tiktok_shipping_providers', [
+								'delivery_option_id' => $local_dopt_id,
+								'tiktok_provider_id' => $sp_id
+							])->row();
+
+							if ($exist_sp) {
+								$this->db->where('id', $exist_sp->id)->update('tiktok_shipping_providers', $sp_data);
+							} else {
+								$sp_data['created_at'] = date('Y-m-d H:i:s');
+								$this->db->insert('tiktok_shipping_providers', $sp_data);
+							}
+						}
+					}
 				}
 			}
 
-		} else {
-			$this->data['success'] = false;
-			$this->data['message'] = validation_errors();
+			$synced_count++;
 		}
 
-		echo json_encode($this->data);
+		set_message("Berhasil menarik {$synced_count} data gudang beserta opsi pengiriman dan kurir logistik.", 'success');
+		redirect('administrator/tiktok_warehouses');
 	}
 	
-		/**
+	/**
 	* Update view Tiktok Warehousess
 	*
 	* @var $id String
@@ -153,7 +190,7 @@ class Tiktok_warehouses extends Admin
 
 		$this->data['tiktok_warehouses'] = $this->model_tiktok_warehouses->find($id);
 
-		$this->template->title('Gudang TikTok Update');
+		$this->template->title('Daftar Gudang Update');
 		$this->render('backend/standart/administrator/tiktok_warehouses/tiktok_warehouses_update', $this->data);
 	}
 
@@ -172,30 +209,22 @@ class Tiktok_warehouses extends Admin
 			exit;
 		}
 		
-		$this->form_validation->set_rules('shop_id', 'Shop Id', 'trim|required');
-		$this->form_validation->set_rules('tiktok_warehouse_id', 'Tiktok Warehouse Id', 'trim|required');
-		$this->form_validation->set_rules('branch_mapping_id', 'Branch Mapping Id', 'trim|required');
-		$this->form_validation->set_rules('name', 'Name', 'trim|required');
-		$this->form_validation->set_rules('address', 'Address', 'trim|required');
-		$this->form_validation->set_rules('warehouse_type', 'Warehouse Type', 'trim|required|max_length[50]');
-		$this->form_validation->set_rules('effect_status', 'Effect Status', 'trim|required');
-		$this->form_validation->set_rules('is_default', 'Is Default', 'trim|required');
-		$this->form_validation->set_rules('created_at', 'Created At', 'trim|required');
-		$this->form_validation->set_rules('updated_at', 'Updated At', 'trim|required');
+		$this->form_validation->set_rules('name', 'Nama Gudang TikTok', 'trim|required');
+		$this->form_validation->set_rules('address', 'Alamat Gudang', 'trim');
+		$this->form_validation->set_rules('warehouse_type', 'Tipe Gudang', 'trim');
+		$this->form_validation->set_rules('effect_status', 'Status', 'trim');
+		$this->form_validation->set_rules('is_default', 'Gudang Utama', 'trim');
 		
 		if ($this->form_validation->run()) {
 		
 			$save_data = [
 				'shop_id' => $this->input->post('shop_id'),
 				'tiktok_warehouse_id' => $this->input->post('tiktok_warehouse_id'),
-				'branch_mapping_id' => $this->input->post('branch_mapping_id'),
 				'name' => $this->input->post('name'),
 				'address' => $this->input->post('address'),
 				'warehouse_type' => $this->input->post('warehouse_type'),
 				'effect_status' => $this->input->post('effect_status'),
 				'is_default' => $this->input->post('is_default'),
-				'created_at' => $this->input->post('created_at'),
-				'updated_at' => $this->input->post('updated_at'),
 			];
 
 			
@@ -274,9 +303,18 @@ class Tiktok_warehouses extends Admin
 	{
 		$this->is_allowed('tiktok_warehouses_view');
 
-		$this->data['tiktok_warehouses'] = $this->model_tiktok_warehouses->join_avaiable()->filter_avaiable()->find($id);
+		$warehouse = $this->model_tiktok_warehouses->join_avaiable()->filter_avaiable()->find($id);
+		if ($warehouse) {
+			$delivery_options = $this->db->get_where('tiktok_delivery_options', ['warehouse_id' => $warehouse->id])->result();
+			foreach ($delivery_options as $dopt) {
+				$dopt->shipping_providers = $this->db->get_where('tiktok_shipping_providers', ['delivery_option_id' => $dopt->id])->result();
+			}
+			$warehouse->delivery_options = $delivery_options;
+		}
 
-		$this->template->title('Gudang TikTok Detail');
+		$this->data['tiktok_warehouses'] = $warehouse;
+
+		$this->template->title('Daftar Gudang Detail');
 		$this->render('backend/standart/administrator/tiktok_warehouses/tiktok_warehouses_view', $this->data);
 	}
 	

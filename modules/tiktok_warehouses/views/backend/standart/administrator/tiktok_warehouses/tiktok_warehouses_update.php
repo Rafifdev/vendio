@@ -26,11 +26,11 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>
-        Gudang TikTok        <small>Edit Gudang TikTok</small>
+        Daftar Gudang        <small>Edit Daftar Gudang</small>
     </h1>
     <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Gudang TikTok</a></li>
+        <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Daftar Gudang</a></li>
         <li class="active">Edit</li>
     </ol>
 </section>
@@ -48,131 +48,84 @@
                                 <img class="img-circle" src="<?= BASE_ASSET; ?>/img/add2.png" alt="User Avatar">
                             </div>
                             <!-- /.widget-user-image -->
-                            <h3 class="widget-user-username">Gudang TikTok</h3>
-                            <h5 class="widget-user-desc">Edit Gudang TikTok</h5>
+                            <h3 class="widget-user-username">Daftar Gudang</h3>
+                            <h5 class="widget-user-desc">Edit Daftar Gudang</h5>
                             <hr>
                         </div>
-                        <?= form_open(base_url('administrator/tiktok_warehouses/edit_save/'.$this->uri->segment(4)), [
+                                                <?= form_open(base_url('administrator/tiktok_warehouses/edit_save/'.$this->uri->segment(4)), [
                             'name'    => 'form_tiktok_warehouses', 
                             'class'   => 'form-horizontal', 
                             'id'      => 'form_tiktok_warehouses', 
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="shop_id" class="col-sm-2 control-label">Shop Id 
+                        <div class="form-group ">
+                            <label for="name" class="col-sm-2 control-label">Nama Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="Shop Id" value="<?= set_value('shop_id', $tiktok_warehouses->shop_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="Nama Gudang" value="<?= set_value('name', $tiktok_warehouses->name); ?>" readonly>
+                                <small class="info help-block">Nama gudang disinkronisasi dari TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="tiktok_warehouse_id" class="col-sm-2 control-label">Tiktok Warehouse Id 
+
+                        <div class="form-group ">
+                            <label for="tiktok_warehouse_id" class="col-sm-2 control-label">ID Gudang TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="Tiktok Warehouse Id" value="<?= set_value('tiktok_warehouse_id', $tiktok_warehouses->tiktok_warehouse_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="ID Gudang TikTok" value="<?= set_value('tiktok_warehouse_id', $tiktok_warehouses->tiktok_warehouse_id); ?>" readonly>
+                                <small class="info help-block">ID unik gudang dari sistem TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="branch_mapping_id" class="col-sm-2 control-label">Branch Mapping Id 
+
+                        <div class="form-group ">
+                            <label for="warehouse_type" class="col-sm-2 control-label">Tipe Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="branch_mapping_id" id="branch_mapping_id" placeholder="Branch Mapping Id" value="<?= set_value('branch_mapping_id', $tiktok_warehouses->branch_mapping_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Tipe Gudang" value="<?= set_value('warehouse_type', $tiktok_warehouses->warehouse_type); ?>" readonly>
+                                <small class="info help-block">SALES_WAREHOUSE (Gudang Penjualan) atau RETURN_WAREHOUSE (Gudang Retur).</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="name" class="col-sm-2 control-label">Name 
+
+                        <div class="form-group ">
+                            <label for="address" class="col-sm-2 control-label">Alamat Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="name" id="name" placeholder="Name" value="<?= set_value('name', $tiktok_warehouses->name); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <textarea id="address" name="address" rows="4" class="form-control" readonly><?= set_value('address', $tiktok_warehouses->address); ?></textarea>
+                                <small class="info help-block">Alamat fisik gudang terdaftar di TikTok.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="address" class="col-sm-2 control-label">Address 
-                            <i class="required">*</i>
+
+
+
+                        <div class="form-group ">
+                            <label for="is_default" class="col-sm-2 control-label">Gudang Utama 
                             </label>
                             <div class="col-sm-8">
-                                <textarea id="address" name="address" rows="10" cols="80"> <?= set_value('address', $tiktok_warehouses->address); ?></textarea>
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Gudang Utama" value="<?= $tiktok_warehouses->is_default ? 'Ya' : 'Tidak'; ?>" readonly>
+                                <small class="info help-block">Status gudang utama penjual di TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="warehouse_type" class="col-sm-2 control-label">Warehouse Type 
-                            <i class="required">*</i>
+
+                        <div class="form-group ">
+                            <label for="effect_status" class="col-sm-2 control-label">Status 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Warehouse Type" value="<?= set_value('warehouse_type', $tiktok_warehouses->warehouse_type); ?>">
-                                <small class="info help-block">
-                                <b>Input Warehouse Type</b> Max Length : 50.</small>
+                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Status" value="<?= $tiktok_warehouses->effect_status == 'EFFECTIVE' ? 'Aktif' : 'Tidak Aktif'; ?>" readonly>
+                                <small class="info help-block">Status keaktifan gudang di TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="effect_status" class="col-sm-2 control-label">Effect Status 
-                            <i class="required">*</i>
+
+                        <div class="form-group ">
+                            <label for="shop_id" class="col-sm-2 control-label">ID Toko 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Effect Status" value="<?= set_value('effect_status', $tiktok_warehouses->effect_status); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="ID Toko" value="<?= set_value('shop_id', $tiktok_warehouses->shop_id); ?>" readonly>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="is_default" class="col-sm-2 control-label">Is Default 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Is Default" value="<?= set_value('is_default', $tiktok_warehouses->is_default); ?>">
-                                <small class="info help-block">
-                                </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="created_at" class="col-sm-2 control-label">Created At 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-6">
-                            <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="created_at"  placeholder="Created At" id="created_at" value="<?= set_value('created_at', $tiktok_warehouses->created_at); ?>">
-                            </div>
-                            <small class="info help-block">
-                            </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="updated_at" class="col-sm-2 control-label">Updated At 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-6">
-                            <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="updated_at"  placeholder="Updated At" id="updated_at" value="<?= set_value('updated_at', $tiktok_warehouses->updated_at); ?>">
-                            </div>
-                            <small class="info help-block">
-                            </small>
-                            </div>
-                        </div>
-                                                
                         <div class="message"></div>
                         <div class="row-fluid col-md-7">
                             <button class="btn btn-flat btn-primary btn_save btn_action" id="btn_save" data-stype='stay' title="<?= cclang('save_button'); ?> (Ctrl+s)">

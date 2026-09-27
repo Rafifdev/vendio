@@ -52,9 +52,7 @@ jQuery(document).ready(domo);
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
                      <div class="row pull-right">
-                        <?php is_allowed('tiktok_warehouses_add', function(){?>
-                        <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_warehouses')]); ?>  (Ctrl+a)" href="<?=  site_url('administrator/tiktok_warehouses/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', [cclang('tiktok_warehouses')]); ?></a>
-                        <?php }) ?>
+                        <a class="btn btn-flat btn-info" id="btn_sync_warehouses" href="<?= site_url('administrator/tiktok_warehouses/sync'); ?>" title="Tarik data gudang terbaru dari TikTok Shop"><i class="fa fa-refresh"></i> Tarik Data Gudang</a>
                         <?php is_allowed('tiktok_warehouses_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> <?= cclang('tiktok_warehouses') ?>']); ?>" href="<?= site_url('administrator/tiktok_warehouses/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
                         <?php }) ?>
@@ -76,61 +74,57 @@ jQuery(document).ready(domo);
                   <div class="table-responsive"> 
                   <table class="table table-bordered table-striped dataTable">
                      <thead>
-                        <tr class="">
-                                                     <th>
-                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                        <tr>
+                           <th width="5">
+                              <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
-                                                    <th> <?= cclang('shop_id') ?></th>
-                           <th> <?= cclang('tiktok_warehouse_id') ?></th>
-                           <th> <?= cclang('branch_mapping_id') ?></th>
-                           <th> <?= cclang('name') ?></th>
-                           <th> <?= cclang('address') ?></th>
-                           <th> <?= cclang('warehouse_type') ?></th>
-                           <th> <?= cclang('effect_status') ?></th>
-                           <th> <?= cclang('is_default') ?></th>
-                           <th> <?= cclang('created_at') ?></th>
-                           <th> <?= cclang('updated_at') ?></th>
-                           <th>Action</th>                        </tr>
+                           <th>Nama Gudang</th>
+                           <th>ID Gudang TikTok</th>
+                           <th>Tipe Gudang</th>
+                           <th>Alamat Gudang</th>
+                           <th>Gudang Utama</th>
+                           <th>Status</th>
+                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
+                        </tr>
                      </thead>
                      <tbody id="tbody_tiktok_warehouses">
                      <?php foreach($tiktok_warehousess as $tiktok_warehouses): ?>
                         <tr>
-                                                       <td width="5">
+                           <td width="5">
                               <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_warehouses->id; ?>">
                            </td>
-                                                       
-                           <td><?= _ent($tiktok_warehouses->shop_id); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->tiktok_warehouse_id); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->branch_mapping_id); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->name); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->address); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->warehouse_type); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->effect_status); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->is_default); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->created_at); ?></td> 
-                           <td><?= _ent($tiktok_warehouses->updated_at); ?></td> 
-                           <td width="200">
-                            
-                                                              <?php is_allowed('tiktok_warehouses_view', function() use ($tiktok_warehouses){?>
-                                 <a href="<?= site_url('administrator/tiktok_warehouses/single_pdf/' .$tiktok_warehouses->id); ?>" class="label-default"><i class="fa fa-file-pdf-o"></i> <?= cclang('PDF') ?>
-                              <a href="<?= site_url('administrator/tiktok_warehouses/view/' . $tiktok_warehouses->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                              <?php }) ?>
-                              <?php is_allowed('tiktok_warehouses_update', function() use ($tiktok_warehouses){?>
-                              <a href="<?= site_url('administrator/tiktok_warehouses/edit/' . $tiktok_warehouses->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
-                              <?php }) ?>
-                              <?php is_allowed('tiktok_warehouses_delete', function() use ($tiktok_warehouses){?>
-                              <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_warehouses/delete/' . $tiktok_warehouses->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>
-                               <?php }) ?>
-
-                           </td>                        </tr>
-                      <?php endforeach; ?>
-                      <?php if ($tiktok_warehouses_counts == 0) :?>
-                         <tr>
-                           <td colspan="100">
-                           Gudang TikTok data is not available
+                           <td><?= _ent($tiktok_warehouses->name); ?></td>
+                           <td><?= _ent($tiktok_warehouses->tiktok_warehouse_id); ?></td>
+                           <td>
+                              <?php 
+                                 if ($tiktok_warehouses->warehouse_type == "SALES_WAREHOUSE") {
+                                    echo "Gudang Penjualan";
+                                 } elseif ($tiktok_warehouses->warehouse_type == "RETURN_WAREHOUSE") {
+                                    echo "Gudang Retur";
+                                 } else {
+                                    echo _ent($tiktok_warehouses->warehouse_type);
+                                 }
+                              ?>
                            </td>
-                         </tr>
-                      <?php endif; ?>
+                           <td><?= _ent($tiktok_warehouses->address ?: "-"); ?></td>
+                           <td><?= $tiktok_warehouses->is_default ? "Ya" : "Tidak"; ?></td>
+                           <td>
+                              <?= in_array(strtoupper($tiktok_warehouses->effect_status), ["ENABLED", "EFFECTIVE"]) ? '<span class="label label-success">Aktif</span>' : '<span class="label label-danger">Non-Aktif</span>'; ?>
+                           </td>
+                           <td class="text-center">
+                              <?php is_allowed("tiktok_warehouses_view", function() use ($tiktok_warehouses){?>
+                                 <a href="<?= site_url("administrator/tiktok_warehouses/view/" . $tiktok_warehouses->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang("view_button"); ?></a>
+                              <?php }) ?>
+                           </td>
+                        </tr>
+                     <?php endforeach; ?>
+                     <?php if ($tiktok_warehouses_counts == 0) :?>
+                        <tr>
+                           <td colspan="100" class="text-center text-muted">
+                              Data Gudang belum tersedia. Silakan klik tombol "Tarik Data Gudang".
+                           </td>
+                        </tr>
+                     <?php endif; ?>
                      </tbody>
                   </table>
                   </div>
@@ -153,18 +147,13 @@ jQuery(document).ready(domo);
                      </div>
                      <div class="col-sm-3 padd-left-0 " >
                         <select type="text" class="form-control chosen chosen-select" name="f" id="field" >
-                           <option value=""><?= cclang('all'); ?></option>
-                            <option <?= $this->input->get('f') == 'shop_id' ? 'selected' :''; ?> value="shop_id">Shop Id</option>
-                           <option <?= $this->input->get('f') == 'tiktok_warehouse_id' ? 'selected' :''; ?> value="tiktok_warehouse_id">Tiktok Warehouse Id</option>
-                           <option <?= $this->input->get('f') == 'branch_mapping_id' ? 'selected' :''; ?> value="branch_mapping_id">Branch Mapping Id</option>
-                           <option <?= $this->input->get('f') == 'name' ? 'selected' :''; ?> value="name">Name</option>
-                           <option <?= $this->input->get('f') == 'address' ? 'selected' :''; ?> value="address">Address</option>
-                           <option <?= $this->input->get('f') == 'warehouse_type' ? 'selected' :''; ?> value="warehouse_type">Warehouse Type</option>
-                           <option <?= $this->input->get('f') == 'effect_status' ? 'selected' :''; ?> value="effect_status">Effect Status</option>
-                           <option <?= $this->input->get('f') == 'is_default' ? 'selected' :''; ?> value="is_default">Is Default</option>
-                           <option <?= $this->input->get('f') == 'created_at' ? 'selected' :''; ?> value="created_at">Created At</option>
-                           <option <?= $this->input->get('f') == 'updated_at' ? 'selected' :''; ?> value="updated_at">Updated At</option>
-                          </select>
+                            <option value=""><?= cclang('all'); ?></option>
+                            <option <?= $this->input->get('f') == 'name' ? 'selected' :''; ?> value="name">Nama Gudang</option>
+                            <option <?= $this->input->get('f') == 'tiktok_warehouse_id' ? 'selected' :''; ?> value="tiktok_warehouse_id">ID Gudang TikTok</option>
+                            <option <?= $this->input->get('f') == 'warehouse_type' ? 'selected' :''; ?> value="warehouse_type">Tipe Gudang</option>
+                            <option <?= $this->input->get('f') == 'address' ? 'selected' :''; ?> value="address">Alamat Gudang</option>
+                            <option <?= $this->input->get('f') == 'effect_status' ? 'selected' :''; ?> value="effect_status">Status</option>
+                           </select>
                      </div>
                      <div class="col-sm-1 padd-left-0 ">
                         <button type="submit" class="btn btn-flat" name="sbtn" id="sbtn" value="Apply" title="<?= cclang('filter_search'); ?>">

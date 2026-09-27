@@ -55,7 +55,7 @@ class Tiktok_products extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->template->title('Produk TikTok List');
+		$this->template->title('Katalog Produk List');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_list', $this->data);
 	}
 	
@@ -70,7 +70,7 @@ class Tiktok_products extends Admin
 		$this->data['categories'] = $this->get_tiktok_categories();
 		$this->data['brands'] = $this->get_tiktok_brands('601756');
 
-		$this->template->title('Produk TikTok New');
+		$this->template->title('Katalog Produk New');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_add', $this->data);
 	}
 
@@ -687,7 +687,7 @@ class Tiktok_products extends Admin
 		$this->data['brands'] = $brands;
 		$this->data['current_brands'] = $brands;
 
-		$this->template->title('Produk TikTok Update');
+		$this->template->title('Katalog Produk Update');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_update', $this->data);
 	}
 
@@ -1149,7 +1149,7 @@ class Tiktok_products extends Admin
 
 		$this->data['tiktok_products'] = $this->model_tiktok_products->join_avaiable()->filter_avaiable()->find($id);
 
-		$this->template->title('Produk TikTok Detail');
+		$this->template->title('Katalog Produk Detail');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_view', $this->data);
 	}
 	
@@ -1378,6 +1378,111 @@ class Tiktok_products extends Admin
 	/**
 	 * Sinkronisasi produk dari TikTok Shop ke database lokal Vendio
 	 */
+
+	/**
+	* Activate Product in TikTok Shop and Local DB
+	*
+	* @var $id String
+	*/
+	public function activate($id)
+	{
+		$this->is_allowed('tiktok_products_update');
+
+		$product = $this->model_tiktok_products->find($id);
+		if (!$product) {
+			set_message('Produk tidak ditemukan.', 'error');
+			redirect_back();
+		}
+
+		if (strtoupper($product->status) != 'DEACTIVATED' && strtoupper($product->status) != 'SELLER_DEACTIVATED') {
+			set_message('Hanya produk dengan status Nonaktif yang dapat diaktifkan.', 'warning');
+			redirect_back();
+		}
+
+		if (intval($product->total_stock) <= 0) {
+			set_message('Produk tidak dapat diaktifkan karena total stok masih 0. Harap perbarui stok terlebih dahulu.', 'warning');
+			redirect_back();
+		}
+
+		$this->load->library('tiktok_api');
+		$shop_id = $product->tiktok_shop_id;
+		$res = $this->tiktok_api->activate_products([(string)$product->product_id], $shop_id);
+
+		if (!empty($res['code']) && $res['code'] !== 0) {
+			$err_msg = $this->parse_tiktok_error($res, 'Gagal mengaktifkan produk di TikTok Shop');
+			$this->log_product_sync($product->product_id, 'ACTIVATE', 'FAILED', ['product_id' => $product->product_id], $err_msg, $shop_id);
+			set_message($err_msg, 'error');
+		} else {
+			// Sesuai alur resmi TikTok Shop Seller Center, reaktivasi produk mengirim produk ke review (PENDING)
+			$new_status = 'PENDING';
+			$this->db->where('id', $product->id)->update('tiktok_products', [
+				'status'     => $new_status,
+				'updated_at' => date('Y-m-d H:i:s'),
+			]);
+			$this->log_product_sync($product->product_id, 'ACTIVATE', 'SUCCESS', ['product_id' => $product->product_id], 'Produk berhasil diaktifkan dan dikirim untuk peninjauan (PENDING)', $shop_id);
+			set_message('Produk berhasil diaktifkan di TikTok Shop! Status saat ini: Menunggu Review.', 'success');
+		}
+
+		redirect_back();
+	}
+
+	/**
+	* Deactivate Product in TikTok Shop and Local DB
+	*
+	* @var $id String
+	*/
+	public function deactivate($id)
+	{
+		$this->is_allowed('tiktok_products_update');
+
+		$product = $this->model_tiktok_products->find($id);
+		if (!$product) {
+			set_message('Produk tidak ditemukan.', 'error');
+			redirect_back();
+		}
+
+		if (!in_array(strtoupper($product->status), ['ACTIVATE', 'LIVE'])) {
+			set_message('Hanya produk dengan status Aktif yang dapat dinonaktifkan.', 'warning');
+			redirect_back();
+		}
+
+		$this->load->library('tiktok_api');
+		$shop_id = $product->tiktok_shop_id;
+		$res = $this->tiktok_api->deactivate_products([(string)$product->product_id], $shop_id);
+
+		if (!empty($res['code']) && $res['code'] !== 0) {
+			$err_msg = $this->parse_tiktok_error($res, 'Gagal menonaktifkan produk di TikTok Shop');
+			$this->log_product_sync($product->product_id, 'DEACTIVATE', 'FAILED', ['product_id' => $product->product_id], $err_msg, $shop_id);
+			set_message($err_msg, 'error');
+		} else {
+			$new_status = 'DEACTIVATED';
+			$this->db->where('id', $product->id)->update('tiktok_products', [
+				'status'     => $new_status,
+				'updated_at' => date('Y-m-d H:i:s'),
+			]);
+			$this->log_product_sync($product->product_id, 'DEACTIVATE', 'SUCCESS', ['product_id' => $product->product_id], 'Produk berhasil dinonaktifkan dari etalase TikTok', $shop_id);
+			set_message('Produk berhasil dinonaktifkan dari etalase TikTok Shop.', 'success');
+		}
+
+		redirect_back();
+	}
+
+	/**
+	* Catat audit trail perubahan/sinkronisasi produk
+	*/
+	public function log_product_sync($product_id, $action, $status, $payload = null, $response_message = null, $shop_id = null)
+	{
+		$this->db->insert('tiktok_product_sync_logs', [
+			'tiktok_shop_id'   => $shop_id,
+			'product_id'       => (string)$product_id,
+			'action'           => strtoupper($action),
+			'status'           => strtoupper($status),
+			'payload'          => is_array($payload) ? json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string)$payload,
+			'response_message' => (string)$response_message,
+			'created_at'       => date('Y-m-d H:i:s'),
+		]);
+	}
+
 	public function sync()
 	{
 		$this->is_allowed('tiktok_products_list');

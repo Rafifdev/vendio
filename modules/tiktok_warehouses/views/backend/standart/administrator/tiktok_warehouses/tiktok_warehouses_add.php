@@ -26,11 +26,11 @@
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>
-        Gudang TikTok        <small><?= cclang('new', ['Gudang TikTok']); ?> </small>
+        Daftar Gudang        <small><?= cclang('new', ['Daftar Gudang']); ?> </small>
     </h1>
     <ol class="breadcrumb">
         <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Gudang TikTok</a></li>
+        <li class=""><a  href="<?= site_url('administrator/tiktok_warehouses'); ?>">Daftar Gudang</a></li>
         <li class="active"><?= cclang('new'); ?></li>
     </ol>
 </section>
@@ -48,11 +48,11 @@
                                 <img class="img-circle" src="<?= BASE_ASSET; ?>/img/add2.png" alt="User Avatar">
                             </div>
                             <!-- /.widget-user-image -->
-                            <h3 class="widget-user-username">Gudang TikTok</h3>
-                            <h5 class="widget-user-desc"><?= cclang('new', ['Gudang TikTok']); ?></h5>
+                            <h3 class="widget-user-username">Daftar Gudang</h3>
+                            <h5 class="widget-user-desc"><?= cclang('new', ['Daftar Gudang']); ?></h5>
                             <hr>
                         </div>
-                        <?= form_open('', [
+                                                <?= form_open('', [
                             'name'    => 'form_tiktok_warehouses', 
                             'class'   => 'form-horizontal', 
                             'id'      => 'form_tiktok_warehouses', 
@@ -60,120 +60,67 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="shop_id" class="col-sm-2 control-label">Shop Id 
+                        <div class="form-group ">
+                            <label for="name" class="col-sm-2 control-label">Nama Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="Shop Id" value="<?= set_value('shop_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="name" id="name" placeholder="Nama Gudang" value="<?= set_value('name'); ?>">
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="tiktok_warehouse_id" class="col-sm-2 control-label">Tiktok Warehouse Id 
+
+                        <div class="form-group ">
+                            <label for="tiktok_warehouse_id" class="col-sm-2 control-label">ID Daftar Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="Tiktok Warehouse Id" value="<?= set_value('tiktok_warehouse_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="ID Daftar Gudang" value="<?= set_value('tiktok_warehouse_id'); ?>">
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="branch_mapping_id" class="col-sm-2 control-label">Branch Mapping Id 
+
+                        <div class="form-group ">
+                            <label for="warehouse_type" class="col-sm-2 control-label">Tipe Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="branch_mapping_id" id="branch_mapping_id" placeholder="Branch Mapping Id" value="<?= set_value('branch_mapping_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Tipe Gudang" value="<?= set_value('warehouse_type'); ?>">
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="name" class="col-sm-2 control-label">Name 
+
+                        <div class="form-group ">
+                            <label for="address" class="col-sm-2 control-label">Alamat Gudang 
+                            </label>
+                            <div class="col-sm-8">
+                                <textarea id="address" name="address" rows="5" class="form-control"><?= set_value('address'); ?></textarea>
+                            </div>
+                        </div>
+
+
+
+                        <div class="form-group ">
+                            <label for="is_default" class="col-sm-2 control-label">Gudang Utama 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Gudang Utama (1/0)" value="<?= set_value('is_default'); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
+                            <label for="effect_status" class="col-sm-2 control-label">Status 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Status" value="<?= set_value('effect_status'); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
+                            <label for="shop_id" class="col-sm-2 control-label">ID Toko 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="name" id="name" placeholder="Name" value="<?= set_value('name'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="ID Toko" value="<?= set_value('shop_id'); ?>">
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="address" class="col-sm-2 control-label">Address 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <textarea id="address" name="address" rows="5" cols="80"><?= set_value('Address'); ?></textarea>
-                                <small class="info help-block">
-                                </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="warehouse_type" class="col-sm-2 control-label">Warehouse Type 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Warehouse Type" value="<?= set_value('warehouse_type'); ?>">
-                                <small class="info help-block">
-                                <b>Input Warehouse Type</b> Max Length : 50.</small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="effect_status" class="col-sm-2 control-label">Effect Status 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Effect Status" value="<?= set_value('effect_status'); ?>">
-                                <small class="info help-block">
-                                </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="is_default" class="col-sm-2 control-label">Is Default 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Is Default" value="<?= set_value('is_default'); ?>">
-                                <small class="info help-block">
-                                </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="created_at" class="col-sm-2 control-label">Created At 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-6">
-                            <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="created_at"  id="created_at">
-                            </div>
-                            <small class="info help-block">
-                            </small>
-                            </div>
-                        </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="updated_at" class="col-sm-2 control-label">Updated At 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-6">
-                            <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="updated_at"  id="updated_at">
-                            </div>
-                            <small class="info help-block">
-                            </small>
-                            </div>
-                        </div>
-                                                
                         <div class="message"></div>
                         <div class="row-fluid col-md-7">
                            <button class="btn btn-flat btn-primary btn_save btn_action" id="btn_save" data-stype='stay' title="<?= cclang('save_button'); ?> (Ctrl+s)">

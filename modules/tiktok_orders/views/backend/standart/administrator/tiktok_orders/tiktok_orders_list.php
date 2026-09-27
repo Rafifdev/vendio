@@ -1,16 +1,3 @@
-<style>
-.table-action-col {
-   width: 250px !important;
-   min-width: 250px !important;
-   text-align: left !important;
-   vertical-align: middle !important;
-}
-.table-action-col a.label-default {
-   display: inline-block;
-   margin: 2px 2px;
-   white-space: nowrap;
-}
-</style>
 <script src="<?= BASE_ASSET; ?>/js/jquery.hotkeys.js"></script>
 
 <script type="text/javascript">
@@ -81,21 +68,21 @@ jQuery(document).ready(domo);
                   <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>">
 
                   <div class="table-responsive" style="overflow-x: auto; width: 100%;"> 
-                  <table class="table table-bordered table-striped dataTable" style="min-width: 1300px; width: 100%;">
+                  <table class="table table-bordered table-striped dataTable" style="min-width: 1400px; width: 100%;">
                      <thead>
                         <tr style="white-space: nowrap;">
                            <th width="5">
-                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
-                           <th>Toko</th>
-                           <th>Pesanan</th>
-                           <th>Pembeli</th>
+                           <th>Nama Toko</th>
+                           <th>ID Pesanan</th>
+                           <th>Nama Pembeli</th>
                            <th style="min-width: 320px;">Produk</th>
-                           <th>Status pesanan</th>
-                           <th>Metode pengiriman</th>
-                           <th>Opsi pengiriman</th>
-                           <th>Total</th>
-                           <th class="table-action-col">Action</th>
+                           <th>Status Pesanan</th>
+                           <th>Metode Pengiriman</th>
+                           <th>Opsi Pengiriman</th>
+                           <th>Total Pembayaran</th>
+                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_orders">
@@ -143,7 +130,42 @@ jQuery(document).ready(domo);
                                  <span class="text-muted">-</span>
                               <?php endif; ?>
                            </td> 
-                           <td style="white-space: nowrap;"><?= _ent($tiktok_orders->order_status); ?></td> 
+                           <td style="white-space: nowrap;">
+                              <?php
+                                 $st = strtoupper($tiktok_orders->order_status);
+                                 switch ($st) {
+                                    case "UNPAID":
+                                       echo '<span class="label label-info">Belum Bayar</span>';
+                                       break;
+                                    case "ON_HOLD":
+                                       echo '<span class="label label-warning">Ditahan</span>';
+                                       break;
+                                    case "AWAITING_SHIPMENT":
+                                       echo '<span class="label label-warning">Perlu Dikirim</span>';
+                                       break;
+                                    case "AWAITING_COLLECTION":
+                                       echo '<span class="label label-info">Menunggu Kurir</span>';
+                                       break;
+                                     case "PARTIALLY_SHIPPING":
+                                        echo '<span class="label label-info">Sebagian Dikirim</span>';
+                                        break;
+                                    case "IN_TRANSIT":
+                                       echo '<span class="label label-info">Sedang Dikirim</span>';
+                                       break;
+                                    case "DELIVERED":
+                                       echo '<span class="label label-primary">Terkirim</span>';
+                                       break;
+                                    case "COMPLETED":
+                                       echo '<span class="label label-success">Selesai</span>';
+                                       break;
+                                    case "CANCELLED":
+                                       echo '<span class="label label-danger">Dibatalkan</span>';
+                                       break;
+                                    default:
+                                       echo '<span class="label label-info">' . _ent($tiktok_orders->order_status) . '</span>';
+                                 }
+                              ?>
+                           </td> 
                            <td style="white-space: nowrap;">
                               <div><?= _ent($tiktok_orders->shipping_type ?: '-'); ?></div>
                               <?php if (!empty($tiktok_orders->shipping_provider)): ?>
@@ -152,7 +174,7 @@ jQuery(document).ready(domo);
                            </td> 
                            <td style="white-space: nowrap;"><?= _ent($tiktok_orders->delivery_option_name ?: '-'); ?></td> 
                            <td style="white-space: nowrap;">Rp <?= number_format($tiktok_orders->total_amount, 0, ',', '.'); ?></td> 
-                           <td class="table-action-col">
+                           <td style="min-width: 260px; text-align: center;">
                               <?php is_allowed('tiktok_orders_view', function() use ($tiktok_orders){?>
                                  <?php if ($tiktok_orders->order_status == 'AWAITING_SHIPMENT'): ?>
                                     <a href="<?= site_url('administrator/tiktok_orders/ship/' . $tiktok_orders->id); ?>" class="label-default" title="Atur Pengiriman (Drop-off ke gerai)"><i class="fa fa-truck"></i> Kirim</a>
@@ -202,16 +224,16 @@ jQuery(document).ready(domo);
                      </div>
                      <div class="col-sm-3 padd-left-0 " >
                         <select type="text" class="form-control chosen chosen-select" name="f" id="field" >
-                           <option value=""><?= cclang('all'); ?></option>
-                           <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' :''; ?> value="tiktok_shop_id">Toko</option>
-                           <option <?= $this->input->get('f') == 'order_id' ? 'selected' :''; ?> value="order_id">Pesanan</option>
-                           <option <?= $this->input->get('f') == 'recipient_name' ? 'selected' :''; ?> value="recipient_name">Pembeli</option>
-                           <option <?= $this->input->get('f') == 'order_status' ? 'selected' :''; ?> value="order_status">Status Pesanan</option>
-                           <option <?= $this->input->get('f') == 'shipping_type' ? 'selected' :''; ?> value="shipping_type">Metode Pengiriman</option>
-                           <option <?= $this->input->get('f') == 'delivery_option_name' ? 'selected' :''; ?> value="delivery_option_name">Opsi Pengiriman</option>
-                           <option <?= $this->input->get('f') == 'shipping_provider' ? 'selected' :''; ?> value="shipping_provider">Shipping Provider</option>
-                           <option <?= $this->input->get('f') == 'tracking_number' ? 'selected' :''; ?> value="tracking_number">Tracking Number</option>
-                        </select>
+                            <option value=""><?= cclang('all'); ?></option>
+                            <option <?= $this->input->get('f') == 'order_id' ? 'selected' :''; ?> value="order_id">ID Pesanan</option>
+                            <option <?= $this->input->get('f') == 'tiktok_shop_id' ? 'selected' :''; ?> value="tiktok_shop_id">Nama Toko</option>
+                            <option <?= $this->input->get('f') == 'recipient_name' ? 'selected' :''; ?> value="recipient_name">Nama Pembeli</option>
+                            <option <?= $this->input->get('f') == 'order_status' ? 'selected' :''; ?> value="order_status">Status Pesanan</option>
+                            <option <?= $this->input->get('f') == 'shipping_type' ? 'selected' :''; ?> value="shipping_type">Metode Pengiriman</option>
+                            <option <?= $this->input->get('f') == 'delivery_option_name' ? 'selected' :''; ?> value="delivery_option_name">Opsi Pengiriman</option>
+                            <option <?= $this->input->get('f') == 'shipping_provider' ? 'selected' :''; ?> value="shipping_provider">Kurir Pengiriman</option>
+                            <option <?= $this->input->get('f') == 'tracking_number' ? 'selected' :''; ?> value="tracking_number">Nomor Resi</option>
+                         </select>
                      </div>
                      <div class="col-sm-1 padd-left-0 ">
                         <button type="submit" class="btn btn-flat" name="sbtn" id="sbtn" value="Apply" title="<?= cclang('filter_search'); ?>">
