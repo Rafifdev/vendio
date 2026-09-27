@@ -114,10 +114,11 @@
                                 <select class="form-control chosen chosen-select-deselect" name="category_name" id="category_name" data-placeholder="Pilih Kategori TikTok">
                                     <option value=""></option>
                                     <?php 
-                                    $selected_cat = set_value('category_name', $tiktok_products->category_name);
+                                    $selected_cat = set_value('category_name', !empty($selected_category_id) ? $selected_category_id : $tiktok_products->category_name);
                                     if (!empty($categories)): foreach ($categories as $cat): 
+                                        $is_cat_sel = ($selected_cat == $cat['id'] || strcasecmp($selected_cat, $cat['name']) === 0);
                                     ?>
-                                    <option value="<?= $cat['id']; ?>" <?= ($selected_cat == $cat['id'] || $selected_cat == $cat['name']) ? 'selected' : ''; ?>><?= $cat['name']; ?></option>
+                                    <option value="<?= $cat['id']; ?>" <?= $is_cat_sel ? 'selected' : ''; ?>><?= $cat['name']; ?></option>
                                     <?php endforeach; endif; ?>
                                 </select>
                                 <small class="info help-block">
@@ -133,17 +134,17 @@
                                     <option value=""></option>
                                     <option value="No Brand" data-id="0">No Brand / Tanpa Merek</option>
                                     <?php 
-                                    $selected_brand = set_value('brand_name', $tiktok_products->brand_name);
-                                    $selected_brand_id = '0';
+                                    $selected_brand = set_value('brand_name', !empty($selected_brand_name) ? $selected_brand_name : $tiktok_products->brand_name);
+                                    $active_brand_id = !empty($selected_brand_id) ? $selected_brand_id : '0';
                                     if (!empty($brands)): foreach ($brands as $brand): 
                                         if ($brand['id'] !== '0'):
-                                            $is_sel = ($selected_brand == $brand['name'] || $selected_brand == $brand['id']);
-                                            if ($is_sel) $selected_brand_id = $brand['id'];
+                                            $is_sel = (strcasecmp($selected_brand, $brand['name']) === 0 || $selected_brand == $brand['id'] || (!empty($active_brand_id) && $active_brand_id == $brand['id']));
+                                            if ($is_sel) $active_brand_id = $brand['id'];
                                     ?>
                                     <option value="<?= $brand['name']; ?>" data-id="<?= $brand['id']; ?>" <?= $is_sel ? 'selected' : ''; ?>><?= $brand['name']; ?></option>
                                     <?php endif; endforeach; endif; ?>
                                 </select>
-                                <input type="hidden" name="brand_id" id="brand_id" value="<?= $selected_brand_id; ?>">
+                                <input type="hidden" name="brand_id" id="brand_id" value="<?= $active_brand_id; ?>">
                                 <small class="info help-block" id="brand_info">
                                 Brand resmi dari TikTok sesuai kategori (default: No Brand / Tanpa Merek).</small>
                             </div>
@@ -186,7 +187,8 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="package_weight" id="package_weight" placeholder="Package Weight (Kg)" value="<?= set_value('package_weight', $tiktok_products->package_weight); ?>">
+                                <?php $clean_weight = preg_replace('/[^0-9.]/', '', (string)$tiktok_products->package_weight); ?>
+                                <input type="text" class="form-control" name="package_weight" id="package_weight" placeholder="Package Weight (Kg)" value="<?= set_value('package_weight', $clean_weight); ?>">
                                 <small class="info help-block">
                                 Berat paket dalam kilogram (Contoh: 1 atau 0.5 kg, min 0.01 kg).</small>
                             </div>

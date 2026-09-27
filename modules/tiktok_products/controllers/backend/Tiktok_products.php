@@ -616,12 +616,76 @@ class Tiktok_products extends Admin
 		$this->is_allowed('tiktok_products_update');
 
 		$product = $this->model_tiktok_products->find($id);
-		$this->data['tiktok_products'] = $product;
-		$this->data['categories'] = $this->get_tiktok_categories($product ? $product->tiktok_shop_id : null);
+		if (!$product) {
+			set_message('Produk tidak ditemukan.', 'error');
+			redirect('administrator/tiktok_products');
+			return;
+		}
 
-		$cat_id = ($product && !empty($product->category_name)) ? $product->category_name : '601756';
-		$this->data['brands'] = $this->get_tiktok_brands($cat_id, $product ? $product->tiktok_shop_id : null);
-		$this->data['current_brands'] = $this->data['brands'];
+		// Bersihkan berat paket agar murni angka desimal tanpa teks satuan
+		if (!empty($product->package_weight)) {
+			$product->package_weight = preg_replace('/[^0-9.]/', '', (string)$product->package_weight);
+		}
+
+		// Ambil data raw_data untuk mendeteksi leaf category ID dan Brand ID asli dari TikTok Seller Center
+		$raw = !empty($product->raw_data) ? json_decode($product->raw_data, true) : [];
+		$leaf_cat_id = '601756';
+		$leaf_cat_name = null;
+		if (!empty($raw['category_chains'])) {
+			$last_cat = end($raw['category_chains']);
+			if (!empty($last_cat['id'])) {
+				$leaf_cat_id = (string)$last_cat['id'];
+				$leaf_cat_name = (string)($last_cat['local_name'] ?? '');
+			}
+		} elseif (is_numeric($product->category_name)) {
+			$leaf_cat_id = (string)$product->category_name;
+		}
+
+		$categories = $this->get_tiktok_categories($product->tiktok_shop_id);
+		// Pastikan leaf_cat_id ada di list kategori, jika belum ada tambahkan
+		$cat_found = false;
+		foreach ($categories as $cat) {
+			if ($cat['id'] == $leaf_cat_id || (!empty($leaf_cat_name) && strcasecmp($cat['name'], $leaf_cat_name) === 0)) {
+				$cat_found = true;
+				break;
+			}
+		}
+		if (!$cat_found && !empty($leaf_cat_name)) {
+			$categories[] = [
+				'id' => $leaf_cat_id,
+				'name' => $leaf_cat_name
+			];
+		}
+
+		// Brand
+		$brand_name = !empty($product->brand_name) ? trim($product->brand_name, " \"'") : '';
+		$brand_id = !empty($raw['brand']['id']) ? (string)$raw['brand']['id'] : '0';
+		$brands = $this->get_tiktok_brands($leaf_cat_id, $product->tiktok_shop_id);
+
+		// Jika brand dari Seller Center belum ada di list brands dari API, tambahkan agar bisa terpilih
+		if (!empty($brand_name) && $brand_name !== 'No Brand') {
+			$brand_found = false;
+			foreach ($brands as $b) {
+				if (strcasecmp($b['name'], $brand_name) === 0 || (!empty($brand_id) && $b['id'] == $brand_id)) {
+					$brand_found = true;
+					break;
+				}
+			}
+			if (!$brand_found) {
+				$brands[] = [
+					'id' => $brand_id ?: '0',
+					'name' => $brand_name
+				];
+			}
+		}
+
+		$this->data['tiktok_products'] = $product;
+		$this->data['selected_category_id'] = $leaf_cat_id;
+		$this->data['selected_brand_name'] = $brand_name;
+		$this->data['selected_brand_id'] = $brand_id;
+		$this->data['categories'] = $categories;
+		$this->data['brands'] = $brands;
+		$this->data['current_brands'] = $brands;
 
 		$this->template->title('Produk TikTok Update');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_update', $this->data);
@@ -742,56 +806,107 @@ class Tiktok_products extends Admin
 					}
 				}
 
-				// Ambil SKU yang sudah ada untuk update harga & atribut
-				$sku_row = $this->db->get_where('tiktok_product_skus', ['tiktok_product_id' => $id])->row();
+				// Ambil detail produk terbaru dari TikTok Shop API
+				$prod_detail = $this->tiktok_api->get_product_detail($existing_product->product_id, [], $shop_id);
+				$remote_data = $prod_detail['data'] ?? [];
 
+				// Tentukan Category ID
 				$category_id = '601756';
 				if (is_numeric($this->input->post('category_name')) && !empty($this->input->post('category_name'))) {
 					$category_id = (string)$this->input->post('category_name');
+				} elseif (!empty($remote_data['category_chains'])) {
+					$last_cat = end($remote_data['category_chains']);
+					if (!empty($last_cat['id'])) {
+						$category_id = (string)$last_cat['id'];
+					}
 				}
 
-				$product_attributes = [
-					[
-						'id' => '100107',
-						'values' => [
-							['id' => '1000057', 'name' => 'Tanpa Garansi']
-						]
-					],
-					[
-						'id' => '101734',
-						'values' => [
-							['id' => '1000059', 'name' => 'Tidak']
-						]
-					]
-				];
-
-				if ($category_id !== '601756') {
-					$attr_res = $this->tiktok_api->request('/product/202309/categories/' . $category_id . '/attributes', 'GET', ['category_version' => 'v2'], null, $shop_id);
-					if (!empty($attr_res['data']['attributes'])) {
-						$custom_attrs = [];
-						foreach ($attr_res['data']['attributes'] as $attr) {
-							if (!empty($attr['is_requried']) && !empty($attr['values'])) {
-								$first_val = $attr['values'][0];
-								$custom_attrs[] = [
-									'id' => (string)$attr['id'],
-									'values' => [
-										[
-											'id' => (string)$first_val['id'],
-											'name' => (string)$first_val['name']
-										]
-									]
-								];
+				// Tentukan Product Attributes
+				$product_attributes = [];
+				if (!empty($remote_data['product_attributes'])) {
+					// Pertahankan atribut spesifikasi asli dari Seller Center
+					foreach ($remote_data['product_attributes'] as $pa) {
+						$vals = [];
+						if (!empty($pa['values'])) {
+							foreach ($pa['values'] as $v) {
+								$val_entry = [];
+								if (!empty($v['id'])) {
+									$val_entry['id'] = (string)$v['id'];
+								}
+								if (!empty($v['name'])) {
+									$val_entry['name'] = (string)$v['name'];
+								}
+								if (!empty($val_entry)) {
+									$vals[] = $val_entry;
+								}
 							}
 						}
-						if (!empty($custom_attrs)) {
-							$product_attributes = $custom_attrs;
+						$product_attributes[] = [
+							'id' => (string)$pa['id'],
+							'values' => $vals
+						];
+					}
+				} else {
+					$product_attributes = [
+						[
+							'id' => '100107',
+							'values' => [
+								['id' => '1000057', 'name' => 'Tanpa Garansi']
+							]
+						],
+						[
+							'id' => '101734',
+							'values' => [
+								['id' => '1000059', 'name' => 'Tidak']
+							]
+						]
+					];
+
+					if ($category_id !== '601756') {
+						$attr_res = $this->tiktok_api->request('/product/202309/categories/' . $category_id . '/attributes', 'GET', ['category_version' => 'v2'], null, $shop_id);
+						if (!empty($attr_res['data']['attributes'])) {
+							$custom_attrs = [];
+							foreach ($attr_res['data']['attributes'] as $attr) {
+								if (!empty($attr['is_requried']) && !empty($attr['values'])) {
+									$first_val = $attr['values'][0];
+									$custom_attrs[] = [
+										'id' => (string)$attr['id'],
+										'values' => [
+											[
+												'id' => (string)$first_val['id'],
+												'name' => (string)$first_val['name']
+											]
+										]
+									];
+								}
+							}
+							if (!empty($custom_attrs)) {
+								$product_attributes = $custom_attrs;
+							}
 						}
 					}
 				}
 
+				// Tentukan Brand ID
 				$brand_id = $this->input->post('brand_id');
 				if (empty($brand_id) || $brand_id === 'No Brand' || !is_numeric($brand_id)) {
-					$brand_id = '0';
+					$brand_id = !empty($remote_data['brand']['id']) ? (string)$remote_data['brand']['id'] : '0';
+				}
+
+				// Tentukan Dimensi Paket
+				$package_dimensions = [
+					'length' => '30',
+					'width' => '20',
+					'height' => '5',
+					'unit' => 'CENTIMETER'
+				];
+				if (!empty($remote_data['package_dimensions']['length'])) {
+					$package_dimensions = [
+						'length' => (string)round(floatval($remote_data['package_dimensions']['length'])),
+						'width'  => (string)round(floatval($remote_data['package_dimensions']['width'])),
+						'height' => (string)round(floatval($remote_data['package_dimensions']['height'])),
+						'unit'   => !empty($remote_data['package_dimensions']['unit']) ? (string)$remote_data['package_dimensions']['unit'] : 'CENTIMETER'
+					];
 				}
 
 				$edit_payload = [
@@ -803,23 +918,17 @@ class Tiktok_products extends Admin
 						'value' => (string)$package_weight,
 						'unit' => 'KILOGRAM'
 					],
-					'package_dimensions' => [
-						'length' => '30',
-						'width' => '20',
-						'height' => '5',
-						'unit' => 'CENTIMETER'
-					],
+					'package_dimensions' => $package_dimensions,
 					'product_attributes' => $product_attributes
 				];
 
+				// Penanganan Gambar Produk
 				if (!empty($new_image_uri)) {
 					$edit_payload['main_images'] = [['uri' => $new_image_uri]];
 				} else {
-					// Jika tidak ada upload gambar baru, pertahankan gambar lama dari TikTok
 					$image_uri_to_use = '';
-					$prod_detail = $this->tiktok_api->get_product_detail($existing_product->product_id, [], $shop_id);
-					if (!empty($prod_detail['data']['main_images'][0]['uri'])) {
-						$image_uri_to_use = $prod_detail['data']['main_images'][0]['uri'];
+					if (!empty($remote_data['main_images'][0]['uri'])) {
+						$image_uri_to_use = $remote_data['main_images'][0]['uri'];
 					} elseif (!empty($existing_product->main_image) && is_file(FCPATH . 'uploads/tiktok_products/' . $existing_product->main_image)) {
 						$upload_res = $this->tiktok_api->upload_image(FCPATH . 'uploads/tiktok_products/' . $existing_product->main_image, $shop_id);
 						if (!empty($upload_res['data']['uri'])) {
@@ -832,7 +941,57 @@ class Tiktok_products extends Admin
 					}
 				}
 
-				if ($sku_row && !empty($sku_row->sku_id)) {
+				// Penanganan SKU dan Sales Attributes (Mendukung Varian dari Seller Center)
+				$sku_row = $this->db->get_where('tiktok_product_skus', ['tiktok_product_id' => $id])->row();
+				if (!empty($remote_data['skus'])) {
+					$updated_skus = [];
+					foreach ($remote_data['skus'] as $idx => $api_sku) {
+						$sku_item = [
+							'id' => (string)$api_sku['id'],
+							'price' => [
+								'amount' => (string)$save_data['price'],
+								'currency' => 'IDR'
+							],
+							'seller_sku' => !empty($api_sku['seller_sku']) ? (string)$api_sku['seller_sku'] : (string)$save_data['seller_sku']
+						];
+
+						// Pertahankan sales_attributes jika ada
+						if (!empty($api_sku['sales_attributes'])) {
+							$clean_sales_attrs = [];
+							foreach ($api_sku['sales_attributes'] as $sa) {
+								$attr_entry = [];
+								if (!empty($sa['id'])) {
+									$attr_entry['id'] = (string)$sa['id'];
+								}
+								if (!empty($sa['name'])) {
+									$attr_entry['name'] = (string)$sa['name'];
+								}
+								if (!empty($sa['value_id'])) {
+									$attr_entry['value_id'] = (string)$sa['value_id'];
+								}
+								if (!empty($sa['value_name'])) {
+									$attr_entry['value_name'] = (string)$sa['value_name'];
+								}
+								if (!empty($sa['sku_img']['uri'])) {
+									$attr_entry['sku_img'] = ['uri' => (string)$sa['sku_img']['uri']];
+								}
+								if (!empty($attr_entry)) {
+									$clean_sales_attrs[] = $attr_entry;
+								}
+							}
+							if (!empty($clean_sales_attrs)) {
+								$sku_item['sales_attributes'] = $clean_sales_attrs;
+							}
+						}
+
+						if ($idx === 0 && !empty($save_data['seller_sku'])) {
+							$sku_item['seller_sku'] = (string)$save_data['seller_sku'];
+						}
+
+						$updated_skus[] = $sku_item;
+					}
+					$edit_payload['skus'] = $updated_skus;
+				} elseif ($sku_row && !empty($sku_row->sku_id)) {
 					$edit_payload['skus'] = [
 						[
 							'id' => $sku_row->sku_id,
@@ -1301,9 +1460,9 @@ class Tiktok_products extends Admin
 					$category_name = implode(' > ', $cat_names);
 				}
 
-				$brand_name = $detail['brand']['name'] ?? null;
+				$brand_name = isset($detail['brand']['name']) ? trim($detail['brand']['name'], " \"'") : null;
 				$description = $detail['description'] ?? null;
-				$package_weight = isset($detail['package_weight']['value']) ? $detail['package_weight']['value'] . ' ' . ($detail['package_weight']['unit'] ?? 'kg') : null;
+				$package_weight = isset($detail['package_weight']['value']) ? preg_replace('/[^0-9.]/', '', (string)$detail['package_weight']['value']) : null;
 
 				$product_data = [
 					'tiktok_shop_id' => $shop->id,

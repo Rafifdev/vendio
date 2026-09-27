@@ -61,7 +61,7 @@ jQuery(document).ready(domo);
                   <div class="widget-user-header ">
                      <div class="row pull-right">
                         <?php is_allowed('tiktok_orders_list', function(){?>
-                                                <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Pesanan dari TikTok Shop" href="<?= site_url('administrator/tiktok_orders/sync'); ?>"><i class="fa fa-refresh" ></i> Tarik Pesanan TikTok</a>
+                                                <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Pesanan dari TikTok Shop" href="<?= site_url('administrator/tiktok_orders/sync'); ?>"><i class="fa fa-refresh" ></i> Tarik Data Pesanan</a>
                         <?php }) ?>
                         <?php is_allowed('tiktok_orders_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> <?= cclang('tiktok_orders'); ?>" href="<?= site_url('administrator/tiktok_orders/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>

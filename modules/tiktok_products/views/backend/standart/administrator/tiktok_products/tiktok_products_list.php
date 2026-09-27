@@ -57,9 +57,9 @@
                               href="<?= site_url('administrator/tiktok_products/add'); ?>"><i
                                  class="fa fa-plus-square-o"></i>
                               <?= cclang('add_new_button', [cclang('tiktok_products')]); ?></a>
-                           <a class="btn btn-flat btn-success" id="btn_sync" title="Sinkronkan Produk dari TikTok"
+                           <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Produk dari TikTok Shop"
                               href="<?= site_url('administrator/tiktok_products/sync'); ?>"><i class="fa fa-refresh"></i>
-                              Sinkronkan Produk</a>
+                              Tarik Data Produk</a>
                         <?php }) ?>
                         <?php is_allowed('tiktok_products_export', function () { ?>
                            <a class="btn btn-flat btn-success"

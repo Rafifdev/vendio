@@ -241,7 +241,23 @@ class Tiktok_api
             'x-tts-access-token: ' . $shop->access_token,
         ];
 
-        return $this->http_request($method, $url, $body_string, $headers);
+        $start_time = microtime(true);
+        $result = $this->http_request($method, $url, $body_string, $headers);
+        $duration_ms = (int) round((microtime(true) - $start_time) * 1000);
+
+        // Logging ke tabel tiktok_api_logs sesuai PRD Bab 7.1
+        $this->log_api_call(
+            $shop->id,
+            $path,
+            $method,
+            $body_string ?: json_encode($params),
+            $result['raw'] ?? json_encode($result),
+            $result['http_status'] ?? ($result['code'] ?? 200),
+            $result['success'] ?? false,
+            $duration_ms
+        );
+
+        return $result;
     }
 
     /**
@@ -351,13 +367,36 @@ class Tiktok_api
         $is_success = isset($decoded['code']) && $decoded['code'] === 0;
 
         return [
-            'success' => $is_success,
-            'code'    => $decoded['code'] ?? $http_code,
-            'message' => $decoded['message'] ?? 'OK',
-            'data'    => $decoded['data'] ?? null,
-            'request_id' => $decoded['request_id'] ?? null,
-            'raw'     => $response
+            'success'     => $is_success,
+            'code'        => $decoded['code'] ?? $http_code,
+            'http_status' => $http_code,
+            'message'     => $decoded['message'] ?? 'OK',
+            'data'        => $decoded['data'] ?? null,
+            'request_id'  => $decoded['request_id'] ?? null,
+            'raw'         => $response
         ];
+    }
+
+    /**
+     * Catat audit log API call ke tabel tiktok_api_logs sesuai PRD Bab 7.1
+     */
+    protected function log_api_call($shop_id, $endpoint, $method, $request_payload, $response_payload, $http_status, $is_success, $duration_ms)
+    {
+        try {
+            $this->CI->db->insert('tiktok_api_logs', [
+                'shop_id'            => $shop_id,
+                'endpoint'           => $endpoint,
+                'method'             => strtoupper($method),
+                'request_payload'    => is_string($request_payload) ? $request_payload : json_encode($request_payload),
+                'response_payload'   => is_string($response_payload) ? $response_payload : json_encode($response_payload),
+                'http_status'        => (int) $http_status,
+                'is_success'         => $is_success ? 1 : 0,
+                'execution_time_ms'  => (int) $duration_ms,
+                'created_at'         => date('Y-m-d H:i:s'),
+            ]);
+        } catch (Exception $e) {
+            log_message('error', 'Gagal mencatat log tiktok_api_logs: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -612,6 +651,31 @@ class Tiktok_api
     {
         $params['page_size'] = $params['page_size'] ?? 20;
         return $this->request('/return_refund/202309/returns/search', 'POST', $params, $body, $shop_identifier);
+    }
+
+    /**
+     * Setujui pengajuan retur / refund dari pembeli
+     * POST /return_refund/202309/returns/{return_id}/approve
+     */
+    public function approve_return($return_id, $decision = 'APPROVE_RETURN', $shop_identifier = null)
+    {
+        $body = [
+            'decision' => $decision
+        ];
+        return $this->request('/return_refund/202309/returns/' . $return_id . '/approve', 'POST', [], $body, $shop_identifier);
+    }
+
+    /**
+     * Tolak pengajuan retur / refund dari pembeli
+     * POST /return_refund/202309/returns/{return_id}/reject
+     */
+    public function reject_return($return_id, $reject_reason = '', array $extra = [], $shop_identifier = null)
+    {
+        $body = array_merge([
+            'decision'       => 'REJECT',
+            'reject_reason'  => $reject_reason
+        ], $extra);
+        return $this->request('/return_refund/202309/returns/' . $return_id . '/reject', 'POST', [], $body, $shop_identifier);
     }
 }
 

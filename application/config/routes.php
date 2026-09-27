@@ -91,3 +91,6 @@ $route['api/(:any)/(:any)'] = '$1/api/$1/$2';
 $route['api/(:any)/(:any)/(:any)'] = '$1/api/$1/$2/$3';
 $route['api/(:any)/(:any)/(:any)/(:any)'] = '$1/api/$1/$2/$3/$3';
 
+
+$route['cron'] = 'cron/sync_all';
+$route['cron/(:any)'] = 'cron/$1';
