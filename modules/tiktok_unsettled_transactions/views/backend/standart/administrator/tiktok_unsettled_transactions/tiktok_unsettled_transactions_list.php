@@ -204,22 +204,23 @@ jQuery(document).ready(domo);
 .action-link {
    display: inline-flex;
    align-items: center;
-   gap: 5px;
-   padding: 5px 11px;
+   gap: 4px;
+   padding: 4px 9px;
+   border-radius: 4px;
    font-size: 12px;
    font-weight: 500;
-   color: #3b82f6;
-   background-color: #eff6ff;
-   border: 1px solid #bfdbfe;
-   border-radius: 4px;
+   color: #1e293b !important;
+   background: #f8fafc;
+   border: 1px solid #cbd5e1;
    text-decoration: none !important;
    transition: all 0.15s ease;
+   white-space: nowrap;
 }
 
 .action-link:hover {
-   background-color: #dbeafe;
-   color: #1d4ed8;
-   border-color: #93c5fd;
+   background: #e2e8f0;
+   color: #0f172a !important;
+   border-color: #94a3b8;
 }
 
 /* Fixed Bottom Toolbar (Clean Footer Container) */
@@ -464,8 +465,8 @@ jQuery(document).ready(domo);
                                  <td style="text-align: center; white-space: nowrap;">
                                     <!-- Only 1 action -> Single clean action link -->
                                     <?php is_allowed('tiktok_unsettled_transactions_view', function () use ($tiktok_unsettled_transactions) { ?>
-                                       <a href="<?= site_url('administrator/tiktok_unsettled_transactions/view/' . $tiktok_unsettled_transactions->id); ?>" class="action-link" title="Lihat Rincian">
-                                          <i class="fa fa-newspaper-o"></i> Detail
+                                       <a href="<?= site_url('administrator/tiktok_unsettled_transactions/view/' . $tiktok_unsettled_transactions->id); ?>" class="action-link" title="<?= cclang('view_button'); ?>">
+                                          <i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
                                        </a>
                                     <?php }) ?>
                                  </td>

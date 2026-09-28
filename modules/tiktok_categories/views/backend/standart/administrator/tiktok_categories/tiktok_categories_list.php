@@ -256,9 +256,9 @@ jQuery(document).ready(domo);
    border-radius: 4px;
    font-size: 12px;
    font-weight: 500;
-   color: #475569 !important;
+   color: #1e293b !important;
    background: #f8fafc;
-   border: 1px solid #e2e8f0;
+   border: 1px solid #cbd5e1;
    text-decoration: none !important;
    transition: all 0.15s ease;
    white-space: nowrap;
@@ -266,7 +266,8 @@ jQuery(document).ready(domo);
 
 .action-link:hover {
    background: #e2e8f0;
-   color: #1e293b !important;
+   color: #0f172a !important;
+   border-color: #94a3b8;
 }
 
 .action-link.remove-data:hover {
@@ -489,7 +490,6 @@ jQuery(document).ready(domo);
                                  </th>
                                  <th style="min-width: 180px;">Nama Kategori</th>
                                  <th style="min-width: 160px;">ID Kategori TikTok</th>
-                                 <th style="width: 120px; text-align: center;">Tingkat</th>
                                  <th style="width: 140px;">Tipe Kategori</th>
                                  <th style="width: 120px; text-align: center;">Status Izin</th>
                                  <th style="width: 100px; text-align: right; padding-right: 20px;">Aksi</th>
@@ -502,15 +502,12 @@ jQuery(document).ready(domo);
                                     <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_categories->id; ?>">
                                  </td>
                                  <td>
-                                    <span style="font-weight: 600; color: #1e293b; font-size: 13.5px;">
-                                       <i class="fa fa-folder-o" style="color: #64748b; font-size: 13px; margin-right: 8px;"></i><?= _ent($tiktok_categories->local_name); ?>
+                                    <span style="font-weight: 700; color: #1e293b; font-size: 13.5px;">
+                                       <i class="fa fa-folder-o" style="color: #64748b; font-size: 13px; margin-right: 8px;"></i><strong><?= _ent($tiktok_categories->local_name); ?></strong>
                                     </span>
                                  </td>
                                  <td>
                                     <span class="chip-id"><?= _ent($tiktok_categories->tiktok_category_id); ?></span>
-                                 </td>
-                                 <td style="text-align: center;">
-                                    <span class="chip-tag">Level <?= _ent($tiktok_categories->level); ?></span>
                                  </td>
                                  <td><?= $tiktok_categories->is_leaf ? "Leaf Kategori" : "Induk Kategori"; ?></td>
                                  <td style="text-align: center; white-space: nowrap;">

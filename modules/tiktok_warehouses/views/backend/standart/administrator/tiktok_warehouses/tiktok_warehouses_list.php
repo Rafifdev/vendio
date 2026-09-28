@@ -256,9 +256,9 @@
    border-radius: 4px;
    font-size: 12px;
    font-weight: 500;
-   color: #475569 !important;
+   color: #1e293b !important;
    background: #f8fafc;
-   border: 1px solid #e2e8f0;
+   border: 1px solid #cbd5e1;
    text-decoration: none !important;
    transition: all 0.15s ease;
    white-space: nowrap;
@@ -266,7 +266,8 @@
 
 .action-link:hover {
    background: #e2e8f0;
-   color: #1e293b !important;
+   color: #0f172a !important;
+   border-color: #94a3b8;
 }
 
 .action-link.remove-data:hover {
