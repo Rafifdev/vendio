@@ -359,14 +359,16 @@
                             </div>
                         </div>
                                                  
-                                                <div class="form-group ">
+                        <div class="form-group ">
                             <label for="total_amount" class="control-label">Total Pembayaran 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="total_amount" id="total_amount" placeholder="Total Pembayaran" value="<?= set_value('total_amount', $tiktok_orders->total_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="total_amount" id="total_amount" placeholder="Total Pembayaran" value="<?= set_value('total_amount', $tiktok_orders->total_amount); ?>">
+                                </div>
+                                <small class="info help-block">Total nominal yang dibayarkan oleh pembeli.</small>
                             </div>
                         </div>
                                                  

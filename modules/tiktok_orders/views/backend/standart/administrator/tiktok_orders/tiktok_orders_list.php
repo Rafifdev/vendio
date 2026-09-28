@@ -549,6 +549,30 @@ jQuery(document).ready(domo);
                      </div>
                   </div>
 
+                  <!-- Horizontal Status Navigation Tabs -->
+                  <div class="order-status-tabs" style="padding: 12px 25px 0 25px; background: #ffffff; border-bottom: 1px solid #edf2f7; display: flex; gap: 8px; overflow-x: auto;">
+                     <?php
+                     $tabs = [
+                        '' => ['label' => 'Semua Pesanan', 'count' => $status_counters['all'] ?? 0],
+                        'UNPAID' => ['label' => 'Belum Bayar', 'count' => $status_counters['UNPAID'] ?? 0],
+                        'AWAITING_SHIPMENT' => ['label' => 'Perlu Dikirim', 'count' => $status_counters['AWAITING_SHIPMENT'] ?? 0],
+                        'IN_TRANSIT' => ['label' => 'Dalam Pengiriman', 'count' => $status_counters['IN_TRANSIT'] ?? 0],
+                        'COMPLETED' => ['label' => 'Selesai', 'count' => $status_counters['COMPLETED'] ?? 0],
+                        'CANCELLED' => ['label' => 'Dibatalkan', 'count' => $status_counters['CANCELLED'] ?? 0],
+                     ];
+                     foreach ($tabs as $st_key => $tab_data):
+                        $is_active = ($selected_status === $st_key || (empty($selected_status) && $st_key === ''));
+                        $tab_url = site_url('administrator/tiktok_orders') . ($st_key !== '' ? '?status=' . $st_key : '') . (!empty($selected_shop_id) ? ($st_key !== '' ? '&' : '?') . 'shop_id=' . $selected_shop_id : '');
+                     ?>
+                        <a href="<?= $tab_url; ?>" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px; font-weight: <?= $is_active ? '700' : '500'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; border-bottom: 2.5px solid <?= $is_active ? '#00a65a' : 'transparent'; ?>; text-decoration: none !important; white-space: nowrap; transition: all 0.15s ease;">
+                           <?= $tab_data['label']; ?>
+                           <span class="badge" style="background: <?= $is_active ? '#e6f4ea' : '#f1f5f9'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px;">
+                              <?= $tab_data['count']; ?>
+                           </span>
+                        </a>
+                     <?php endforeach; ?>
+                  </div>
+
                   <!-- Form & Table -->
                   <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>
                      <?php if (!empty($selected_shop_id)): ?>
@@ -586,9 +610,14 @@ jQuery(document).ready(domo);
                                     <?php endif; ?>
                                  </td>
                                  <td style="white-space: nowrap;">
-                                    <a href="<?= site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id); ?>" class="chip-id">
-                                       <?= _ent($tiktok_orders->order_id); ?>
-                                    </a>
+                                    <div style="display: inline-flex; align-items: center; gap: 4px;">
+                                       <a href="<?= site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id); ?>" class="chip-id" title="Lihat Detail Pesanan">
+                                          <?= _ent($tiktok_orders->order_id); ?>
+                                       </a>
+                                       <button type="button" class="btn btn-default btn-xs btn-copy-order-id" data-id="<?= _ent($tiktok_orders->order_id); ?>" title="Salin ID Pesanan" style="padding: 2px 6px; font-size: 11px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; color: #475569; cursor: pointer;">
+                                          <i class="fa fa-copy"></i>
+                                       </button>
+                                    </div>
                                  </td>
                                  <td>
                                     <div style="font-weight: 600; color: #1e293b; font-size: 12.5px;"><?= _ent($tiktok_orders->recipient_name ?: '-'); ?></div>
@@ -897,6 +926,17 @@ jQuery(document).ready(domo);
          }
          checkAll.iCheck('update');
       });
+      // Copy ID Pesanan satu-klik
+      $(document).on('click', '.btn-copy-order-id', function (e) {
+         e.preventDefault();
+         var id = $(this).data('id');
+         if (navigator.clipboard) {
+            navigator.clipboard.writeText(id).then(function () {
+               toastr.success('ID Pesanan ' + id + ' berhasil disalin!');
+            });
+         }
+      });
+
       // Filter toko
       $('#shop_id_filter').on('change', function () {
          var shop_id = $(this).val();

@@ -32,20 +32,40 @@ class Tiktok_orders extends Admin
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
 		$shop_id = $this->input->get('shop_id');
+		$order_status = $this->input->get('status');
 
-		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
+		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset, [], $shop_id, $order_status);
 		foreach ($orders as $order) {
 			$order->items = $this->db->get_where('tiktok_order_items', ['tiktok_order_id' => $order->id])->result();
 		}
 		$this->data['tiktok_orderss'] = $orders;
-		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id);
+		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $order_status);
 
 		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
+		$this->data['selected_status'] = $order_status;
+
+		// Hitung counter status untuk navigasi tab horizontal
+		$counts_builder = $this->db->select('order_status, COUNT(*) as total')->from('tiktok_orders');
+		if (!empty($shop_id)) {
+			$counts_builder->where('tiktok_shop_id', $shop_id);
+		}
+		$raw_counts = $counts_builder->group_by('order_status')->get()->result();
+		$status_counters = ['all' => 0, 'UNPAID' => 0, 'AWAITING_SHIPMENT' => 0, 'IN_TRANSIT' => 0, 'COMPLETED' => 0, 'CANCELLED' => 0];
+		foreach ($raw_counts as $rc) {
+			$st = strtoupper($rc->order_status);
+			$status_counters['all'] += (int)$rc->total;
+			if (isset($status_counters[$st])) {
+				$status_counters[$st] += (int)$rc->total;
+			} elseif ($st === 'DELIVERED') {
+				$status_counters['COMPLETED'] += (int)$rc->total;
+			}
+		}
+		$this->data['status_counters'] = $status_counters;
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_orders/index/',
-			'total_rows'   => $this->model_tiktok_orders->count_all($filter, $field, $shop_id),
+			'total_rows'   => $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $order_status),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];

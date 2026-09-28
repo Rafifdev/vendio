@@ -258,106 +258,124 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="tiktok_shop_id" class="control-label">Tiktok Shop Id 
+                        <div class="form-group ">
+                            <label for="tiktok_shop_id" class="control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Select Tiktok Shop Id" >
+                                <select class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok" >
                                     <option value=""></option>
                                     <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
-                                    <option value="<?= $row->id ?>"><?= $row->shop_name; ?></option>
+                                    <option value="<?= $row->id; ?>" <?= set_value('tiktok_shop_id') == $row->id ? 'selected' : ''; ?>><?= _ent($row->shop_name); ?></option>
                                     <?php endforeach; ?>  
                                 </select>
-                                <small class="info help-block">
-                                </small>
+                                <small class="info help-block">Toko penerima pesanan.</small>
                             </div>
                         </div>
 
-                                                 
-                                                <div class="form-group ">
-                            <label for="order_id" class="control-label">Order Id 
+                        <div class="form-group ">
+                            <label for="order_id" class="control-label">ID Pesanan (Order ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="Order Id" value="<?= set_value('order_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="Nomor ID Pesanan TikTok" value="<?= set_value('order_id'); ?>">
+                                <small class="info help-block">Nomor referensi pesanan unik dari TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="recipient_name" class="control-label">Recipient Name 
+
+                        <div class="form-group ">
+                            <label for="order_status" class="control-label">Status Pesanan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="recipient_name" id="recipient_name" placeholder="Recipient Name" value="<?= set_value('recipient_name'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select" name="order_status" id="order_status" data-placeholder="Pilih Status Pesanan">
+                                    <option value="UNPAID" <?= set_value('order_status') == 'UNPAID' ? 'selected' : ''; ?>>Belum Bayar (UNPAID)</option>
+                                    <option value="AWAITING_SHIPMENT" <?= set_value('order_status') == 'AWAITING_SHIPMENT' || !set_value('order_status') ? 'selected' : ''; ?>>Perlu Dikirim (AWAITING_SHIPMENT)</option>
+                                    <option value="AWAITING_COLLECTION" <?= set_value('order_status') == 'AWAITING_COLLECTION' ? 'selected' : ''; ?>>Menunggu Pickup Kurir (AWAITING_COLLECTION)</option>
+                                    <option value="IN_TRANSIT" <?= set_value('order_status') == 'IN_TRANSIT' ? 'selected' : ''; ?>>Dalam Pengiriman (IN_TRANSIT)</option>
+                                    <option value="DELIVERED" <?= set_value('order_status') == 'DELIVERED' ? 'selected' : ''; ?>>Pesanan Sampai (DELIVERED)</option>
+                                    <option value="COMPLETED" <?= set_value('order_status') == 'COMPLETED' ? 'selected' : ''; ?>>Selesai (COMPLETED)</option>
+                                    <option value="CANCELLED" <?= set_value('order_status') == 'CANCELLED' ? 'selected' : ''; ?>>Dibatalkan (CANCELLED)</option>
+                                </select>
+                                <small class="info help-block">Status terkini transaksi pesanan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="recipient_phone" class="control-label">Recipient Phone 
+
+                        <div class="form-group ">
+                            <label for="recipient_name" class="control-label">Nama Penerima 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="recipient_phone" id="recipient_phone" placeholder="Recipient Phone" value="<?= set_value('recipient_phone'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="recipient_name" id="recipient_name" placeholder="Nama lengkap pembeli / penerima" value="<?= set_value('recipient_name'); ?>">
+                                <small class="info help-block">Nama penerima paket pesanan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="recipient_address" class="control-label">Recipient Address 
+
+                        <div class="form-group ">
+                            <label for="recipient_phone" class="control-label">Nomor Telepon Penerima 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <textarea id="recipient_address" name="recipient_address" rows="5" class="textarea form-control"><?= set_value('recipient_address'); ?></textarea>
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="recipient_phone" id="recipient_phone" placeholder="Nomor handphone aktif penerima" value="<?= set_value('recipient_phone'); ?>">
+                                <small class="info help-block">Nomor kontak untuk kurir pengiriman.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="shipping_provider" class="control-label">Shipping Provider 
+
+                        <div class="form-group ">
+                            <label for="recipient_address" class="control-label">Alamat Lengkap Pengiriman 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_provider" id="shipping_provider" placeholder="Shipping Provider" value="<?= set_value('shipping_provider'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <textarea id="recipient_address" name="recipient_address" rows="4" class="form-control" placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi, Kode Pos"><?= set_value('recipient_address'); ?></textarea>
+                                <small class="info help-block">Alamat tujuan pengantaran paket.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="total_amount" class="control-label">Total Amount 
+
+                        <div class="form-group ">
+                            <label for="shipping_provider" class="control-label">Kurir Logistik 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="total_amount" id="total_amount" placeholder="Total Amount" value="<?= set_value('total_amount'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="shipping_provider" id="shipping_provider" placeholder="Contoh: J&T Express, Ninja Van, SiCepat" value="<?= set_value('shipping_provider'); ?>">
+                                <small class="info help-block">Ekspedisi yang digunakan untuk pengiriman.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="shipping_type" class="control-label">Shipping Type 
+
+                        <div class="form-group ">
+                            <label for="tracking_number" class="control-label">Nomor Resi (AWB) 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_type" id="shipping_type" placeholder="Shipping Type" value="<?= set_value('shipping_type'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="tracking_number" id="tracking_number" placeholder="Nomor resi kurir pengiriman" value="<?= set_value('tracking_number'); ?>">
+                                <small class="info help-block">Nomor lacak pengiriman dari ekspedisi.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="delivery_option_name" class="control-label">Delivery Option Name 
+
+                        <div class="form-group ">
+                            <label for="total_amount" class="control-label">Total Pembayaran 
+                            <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="delivery_option_name" id="delivery_option_name" placeholder="Delivery Option Name" value="<?= set_value('delivery_option_name'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="total_amount" id="total_amount" placeholder="0" value="<?= set_value('total_amount'); ?>">
+                                </div>
+                                <small class="info help-block">Total nominal yang dibayarkan oleh pembeli.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
+                            <label for="shipping_type" class="control-label">Tipe Layanan Pengiriman 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="shipping_type" id="shipping_type" placeholder="Contoh: Standard, Express, Economy" value="<?= set_value('shipping_type'); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
+                            <label for="delivery_option_name" class="control-label">Opsi Pengiriman 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="delivery_option_name" id="delivery_option_name" placeholder="Opsi Pengiriman" value="<?= set_value('delivery_option_name'); ?>">
                             </div>
                         </div>
                                                 
