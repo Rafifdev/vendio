@@ -50,6 +50,7 @@ jQuery(document).ready(domo);
                      <div class="row pull-right">
                         <?php is_allowed('tiktok_shops_add', function(){?>
                         <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_shops')]); ?>  (Ctrl+a)" href="<?=  site_url('administrator/tiktok_shops/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', [cclang('tiktok_shops')]); ?></a>
+                        <a class="btn btn-flat btn-success" id="btn_connect_tiktok" target="_blank" title="Hubungkan Akun Toko (TikTok Shop)" href="<?= site_url('administrator/tiktok_shops/connect'); ?>"><i class="fa fa-plug"></i> Hubungkan Akun Toko</a>
                         <?php }) ?>
                         <?php is_allowed('tiktok_shops_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_shops/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
@@ -115,12 +116,14 @@ jQuery(document).ready(domo);
                               <?php endif; ?>
                            </td> 
 
-                           <td width="200">
+                           <td width="220">
                               <?php is_allowed('tiktok_shops_view', function() use ($tiktok_shops){?>
                                  <a href="<?= site_url('administrator/tiktok_shops/view/' . $tiktok_shops->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?></a>
                               <?php }) ?>
                               <?php is_allowed('tiktok_shops_update', function() use ($tiktok_shops){?>
                                  <a href="<?= site_url('administrator/tiktok_shops/edit/' . $tiktok_shops->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
+                                 <a href="<?= site_url('administrator/tiktok_shops/refresh_token/' . $tiktok_shops->id); ?>" class="label-default" title="Refresh Access Token"><i class="fa fa-refresh"></i> Refresh Token</a>
+                                 <a href="<?= site_url('administrator/tiktok_shops/sync_cipher/' . $tiktok_shops->id); ?>" class="label-default" title="Sinkronisasi Data Toko & Cipher"><i class="fa fa-exchange"></i> Sync Cipher</a>
                               <?php }) ?>
                               <?php is_allowed('tiktok_shops_delete', function() use ($tiktok_shops){?>
                                  <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_shops/delete/' . $tiktok_shops->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>

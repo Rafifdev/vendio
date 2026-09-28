@@ -95,6 +95,7 @@
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="auth_code" id="auth_code" placeholder="Auth Code" value="<?= set_value('auth_code', $tiktok_shops->auth_code); ?>">
                                 <small class="info help-block">
+                                   Masukkan kode baru untuk memperbarui token atau klik <a href="<?= site_url('administrator/tiktok_shops/connect'); ?>" target="_blank" class="text-primary"><strong><i class="fa fa-external-link"></i> Hubungkan Akun Toko (TikTok OAuth)</strong></a>.
                                 </small>
                             </div>
                         </div>

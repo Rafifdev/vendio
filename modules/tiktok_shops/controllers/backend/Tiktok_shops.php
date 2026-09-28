@@ -75,23 +75,48 @@ class Tiktok_shops extends Admin
 			exit;
 		}
 
-		$this->form_validation->set_rules('app_key', 'App Key', 'trim|required');
-		$this->form_validation->set_rules('app_secret', 'App Secret', 'trim|required');
-		$this->form_validation->set_rules('is_active', 'Is Active', 'trim|required');
+		$this->form_validation->set_rules('app_key', 'App Key', 'trim');
+		$this->form_validation->set_rules('app_secret', 'App Secret', 'trim');
+		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		
 
 		if ($this->form_validation->run()) {
-		
-			$save_data = [
-				'app_key' => $this->input->post('app_key'),
-				'app_secret' => $this->input->post('app_secret'),
-				'auth_code' => $this->input->post('auth_code'),
-				'is_active' => $this->input->post('is_active'),
-			];
+			$this->load->library('tiktok_api');
+			$cfg = $this->config->item('tiktok');
 
-			
-			$save_tiktok_shops = $this->model_tiktok_shops->store($save_data);
-            
+			$app_key    = !empty($this->input->post('app_key')) ? trim($this->input->post('app_key')) : (!empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : getenv('APP_KEY_TIKTOK'));
+			$app_secret = !empty($this->input->post('app_secret')) ? trim($this->input->post('app_secret')) : (!empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : getenv('APP_SECRET_TIKTOK'));
+			$auth_code  = trim($this->input->post('auth_code'));
+			$is_active  = $this->input->post('is_active');
+
+			if (!empty($auth_code)) {
+				$token_res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);
+
+				if ($token_res['success'] && !empty($token_res['data']['access_token'])) {
+					$save_tiktok_shops = $this->tiktok_api->save_token_response($token_res['data'], $app_key, $app_secret, $auth_code);
+					if ($save_tiktok_shops) {
+						$this->db->where('id', $save_tiktok_shops)->update('tiktok_shops', ['is_active' => $is_active]);
+					}
+				} else {
+					$err_msg = $token_res['message'] ?? 'Gagal menukarkan Auth Code ke TikTok API. Pastikan kode masih berlaku (maks 5 menit) dan belum pernah digunakan.';
+					echo json_encode([
+						'success' => false,
+						'message' => 'Gagal verifikasi TikTok: ' . $err_msg
+					]);
+					exit;
+				}
+			} else {
+				$save_data = [
+					'app_key'    => $app_key,
+					'app_secret' => $app_secret,
+					'auth_code'  => $auth_code,
+					'is_active'  => $is_active,
+				];
+				if ($this->input->post('shop_name')) {
+					$save_data['shop_name'] = $this->input->post('shop_name');
+				}
+				$save_tiktok_shops = $this->model_tiktok_shops->store($save_data);
+			}
 
 			if ($save_tiktok_shops) {
 				if ($this->input->post('save_type') == 'stay') {
@@ -165,19 +190,44 @@ class Tiktok_shops extends Admin
 		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		
 		if ($this->form_validation->run()) {
-		
-			$save_data = [
-				'shop_name'  => $this->input->post('shop_name'),
-				'app_key'    => $this->input->post('app_key'),
-				'app_secret' => $this->input->post('app_secret'),
-				'is_active'  => $this->input->post('is_active'),
-			];
-			if ($this->input->post('auth_code') !== null && $this->input->post('auth_code') !== '') {
-				$save_data['auth_code'] = $this->input->post('auth_code');
-			}
+			$this->load->library('tiktok_api');
+			$app_key    = trim($this->input->post('app_key'));
+			$app_secret = trim($this->input->post('app_secret'));
+			$auth_code  = trim($this->input->post('auth_code'));
+			$is_active  = $this->input->post('is_active');
+			$shop_name  = $this->input->post('shop_name');
 
-			
-			$save_tiktok_shops = $this->model_tiktok_shops->change($id, $save_data);
+			if (!empty($auth_code)) {
+				$token_res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);
+
+				if ($token_res['success'] && !empty($token_res['data']['access_token'])) {
+					$saved_id = $this->tiktok_api->save_token_response($token_res['data'], $app_key, $app_secret, $auth_code);
+					if ($saved_id) {
+						$this->db->where('id', $id)->update('tiktok_shops', [
+							'shop_name'  => $shop_name,
+							'app_key'    => $app_key,
+							'app_secret' => $app_secret,
+							'is_active'  => $is_active,
+						]);
+					}
+					$save_tiktok_shops = true;
+				} else {
+					$err_msg = $token_res['message'] ?? 'Gagal menukarkan Auth Code ke TikTok API.';
+					echo json_encode([
+						'success' => false,
+						'message' => 'Gagal verifikasi TikTok: ' . $err_msg
+					]);
+					exit;
+				}
+			} else {
+				$save_data = [
+					'shop_name'  => $shop_name,
+					'app_key'    => $app_key,
+					'app_secret' => $app_secret,
+					'is_active'  => $is_active,
+				];
+				$save_tiktok_shops = $this->model_tiktok_shops->change($id, $save_data);
+			}
 
 			if ($save_tiktok_shops) {
 				if ($this->input->post('save_type') == 'stay') {
@@ -372,6 +422,96 @@ class Tiktok_shops extends Admin
         $this->pdf->pdf->SetDisplayMode('fullpage');
         $this->pdf->writeHTML($content);
         $this->pdf->Output($table.'.pdf', 'H');
+	}
+
+	/**
+	 * Redirect ke halaman otorisasi TikTok Partner OAuth
+	 */
+	public function connect()
+	{
+		$this->is_allowed('tiktok_shops_add');
+		$this->load->library('tiktok_api');
+
+		$auth_url = $this->tiktok_api->get_auth_url();
+		redirect($auth_url);
+	}
+
+	/**
+	 * Callback URL dari TikTok setelah seller authorize
+	 */
+	public function callback()
+	{
+		$this->load->library('tiktok_api');
+		$cfg = $this->config->item('tiktok');
+
+		$auth_code = $this->input->get('auth_code') ?: $this->input->get('code');
+		$app_key   = !empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : $this->config->item('tiktok_app_key');
+		$app_secret = !empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : $this->config->item('tiktok_app_secret');
+
+		if (empty($auth_code)) {
+			set_message('Gagal menghubungkan toko: Parameter auth_code/code tidak ditemukan di URL.', 'error');
+			redirect('administrator/tiktok_shops');
+			return;
+		}
+
+		$res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);
+
+		if ($res['success'] && !empty($res['data']['access_token'])) {
+			$this->tiktok_api->save_token_response($res['data'], $app_key, $app_secret, $auth_code);
+			set_message('Berhasil menghubungkan Akun Toko TikTok Shop!', 'success');
+		} else {
+			$err = $res['message'] ?? 'Terjadi kesalahan saat memproses token.';
+			set_message('Gagal menukarkan token dari TikTok: ' . $err, 'error');
+		}
+
+		redirect('administrator/tiktok_shops');
+	}
+
+	/**
+	 * Sinkronisasi Shop Cipher & Informasi Toko langsung dari TikTok API
+	 *
+	 * @param int $id
+	 */
+	public function sync_cipher($id = null)
+	{
+		$this->is_allowed('tiktok_shops_update');
+
+		$shop = $this->model_tiktok_shops->find($id);
+		if (!$shop) {
+			set_message('Data toko tidak ditemukan.', 'error');
+			redirect_back();
+		}
+
+		if (empty($shop->access_token)) {
+			set_message('Access token belum tersedia untuk toko ini. Silakan hubungkan ulang akun TikTok.', 'error');
+			redirect_back();
+		}
+
+		$this->load->library('tiktok_api');
+		$cfg = $this->config->item('tiktok');
+		$app_key = !empty($shop->app_key) ? $shop->app_key : (!empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : $this->config->item('tiktok_app_key'));
+		$app_secret = !empty($shop->app_secret) ? $shop->app_secret : (!empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : $this->config->item('tiktok_app_secret'));
+
+		$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
+
+		if (!empty($shops_resp['data']['shops'][0])) {
+			$first_shop = $shops_resp['data']['shops'][0];
+			$update_data = [
+				'shop_id'     => $first_shop['id'] ?? $shop->shop_id,
+				'shop_name'   => $first_shop['name'] ?? $shop->shop_name,
+				'shop_code'   => $first_shop['code'] ?? $shop->shop_code,
+				'shop_cipher' => $first_shop['cipher'] ?? $shop->shop_cipher,
+				'seller_type' => $first_shop['seller_type'] ?? $shop->seller_type,
+				'updated_at'  => date('Y-m-d H:i:s'),
+			];
+			$this->db->where('id', $shop->id)->update('tiktok_shops', $update_data);
+			set_message("Berhasil sinkronisasi Shop Cipher toko {$update_data['shop_name']}!", 'success');
+		} else {
+			$err_msg = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API.';
+			set_message("Gagal sinkronisasi cipher toko {$shop->shop_name}: {$err_msg}", 'error');
+		}
+
+		redirect_back();
 	}
 }
 
