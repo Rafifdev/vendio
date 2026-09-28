@@ -50,15 +50,10 @@ jQuery(document).ready(domo);
                      <div class="row pull-right">
                         <?php is_allowed('tiktok_shops_add', function(){?>
                         <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_shops')]); ?>  (Ctrl+a)" href="<?=  site_url('administrator/tiktok_shops/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', [cclang('tiktok_shops')]); ?></a>
-                        <a class="btn btn-flat btn-success" id="btn_connect_tiktok" target="_blank" title="Hubungkan Akun Toko (TikTok Shop)" href="<?= site_url('administrator/tiktok_shops/connect'); ?>"><i class="fa fa-plug"></i> Hubungkan Akun Toko</a>
+                        <a class="btn btn-flat btn-success" id="btn_connect_tiktok" href="javascript:void(0);" title="Salin Authorize Link (TikTok Shop)" data-auth-url="<?= $auth_url ?? site_url('administrator/tiktok_shops/connect'); ?>"><i class="fa fa-copy"></i> Salin Authorize Link</a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_shops_export', function(){?>
-                        <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_shops/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_shops_export', function(){?>
-                        <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_shops/export_pdf'); ?>"><i class="fa fa-file-pdf-o" ></i> <?= cclang('export'); ?> PDF</a>
-                        <?php }) ?>
-                     </div>
+                         <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Akun Toko dari TikTok Shop" href="<?= site_url('administrator/tiktok_shops/sync'); ?>"><i class="fa fa-refresh"></i></a>
+                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
                      </div>
@@ -92,7 +87,7 @@ jQuery(document).ready(domo);
                               <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_shops->id; ?>">
                            </td>
                                                        
-                           <td><?= _ent($tiktok_shops->shop_name); ?></td> 
+                           <td><strong><?= _ent($tiktok_shops->shop_name); ?></strong></td> 
                            <td><?= _ent($tiktok_shops->shop_id); ?></td> 
                            <td><?= _ent($tiktok_shops->seller_base_region); ?></td> 
                            <td>
@@ -267,6 +262,67 @@ jQuery(document).ready(domo);
 
     });/*end apply click*/
 
+
+    // Copy Authorize Link
+    $('#btn_connect_tiktok').on('click', function(e) {
+        e.preventDefault();
+        var authUrl = $(this).attr('data-auth-url') || '<?= site_url("administrator/tiktok_shops/connect"); ?>';
+        var btn = $(this);
+        var originalHtml = btn.html();
+
+        function copySuccess() {
+            btn.html('<i class="fa fa-check"></i> Link Tersalin!').addClass('btn-primary').removeClass('btn-success');
+            setTimeout(function() {
+                btn.html(originalHtml).addClass('btn-success').removeClass('btn-primary');
+            }, 2500);
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: "Berhasil Disalin!",
+                    text: "Authorize link berhasil disalin ke clipboard.",
+                    type: "success",
+                    timer: 2000,
+                    showConfirmButton: true
+                });
+            } else if (typeof toastr !== 'undefined') {
+                toastr.success('Authorize link berhasil disalin!');
+            } else {
+                alert('Authorize link berhasil disalin!');
+            }
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(authUrl).then(function() {
+                copySuccess();
+            }).catch(function() {
+                fallbackCopy(authUrl);
+            });
+        } else {
+            fallbackCopy(authUrl);
+        }
+
+        function fallbackCopy(text) {
+            var tempInput = document.createElement("textarea");
+            tempInput.style.position = "fixed";
+            tempInput.style.left = "-9999px";
+            tempInput.style.top = "-9999px";
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.select();
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    copySuccess();
+                } else {
+                    prompt('Silakan salin authorize link di bawah ini:', text);
+                }
+            } catch (err) {
+                prompt('Silakan salin authorize link di bawah ini:', text);
+            }
+            document.body.removeChild(tempInput);
+        }
+    });
 
     //check all
     var checkAll = $('#check_all');

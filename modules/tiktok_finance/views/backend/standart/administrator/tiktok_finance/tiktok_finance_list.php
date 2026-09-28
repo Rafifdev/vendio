@@ -51,15 +51,26 @@ jQuery(document).ready(domo);
                <div class="box box-widget widget-user-2">
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
-                     <div class="row pull-right">
-                        <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Keuangan dari TikTok Shop" href="<?= site_url('administrator/tiktok_finance/sync'); ?>"><i class="fa fa-refresh"></i> Tarik Data Keuangan</a>
+                     <div class="row pull-right" style="margin-right: 0px;">
+                        <div style="display: inline-block; vertical-align: top; width: 220px; margin-right: 5px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
+                        
                         <?php is_allowed('tiktok_finance_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> <?= cclang('tiktok_finance') ?>']); ?>" href="<?= site_url('administrator/tiktok_finance/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
                         <?php }) ?>
                         <?php is_allowed('tiktok_finance_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> pdf <?= cclang('tiktok_finance') ?>']); ?>" href="<?= site_url('administrator/tiktok_finance/export_pdf'); ?>"><i class="fa fa-file-pdf-o" ></i> <?= cclang('export'); ?> PDF</a>
                         <?php }) ?>
-                     </div>
+                         <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Keuangan dari TikTok Shop" href="<?= site_url('administrator/tiktok_finance/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>"><i class="fa fa-refresh"></i></a>
+                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
                      </div>
@@ -69,6 +80,9 @@ jQuery(document).ready(domo);
                   </div>
 
                   <form name="form_tiktok_finance" id="form_tiktok_finance" action="<?= base_url('administrator/tiktok_finance/index'); ?>">
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>
                   
 
                   <div class="table-responsive" style="overflow-x: auto; width: 100%;"> 
@@ -98,7 +112,7 @@ jQuery(document).ready(domo);
                            </td>
                            <td>
                               <?php if ($tiktok_finance->tiktok_shop_id): ?>
-                                 <?= anchor('administrator/tiktok_shops/view/'.$tiktok_finance->tiktok_shop_id.'?popup=show', $tiktok_finance->tiktok_shops_shop_name, ['class' => 'popup-view']); ?>
+                                 <?= anchor('administrator/tiktok_shops/view/'.$tiktok_finance->tiktok_shop_id.'?popup=show', $tiktok_finance->tiktok_shops_shop_name, ['class' => 'popup-view', 'style' => 'font-weight: bold; color: #3c8dbc;']); ?>
                               <?php else: ?>
                                  -
                               <?php endif; ?>
@@ -293,6 +307,26 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
         }
         checkAll.iCheck('update');
+    });
+
+    // Filter toko
+    $('#shop_id_filter').on('change', function () {
+       var shop_id = $(this).val();
+       var url = '<?= site_url("administrator/tiktok_finance"); ?>';
+       var params = [];
+       if (shop_id) {
+          params.push('shop_id=' + encodeURIComponent(shop_id));
+       }
+       <?php if ($this->input->get('q')): ?>
+          params.push('q=<?= urlencode($this->input->get('q')); ?>');
+       <?php endif; ?>
+       <?php if ($this->input->get('f')): ?>
+          params.push('f=<?= urlencode($this->input->get('f')); ?>');
+       <?php endif; ?>
+       if (params.length > 0) {
+            url += '?' + params.join('&');
+       }
+       window.location.href = url;
     });
 
   }); /*end doc ready*/

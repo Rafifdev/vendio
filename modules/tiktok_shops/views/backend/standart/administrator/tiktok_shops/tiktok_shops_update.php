@@ -95,7 +95,7 @@
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="auth_code" id="auth_code" placeholder="Auth Code" value="<?= set_value('auth_code', $tiktok_shops->auth_code); ?>">
                                 <small class="info help-block">
-                                   Masukkan kode baru untuk memperbarui token atau klik <a href="<?= site_url('administrator/tiktok_shops/connect'); ?>" target="_blank" class="text-primary"><strong><i class="fa fa-external-link"></i> Hubungkan Akun Toko (TikTok OAuth)</strong></a>.
+                                   Masukkan kode baru untuk memperbarui token atau klik <a href="javascript:void(0);" id="btn_copy_auth_url" data-auth-url="<?= $auth_url ?? site_url('administrator/tiktok_shops/connect'); ?>" class="text-primary"><strong><i class="fa fa-copy"></i> Salin Authorize Link (TikTok OAuth)</strong></a>.
                                 </small>
                             </div>
                         </div>
@@ -166,6 +166,48 @@
         return false;
       }); /*end btn cancel*/
     
+      $('#btn_copy_auth_url').on('click', function(e) {
+        e.preventDefault();
+        var authUrl = $(this).attr('data-auth-url') || '<?= site_url("administrator/tiktok_shops/connect"); ?>';
+        
+        function copyDone() {
+            if (typeof swal === 'function') {
+                swal({
+                    title: "Berhasil Disalin!",
+                    text: "Authorize link berhasil disalin ke clipboard.",
+                    type: "success",
+                    timer: 2000,
+                    showConfirmButton: true
+                });
+            } else if (typeof toastr !== 'undefined') {
+                toastr.success('Authorize link berhasil disalin!');
+            } else {
+                alert('Authorize link berhasil disalin!');
+            }
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(authUrl).then(copyDone).catch(function() {
+                prompt('Silakan salin authorize link di bawah ini:', authUrl);
+            });
+        } else {
+            var tempInput = document.createElement("textarea");
+            tempInput.style.position = "fixed";
+            tempInput.style.left = "-9999px";
+            tempInput.value = authUrl;
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                copyDone();
+            } catch (err) {
+                prompt('Silakan salin authorize link di bawah ini:', authUrl);
+            }
+            document.body.removeChild(tempInput);
+        }
+      });
+
       $('.btn_save').click(function(){
         $('.message').fadeOut();
             

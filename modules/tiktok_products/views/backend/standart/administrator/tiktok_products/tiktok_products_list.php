@@ -50,16 +50,24 @@
                <div class="box box-widget widget-user-2">
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
-                     <div class="row pull-right">
-                        <?php is_allowed('tiktok_products_add', function () { ?>
+                     <div class="row pull-right" style="margin-right: 0px;">
+                        <div style="display: inline-block; vertical-align: top; width: 220px; margin-right: 5px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
+                        <?php is_allowed('tiktok_products_add', function () use ($selected_shop_id) { ?>
                            <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new"
                               title="<?= cclang('add_new_button', [cclang('tiktok_products')]); ?>  (Ctrl+a)"
                               href="<?= site_url('administrator/tiktok_products/add'); ?>"><i
                                  class="fa fa-plus-square-o"></i>
                               <?= cclang('add_new_button', [cclang('tiktok_products')]); ?></a>
-                           <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Produk dari TikTok Shop"
-                              href="<?= site_url('administrator/tiktok_products/sync'); ?>"><i class="fa fa-refresh"></i>
-                              Tarik Data Produk</a>
+                           
                         <?php }) ?>
                         <?php is_allowed('tiktok_products_export', function () { ?>
                            <a class="btn btn-flat btn-success"
@@ -67,13 +75,8 @@
                               href="<?= site_url('administrator/tiktok_products/export'); ?>"><i
                                  class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS</a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_products_export', function () { ?>
-                           <a class="btn btn-flat btn-success"
-                              title="<?= cclang('export'); ?> pdf <?= cclang('tiktok_products') ?>']); ?>"
-                              href="<?= site_url('administrator/tiktok_products/export_pdf'); ?>"><i
-                                 class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF</a>
-                        <?php }) ?>
-                     </div>
+                         <a class="btn btn-flat btn-success" id="btn_sync" title="Tarik Data Produk dari TikTok Shop" href="<?= site_url('administrator/tiktok_products/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>"><i class="fa fa-refresh"></i></a>
+                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
                      </div>
@@ -85,6 +88,9 @@
 
                   <form name="form_tiktok_products" id="form_tiktok_products"
                      action="<?= base_url('administrator/tiktok_products/index'); ?>">
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>
 
 
                       <div class="table-responsive" style="overflow-x: auto;">
@@ -112,7 +118,7 @@
                                      </td>
                                      <td style="white-space: nowrap;">
                                         <?php if ($tiktok_products->tiktok_shop_id) {
-                                           echo anchor('administrator/tiktok_shops/view/' . $tiktok_products->tiktok_shop_id . '?popup=show', $tiktok_products->tiktok_shops_shop_name, ['class' => 'popup-view', 'style' => 'font-weight: 600; color: #3c8dbc;']);
+                                           echo anchor('administrator/tiktok_shops/view/' . $tiktok_products->tiktok_shop_id . '?popup=show', $tiktok_products->tiktok_shops_shop_name, ['class' => 'popup-view', 'style' => 'font-weight: bold; color: #3c8dbc;']);
                                         } else {
                                            echo '<span class="text-muted">-</span>';
                                         } ?>
@@ -139,14 +145,36 @@
                                               <div style="width: 45px; height: 45px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #999;"><i class="fa fa-image"></i></div>
                                            <?php endif; ?>
                                            <div style="flex-grow: 1;">
-                                              <div style="font-weight: 600; line-height: 1.3; margin-bottom: 3px;"><?= _ent($tiktok_products->title); ?></div>
-                                              <?php if (!empty($tiktok_products->seller_sku)): ?>
-                                                 <small class="text-muted"><i class="fa fa-barcode"></i> SKU: <?= _ent($tiktok_products->seller_sku); ?></small>
-                                              <?php endif; ?>
-                                           </div>
-                                        </div>
-                                     </td>
-                                     <td style="white-space: nowrap;"><?= _ent($tiktok_products->product_id); ?></td>
+                                              <div><?= _ent($tiktok_products->title); ?></div>
+                                               <?php 
+                                               $prod_skus = !empty($skus_by_product[$tiktok_products->id]) ? $skus_by_product[$tiktok_products->id] : [];
+                                               if (!empty($prod_skus) && count($prod_skus) > 1): ?>
+                                                  <?php foreach ($prod_skus as $s): ?>
+                                                     <div style="margin-top: 4px;">
+                                                        <?php if (!empty($s->sku_name) && $s->sku_name != 'Default'): ?>
+                                                           <div><small class="text-muted"><?= _ent($s->sku_name); ?></small></div>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($s->seller_sku)): ?>
+                                                           <div><small class="text-muted">(SKU: <?= _ent($s->seller_sku); ?>)</small></div>
+                                                        <?php endif; ?>
+                                                     </div>
+                                                  <?php endforeach; ?>
+                                               <?php else: 
+                                                  $single_sku = !empty($prod_skus[0]) ? $prod_skus[0] : null;
+                                                  $single_variant = (!empty($single_sku->sku_name) && $single_sku->sku_name != 'Default') ? $single_sku->sku_name : '';
+                                                  $display_sku = !empty($single_sku->seller_sku) ? $single_sku->seller_sku : $tiktok_products->seller_sku;
+                                                  ?>
+                                                  <?php if (!empty($single_variant)): ?>
+                                                     <div style="margin-top: 4px;"><small class="text-muted"><?= _ent($single_variant); ?></small></div>
+                                                  <?php endif; ?>
+                                                  <?php if (!empty($display_sku)): ?>
+                                                     <div><small class="text-muted">(SKU: <?= _ent($display_sku); ?>)</small></div>
+                                                  <?php endif; ?>
+                                               <?php endif; ?>
+                                            </div>
+                                         </div>
+                                      </td>
+                                      <td style="white-space: nowrap;"><?= _ent($tiktok_products->product_id); ?></td>
                                      <td style="text-align: center; white-space: nowrap;">
                                         <?php
                                         $platforms = !empty($tiktok_products->listing_platforms) ? explode(',', $tiktok_products->listing_platforms) : ['TIKTOK_SHOP', 'TOKOPEDIA'];
@@ -158,7 +186,7 @@
                                         }
                                         ?>
                                      </td>
-                                     <td style="text-align: center; font-weight: 600;"><?= _ent($tiktok_products->total_stock); ?></td>
+                                     <td style="text-align: center; font-weight: bold;"><?= _ent($tiktok_products->total_stock); ?></td>
                                      <td>Rp <?= number_format($tiktok_products->price, 0, ',', '.'); ?></td>
                                                                           <td style="text-align: center;">
                                          <?php
@@ -381,6 +409,26 @@
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_products"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    }); /*end doc ready*/

@@ -53,19 +53,9 @@
                      <div class="row pull-right">
                         <a class="btn btn-flat btn-success" id="btn_sync_brands"
                            href="<?= site_url('administrator/tiktok_brands/sync'); ?>"
-                           title="Tarik brand resmi TikTok Shop"><i class="fa fa-refresh"></i> Tarik Data Brand</a>
-                        <?php is_allowed('tiktok_brands_export', function () { ?>
-                           <a class="btn btn-flat btn-success"
-                              title="<?= cclang('export'); ?> <?= cclang('tiktok_brands') ?>']); ?>"
-                              href="<?= site_url('administrator/tiktok_brands/export'); ?>"><i
-                                 class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS</a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_brands_export', function () { ?>
-                           <a class="btn btn-flat btn-success"
-                              title="<?= cclang('export'); ?> pdf <?= cclang('tiktok_brands') ?>']); ?>"
-                              href="<?= site_url('administrator/tiktok_brands/export_pdf'); ?>"><i
-                                 class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF</a>
-                        <?php }) ?>
+                           title="Tarik brand resmi TikTok Shop"><i class="fa fa-refresh"></i></a>
+                        
+                        
                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
@@ -101,7 +91,7 @@
                                        <input type="checkbox" class="flat-red check" name="id[]"
                                           value="<?= $tiktok_brands->id; ?>">
                                     </td>
-                                    <td><?= _ent($tiktok_brands->name); ?></td>
+                                    <td><strong><?= _ent($tiktok_brands->name); ?></strong></td>
                                     <td><?= _ent($tiktok_brands->tiktok_brand_id); ?></td>
                                     <td style="white-space: nowrap;">
                                        <?= $tiktok_brands->is_authorized ? '<span class="label label-success">Terotorisasi</span>' : '<span class="label label-danger">Belum Terotorisasi</span>'; ?>

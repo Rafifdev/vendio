@@ -48,8 +48,18 @@ jQuery(document).ready(domo);
                <div class="box box-widget widget-user-2">
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
-                     <div class="row pull-right">
-                        <a class="btn btn-flat btn-info" id="btn_sync" href="<?= site_url('administrator/tiktok_packages/sync'); ?>"><i class="fa fa-refresh"></i> Tarik Data Paket</a>
+                     <div class="row pull-right" style="margin-right: 0px;">
+                        <div style="display: inline-block; vertical-align: top; width: 220px; margin-right: 5px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
+                        
                         <?php is_allowed('tiktok_packages_add', function(){?>
                         <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_packages')]); ?>  (Ctrl+a)" href="<?=  site_url('administrator/tiktok_packages/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', [cclang('tiktok_packages')]); ?></a>
                         <?php }) ?>
@@ -59,7 +69,8 @@ jQuery(document).ready(domo);
                         <?php is_allowed('tiktok_packages_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_packages/export_pdf'); ?>"><i class="fa fa-file-pdf-o" ></i> <?= cclang('export'); ?> PDF</a>
                         <?php }) ?>
-                     </div>
+                         <a class="btn btn-flat btn-info" id="btn_sync" title="Tarik Data Paket dari TikTok Shop" href="<?= site_url('administrator/tiktok_packages/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>"><i class="fa fa-refresh"></i></a>
+                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
                      </div>
@@ -69,6 +80,9 @@ jQuery(document).ready(domo);
                   </div>
 
                   <form name="form_tiktok_packages" id="form_tiktok_packages" action="<?= base_url('administrator/tiktok_packages/index'); ?>">
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>
                   
                   <div class="table-responsive" style="overflow-x: auto; width: 100%;"> 
                   <table class="table table-bordered table-striped dataTable" style="min-width: 1200px; width: 100%;">
@@ -77,7 +91,8 @@ jQuery(document).ready(domo);
                            <th width="5">
                               <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
-                           <th>ID Paket</th>
+                           <th>Nama Toko</th>
+                            <th>ID Paket</th>
                            <th>ID Pesanan</th>
                            <th>Kurir Logistik</th>
                            <th>Nomor Resi</th>
@@ -90,7 +105,7 @@ jQuery(document).ready(domo);
                      <tbody id="tbody_tiktok_packages">
                      <?php if (empty($tiktok_packagess)): ?>
                         <tr>
-                           <td colspan="9" style="text-align: center; color: #888;">Belum ada data paket pengiriman. Silakan klik tombol Tarik Data Paket di atas untuk mensinkronisasi dengan TikTok Shop.</td>
+                           <td colspan="10" style="text-align: center; color: #888;">Belum ada data paket pengiriman. Silakan klik tombol Tarik Data Paket di atas untuk mensinkronisasi dengan TikTok Shop.</td>
                         </tr>
                      <?php endif; ?>
                      <?php foreach($tiktok_packagess as $tiktok_packages): ?>
@@ -98,7 +113,14 @@ jQuery(document).ready(domo);
                            <td width="5">
                               <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_packages->id; ?>">
                            </td>
-                           <td><?= _ent($tiktok_packages->package_id); ?></td> 
+                           <td style="white-space: nowrap;">
+                               <?php if (!empty($tiktok_packages->tiktok_shop_id)): ?>
+                                  <?= anchor('administrator/tiktok_shops/view/' . $tiktok_packages->tiktok_shop_id . '?popup=show', $tiktok_packages->tiktok_shops_shop_name ?: 'Toko #' . $tiktok_packages->tiktok_shop_id, ['class' => 'popup-view', 'style' => 'font-weight: bold; color: #3c8dbc;']); ?>
+                               <?php else: ?>
+                                  <span class="text-muted">-</span>
+                               <?php endif; ?>
+                            </td>
+                            <td><?= _ent($tiktok_packages->package_id); ?></td> 
                            <td>
                                <?php 
                                $order_row = !empty($tiktok_packages->order_id) ? $this->db->get_where('tiktok_orders', ['order_id' => $tiktok_packages->order_id])->row() : null;
@@ -168,7 +190,7 @@ jQuery(document).ready(domo);
                       <?php endforeach; ?>
                       <?php if ($tiktok_packages_counts == 0):?>
                          <tr>
-                           <td colspan="9" style="text-align: center; color: #888;">
+                           <td colspan="10" style="text-align: center; color: #888;">
                            Data Pengiriman Paket tidak ditemukan
                            </td>
                          </tr>
@@ -317,6 +339,26 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
         }
         checkAll.iCheck('update');
+    });
+
+    // Filter toko
+    $('#shop_id_filter').on('change', function () {
+       var shop_id = $(this).val();
+       var url = '<?= site_url("administrator/tiktok_packages"); ?>';
+       var params = [];
+       if (shop_id) {
+          params.push('shop_id=' + encodeURIComponent(shop_id));
+       }
+       <?php if ($this->input->get('q')): ?>
+          params.push('q=<?= urlencode($this->input->get('q')); ?>');
+       <?php endif; ?>
+       <?php if ($this->input->get('f')): ?>
+          params.push('f=<?= urlencode($this->input->get('f')); ?>');
+       <?php endif; ?>
+       if (params.length > 0) {
+          url += '?' + params.join('&');
+       }
+       window.location.href = url;
     });
 
   }); /*end doc ready*/

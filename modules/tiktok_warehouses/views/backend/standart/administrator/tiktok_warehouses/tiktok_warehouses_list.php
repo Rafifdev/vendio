@@ -50,23 +50,23 @@
                <div class="box box-widget widget-user-2">
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
-                     <div class="row pull-right">
-                        <a class="btn btn-flat btn-success" id="btn_sync_warehouses"
-                           href="<?= site_url('administrator/tiktok_warehouses/sync'); ?>" title="Tarik data gudang
-                           terbaru dari TikTok Shop"><i class="fa fa-refresh"></i> Tarik Data Gudang</a>
-                        <?php is_allowed('tiktok_warehouses_export', function () { ?>
-                           <a class="btn btn-flat btn-success"
-                              title="<?= cclang('export'); ?> <?= cclang('tiktok_warehouses') ?>']); ?>"
-                              href="<?= site_url('administrator/tiktok_warehouses/export'); ?>"><i
-                                 class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS</a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_warehouses_export', function () { ?>
-                           <a class="btn btn-flat btn-success"
-                              title="<?= cclang('export'); ?> pdf <?= cclang('tiktok_warehouses') ?>']); ?>"
-                              href="<?= site_url('administrator/tiktok_warehouses/export_pdf'); ?>"><i
-                                 class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF</a>
-                        <?php }) ?>
-                     </div>
+                     <div class="row pull-right" style="margin-right: 0px;">
+                        <div
+                           style="display: inline-block; vertical-align: top; width: 220px; margin-right: 5px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
+                         <a class="btn btn-flat btn-success" id="btn_sync_warehouses"
+                           href="<?= site_url('administrator/tiktok_warehouses/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>"
+                           title="Tarik data gudang
+                           terbaru dari TikTok Shop"><i class="fa fa-refresh"></i></a>
+                      </div>
                      <div class="widget-user-image">
                         <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
                      </div>
@@ -78,16 +78,20 @@
 
                   <form name="form_tiktok_warehouses" id="form_tiktok_warehouses"
                      action="<?= base_url('administrator/tiktok_warehouses/index'); ?>">
-
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>
 
                      <div class="table-responsive" style="overflow-x: auto; width: 100%;">
-                        <table class="table table-bordered table-striped dataTable" style="min-width: 1000px; width: 100%;">
+                        <table class="table table-bordered table-striped dataTable"
+                           style="min-width: 1000px; width: 100%;">
                            <thead>
-                               <tr style="white-space: nowrap;">
+                              <tr style="white-space: nowrap;">
                                  <th width="5">
                                     <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all"
                                        title="Pilih Semua">
                                  </th>
+                                 <th>Nama Toko</th>
                                  <th>Nama Gudang</th>
                                  <th>ID Gudang TikTok</th>
                                  <th>Tipe Gudang</th>
@@ -103,6 +107,13 @@
                                     <td width="5">
                                        <input type="checkbox" class="flat-red check" name="id[]"
                                           value="<?= $tiktok_warehouses->id; ?>">
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                       <?php if (!empty($tiktok_warehouses->shop_id)): ?>
+                                          <?= anchor('administrator/tiktok_shops/view/' . $tiktok_warehouses->shop_id . '?popup=show', $tiktok_warehouses->tiktok_shops_shop_name ?: 'Toko #' . $tiktok_warehouses->shop_id, ['class' => 'popup-view', 'style' => 'font-weight: bold; color: #3c8dbc;']); ?>
+                                       <?php else: ?>
+                                          <span class="text-muted">-</span>
+                                       <?php endif; ?>
                                     </td>
                                     <td><?= _ent($tiktok_warehouses->name); ?></td>
                                     <td><?= _ent($tiktok_warehouses->tiktok_warehouse_id); ?></td>
@@ -299,6 +310,26 @@
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_warehouses"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    }); /*end doc ready*/

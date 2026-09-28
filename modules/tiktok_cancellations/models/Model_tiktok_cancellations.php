@@ -18,7 +18,7 @@ class Model_tiktok_cancellations extends MY_Model {
         parent::__construct($config);
     }
 
-    public function count_all($q = null, $field = null)
+    public function count_all($q = null, $field = null, $shop_id = null)
     {
         $iterasi = 1;
         $num = count($this->field_search);
@@ -41,6 +41,10 @@ class Model_tiktok_cancellations extends MY_Model {
             $where .= "(" . "tiktok_cancellations.".$field . " LIKE '%" . $q . "%' )";
         }
 
+        if (!empty($shop_id)) {
+            $this->db->where('tiktok_cancellations.tiktok_shop_id', $shop_id);
+        }
+
         $this->join_avaiable()->filter_avaiable();
         $this->db->where($where);
         $query = $this->db->get($this->table_name);
@@ -48,7 +52,7 @@ class Model_tiktok_cancellations extends MY_Model {
         return $query->num_rows();
     }
 
-    public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [])
+    public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [], $shop_id = null)
     {
         $iterasi = 1;
         $num = count($this->field_search);
@@ -74,12 +78,16 @@ class Model_tiktok_cancellations extends MY_Model {
         if (is_array($select_field) AND count($select_field)) {
             $this->db->select($select_field);
         }
+
+        if (!empty($shop_id)) {
+            $this->db->where('tiktok_cancellations.tiktok_shop_id', $shop_id);
+        }
         
         $this->join_avaiable()->filter_avaiable();
         $this->db->where($where);
         $this->db->limit($limit, $offset);
-                $this->db->order_by('tiktok_cancellations.'.$this->primary_key, "DESC");
-                $query = $this->db->get($this->table_name);
+        $this->db->order_by('tiktok_cancellations.'.$this->primary_key, "DESC");
+        $query = $this->db->get($this->table_name);
 
         return $query->result();
     }
