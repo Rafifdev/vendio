@@ -75,9 +75,10 @@ class Tiktok_shops extends Admin
 			exit;
 		}
 
+		$this->form_validation->set_rules('auth_code', 'Auth Code', 'trim|required');
+		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		$this->form_validation->set_rules('app_key', 'App Key', 'trim');
 		$this->form_validation->set_rules('app_secret', 'App Secret', 'trim');
-		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		
 
 		if ($this->form_validation->run()) {
