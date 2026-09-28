@@ -257,80 +257,95 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="tiktok_shop_id" class="control-label">ID Toko TikTok 
+                        <div class="form-group ">
+                            <label for="tiktok_shop_id" class="control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="tiktok_shop_id" id="tiktok_shop_id" placeholder="ID Toko TikTok" value="<?= set_value('tiktok_shop_id', $tiktok_withdrawals->tiktok_shop_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok">
+                                    <option value=""></option>
+                                    <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
+                                    <option <?= $row->id == $tiktok_withdrawals->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id; ?>"><?= _ent($row->shop_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="info help-block">Toko pemilik transaksi penarikan dana ini.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="withdrawal_id" class="control-label">ID Penarikan Dana 
+
+                        <div class="form-group ">
+                            <label for="withdrawal_id" class="control-label">ID Penarikan (Withdrawal ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="withdrawal_id" id="withdrawal_id" placeholder="ID Penarikan Dana" value="<?= set_value('withdrawal_id', $tiktok_withdrawals->withdrawal_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="withdrawal_id" id="withdrawal_id" placeholder="ID Penarikan Dana" value="<?= set_value('withdrawal_id', $tiktok_withdrawals->withdrawal_id); ?>" readonly>
+                                <small class="info help-block">Nomor unik transaksi penarikan dari TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="amount" class="control-label">Nominal Penarikan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="amount" id="amount" placeholder="Nominal Penarikan" value="<?= set_value('amount', $tiktok_withdrawals->amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="amount" id="amount" placeholder="0" value="<?= set_value('amount', $tiktok_withdrawals->amount); ?>">
+                                </div>
+                                <small class="info help-block">Jumlah dana yang ditransfer ke rekening.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="currency" class="control-label">Mata Uang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="currency" id="currency" placeholder="Mata Uang (IDR)" value="<?= set_value('currency', $tiktok_withdrawals->currency); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="currency" id="currency" placeholder="IDR" value="<?= set_value('currency', $tiktok_withdrawals->currency ?: 'IDR'); ?>" readonly style="background: #f8fafc; font-weight: 600; width: 120px;">
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="bank_name" class="control-label">Nama Bank Tujuan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="bank_name" id="bank_name" placeholder="Nama Bank Tujuan" value="<?= set_value('bank_name', $tiktok_withdrawals->bank_name); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" list="bank_list" name="bank_name" id="bank_name" placeholder="Nama Bank Tujuan" value="<?= set_value('bank_name', $tiktok_withdrawals->bank_name); ?>">
+                                <datalist id="bank_list">
+                                    <option value="Bank Central Asia (BCA)">
+                                    <option value="Bank Mandiri">
+                                    <option value="Bank Rakyat Indonesia (BRI)">
+                                    <option value="Bank Negara Indonesia (BNI)">
+                                    <option value="Bank Syariah Indonesia (BSI)">
+                                    <option value="CIMB Niaga">
+                                    <option value="Bank Permata">
+                                    <option value="Bank Danamon">
+                                    <option value="Bank Tabungan Negara (BTN)">
+                                </datalist>
+                                <small class="info help-block">Nama bank penerima penarikan dana.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="bank_account" class="control-label">Nomor Rekening Bank 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="bank_account" id="bank_account" placeholder="Nomor Rekening Bank" value="<?= set_value('bank_account', $tiktok_withdrawals->bank_account); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <small class="info help-block">Nomor rekening tujuan transfer.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="status" class="control-label">Status Penarikan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="status" id="status" placeholder="Status Penarikan" value="<?= set_value('status', $tiktok_withdrawals->status); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select" name="status" id="status" data-placeholder="Pilih Status Penarikan">
+                                    <option value="SUCCESS" <?= $tiktok_withdrawals->status == 'SUCCESS' ? 'selected' : ''; ?>>Berhasil Dicairkan (SUCCESS)</option>
+                                    <option value="PROCESSING" <?= $tiktok_withdrawals->status == 'PROCESSING' ? 'selected' : ''; ?>>Sedang Diproses (PROCESSING)</option>
+                                    <option value="FAILED" <?= $tiktok_withdrawals->status == 'FAILED' ? 'selected' : ''; ?>>Gagal (FAILED)</option>
+                                </select>
+                                <small class="info help-block">Status pencairan dari sistem TikTok ke rekening bank.</small>
                             </div>
                         </div>
                                                  

@@ -254,30 +254,38 @@
                             ]); ?>
                          
                         <div class="form-group">
-                            <label for="app_key" class="control-label">App Key 
-                            <i class="required">*</i>
+                            <label for="shop_name" class="control-label">Nama Toko 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="app_key" id="app_key" placeholder="App Key" value="<?= set_value('app_key'); ?>">
-                                <small class="info help-block"></small>
+                                <input type="text" class="form-control" name="shop_name" id="shop_name" placeholder="Nama Toko (Opsional jika menggunakan OAuth)" value="<?= set_value('shop_name'); ?>">
+                                <small class="info help-block">Nama toko TikTok Anda. Jika kosong, akan terisi otomatis saat verifikasi kode otorisasi.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="app_key" class="control-label">App Key Partner 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="app_key" id="app_key" placeholder="App Key (Opsional, default dari config)" value="<?= set_value('app_key'); ?>">
+                                <small class="info help-block">Kosongkan jika menggunakan App Key default dari konfigurasi sistem.</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group">
-                            <label for="app_secret" class="control-label">App Secret 
-                            <i class="required">*</i>
+                            <label for="app_secret" class="control-label">App Secret Partner 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="app_secret" id="app_secret" placeholder="App Secret" value="<?= set_value('app_secret'); ?>">
-                                <small class="info help-block"></small>
+                                <input type="password" class="form-control" name="app_secret" id="app_secret" placeholder="App Secret (Opsional, default dari config)" value="<?= set_value('app_secret'); ?>">
+                                <small class="info help-block">Kosongkan jika menggunakan App Secret default dari konfigurasi sistem.</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group">
-                            <label for="auth_code" class="control-label">Auth Code 
+                            <label for="auth_code" class="control-label">Kode Otorisasi (Auth Code) 
+                            <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="auth_code" id="auth_code" placeholder="Auth Code" value="<?= set_value('auth_code'); ?>">
+                                <input type="text" class="form-control" name="auth_code" id="auth_code" placeholder="Tempel Auth Code di sini" value="<?= set_value('auth_code'); ?>">
                                 <small class="info help-block">
                                    Dapatkan Auth Code secara otomatis dengan mengklik <a href="<?= site_url('administrator/tiktok_shops/connect'); ?>" target="_blank" class="text-primary"><strong><i class="fa fa-external-link"></i> Hubungkan Akun Toko (TikTok OAuth)</strong></a>.
                                 </small>
@@ -285,16 +293,15 @@
                         </div>
                                                  
                         <div class="form-group">
-                            <label for="is_active" class="control-label">Is Active 
+                            <label for="is_active" class="control-label">Status Toko 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select class="form-control chosen chosen-select" name="is_active" id="is_active" data-placeholder="Select Is Active">
-                                    <option value=""></option>
-                                    <option value="1">Aktif</option>
-                                    <option value="0">Nonaktif</option>
+                                <select class="form-control chosen chosen-select" name="is_active" id="is_active" data-placeholder="Pilih Status Toko">
+                                    <option value="1" <?= set_value('is_active', '1') == '1' ? 'selected' : ''; ?>>Aktif</option>
+                                    <option value="0" <?= set_value('is_active') == '0' ? 'selected' : ''; ?>>Nonaktif</option>
                                 </select>
-                                <small class="info help-block"></small>
+                                <small class="info help-block">Status operasional sinkronisasi toko di Vendio.</small>
                             </div>
                         </div>
                                                 

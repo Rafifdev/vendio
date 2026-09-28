@@ -258,6 +258,20 @@
                             ]); ?>
                          
                         <div class="form-group ">
+                            <label for="shop_id" class="control-label">Toko TikTok 
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control chosen chosen-select" name="shop_id" id="shop_id" disabled>
+                                    <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
+                                    <option <?= $row->id == $tiktok_warehouses->shop_id ? 'selected' : ''; ?> value="<?= $row->id; ?>"><?= _ent($row->shop_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <input type="hidden" name="shop_id" value="<?= $tiktok_warehouses->shop_id; ?>">
+                                <small class="info help-block">Toko pemilik gudang.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
                             <label for="name" class="control-label">Nama Gudang 
                             <i class="required">*</i>
                             </label>
@@ -282,8 +296,8 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Tipe Gudang" value="<?= set_value('warehouse_type', $tiktok_warehouses->warehouse_type); ?>" readonly>
-                                <small class="info help-block">SALES_WAREHOUSE (Gudang Penjualan) atau RETURN_WAREHOUSE (Gudang Retur).</small>
+                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Tipe Gudang" value="<?= $tiktok_warehouses->warehouse_type == 'RETURN_WAREHOUSE' ? 'Gudang Retur (RETURN_WAREHOUSE)' : 'Gudang Penjualan (SALES_WAREHOUSE)'; ?>" readonly>
+                                <small class="info help-block">Tipe gudang sesuai data TikTok Shop.</small>
                             </div>
                         </div>
 
@@ -297,31 +311,21 @@
                             </div>
                         </div>
 
-
-
                         <div class="form-group ">
                             <label for="is_default" class="control-label">Gudang Utama 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Gudang Utama" value="<?= $tiktok_warehouses->is_default ? 'Ya' : 'Tidak'; ?>" readonly>
+                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Gudang Utama" value="<?= $tiktok_warehouses->is_default ? 'Ya (Gudang Utama)' : 'Bukan Gudang Utama'; ?>" readonly>
                                 <small class="info help-block">Status gudang utama penjual di TikTok Shop.</small>
                             </div>
                         </div>
 
                         <div class="form-group ">
-                            <label for="effect_status" class="control-label">Status 
+                            <label for="effect_status" class="control-label">Status Keaktifan 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Status" value="<?= $tiktok_warehouses->effect_status == 'EFFECTIVE' ? 'Aktif' : 'Tidak Aktif'; ?>" readonly>
+                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Status" value="<?= $tiktok_warehouses->effect_status == 'EFFECTIVE' ? 'Aktif (EFFECTIVE)' : 'Tidak Aktif (INEFFECTIVE)'; ?>" readonly>
                                 <small class="info help-block">Status keaktifan gudang di TikTok Shop.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group ">
-                            <label for="shop_id" class="control-label">ID Toko 
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="ID Toko" value="<?= set_value('shop_id', $tiktok_warehouses->shop_id); ?>" readonly>
                             </div>
                         </div>
                         <div class="message" style="margin: 15px 25px 0 25px;"></div>

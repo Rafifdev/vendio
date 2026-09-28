@@ -277,8 +277,8 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="app_secret" id="app_secret" placeholder="App Secret" value="<?= set_value('app_secret', $tiktok_shops->app_secret); ?>">
-                                <small class="info help-block"></small>
+                                <input type="password" class="form-control" name="app_secret" id="app_secret" placeholder="App Secret Partner" value="<?= set_value('app_secret', $tiktok_shops->app_secret); ?>">
+                                <small class="info help-block">Kunci rahasia aplikasi partner TikTok Shop.</small>
                             </div>
                         </div>
                                                  

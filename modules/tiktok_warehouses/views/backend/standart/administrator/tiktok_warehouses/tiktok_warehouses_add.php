@@ -259,20 +259,37 @@
                             ]); ?>
                          
                         <div class="form-group ">
+                            <label for="shop_id" class="control-label">Toko TikTok 
+                            <i class="required">*</i>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control chosen chosen-select-deselect" name="shop_id" id="shop_id" data-placeholder="Pilih Toko TikTok">
+                                    <option value=""></option>
+                                    <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
+                                    <option <?= set_value('shop_id') == $row->id ? 'selected' : ''; ?> value="<?= $row->id; ?>"><?= _ent($row->shop_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="info help-block">Pilih toko TikTok yang memiliki gudang ini.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
                             <label for="name" class="control-label">Nama Gudang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="name" id="name" placeholder="Nama Gudang" value="<?= set_value('name'); ?>">
+                                <small class="info help-block">Nama resmi gudang penyimpanan atau operasional.</small>
                             </div>
                         </div>
 
                         <div class="form-group ">
-                            <label for="tiktok_warehouse_id" class="control-label">ID Daftar Gudang 
+                            <label for="tiktok_warehouse_id" class="control-label">ID Gudang TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="ID Daftar Gudang" value="<?= set_value('tiktok_warehouse_id'); ?>">
+                                <input type="text" class="form-control" name="tiktok_warehouse_id" id="tiktok_warehouse_id" placeholder="ID Gudang TikTok" value="<?= set_value('tiktok_warehouse_id'); ?>">
+                                <small class="info help-block">ID unik gudang dari sistem TikTok Shop.</small>
                             </div>
                         </div>
 
@@ -281,7 +298,11 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="warehouse_type" id="warehouse_type" placeholder="Tipe Gudang" value="<?= set_value('warehouse_type'); ?>">
+                                <select class="form-control chosen chosen-select" name="warehouse_type" id="warehouse_type" data-placeholder="Pilih Tipe Gudang">
+                                    <option value="SALES_WAREHOUSE" <?= set_value('warehouse_type') == 'SALES_WAREHOUSE' ? 'selected' : ''; ?>>Gudang Penjualan (SALES_WAREHOUSE)</option>
+                                    <option value="RETURN_WAREHOUSE" <?= set_value('warehouse_type') == 'RETURN_WAREHOUSE' ? 'selected' : ''; ?>>Gudang Retur (RETURN_WAREHOUSE)</option>
+                                </select>
+                                <small class="info help-block">Fungsi utama gudang untuk pengiriman barang baru atau retur.</small>
                             </div>
                         </div>
 
@@ -289,34 +310,31 @@
                             <label for="address" class="control-label">Alamat Gudang 
                             </label>
                             <div class="col-sm-8">
-                                <textarea id="address" name="address" rows="5" class="form-control"><?= set_value('address'); ?></textarea>
+                                <textarea id="address" name="address" rows="4" class="form-control" placeholder="Alamat lengkap lokasi gudang"><?= set_value('address'); ?></textarea>
                             </div>
                         </div>
-
-
 
                         <div class="form-group ">
                             <label for="is_default" class="control-label">Gudang Utama 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="is_default" id="is_default" placeholder="Gudang Utama (1/0)" value="<?= set_value('is_default'); ?>">
+                                <select class="form-control chosen chosen-select" name="is_default" id="is_default" data-placeholder="Pilih Status Gudang Utama">
+                                    <option value="1" <?= set_value('is_default') == '1' ? 'selected' : ''; ?>>Ya (Gudang Utama)</option>
+                                    <option value="0" <?= set_value('is_default') == '0' || !set_value('is_default') ? 'selected' : ''; ?>>Bukan Gudang Utama</option>
+                                </select>
+                                <small class="info help-block">Tentukan apakah gudang ini menjadi gudang default pengiriman.</small>
                             </div>
                         </div>
 
                         <div class="form-group ">
-                            <label for="effect_status" class="control-label">Status 
+                            <label for="effect_status" class="control-label">Status Keaktifan 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="effect_status" id="effect_status" placeholder="Status" value="<?= set_value('effect_status'); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group ">
-                            <label for="shop_id" class="control-label">ID Toko 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="number" class="form-control" name="shop_id" id="shop_id" placeholder="ID Toko" value="<?= set_value('shop_id'); ?>">
+                                <select class="form-control chosen chosen-select" name="effect_status" id="effect_status" data-placeholder="Pilih Status">
+                                    <option value="EFFECTIVE" <?= set_value('effect_status') == 'EFFECTIVE' || !set_value('effect_status') ? 'selected' : ''; ?>>Aktif (EFFECTIVE)</option>
+                                    <option value="INEFFECTIVE" <?= set_value('effect_status') == 'INEFFECTIVE' ? 'selected' : ''; ?>>Tidak Aktif (INEFFECTIVE)</option>
+                                </select>
+                                <small class="info help-block">Status operasional gudang di TikTok Shop.</small>
                             </div>
                         </div>
                         <div class="message" style="margin: 15px 25px 0 25px;"></div>

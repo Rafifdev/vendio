@@ -258,58 +258,64 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="tiktok_shop_id" class="control-label">Tiktok Shop Id 
+                        <div class="form-group ">
+                            <label for="tiktok_shop_id" class="control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="tiktok_shop_id" id="tiktok_shop_id" placeholder="Tiktok Shop Id" value="<?= set_value('tiktok_shop_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok">
+                                    <option value=""></option>
+                                    <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
+                                    <option <?= set_value('tiktok_shop_id') == $row->id ? 'selected' : ''; ?> value="<?= $row->id; ?>"><?= _ent($row->shop_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="info help-block">Pilih toko TikTok terkait.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="order_id" class="control-label">Order Id 
+
+                        <div class="form-group ">
+                            <label for="order_id" class="control-label">ID Pesanan (Order ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="Order Id" value="<?= set_value('order_id'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="Nomor ID Pesanan" value="<?= set_value('order_id'); ?>">
+                                <small class="info help-block">Nomor pesanan yang dananya masih tertahan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="settlement_status" class="control-label">Settlement Status 
+
+                        <div class="form-group ">
+                            <label for="settlement_status" class="control-label">Status Pencairan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="settlement_status" id="settlement_status" placeholder="Settlement Status" value="<?= set_value('settlement_status'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select" name="settlement_status" id="settlement_status" data-placeholder="Pilih Status Pencairan">
+                                    <option value="UNSETTLED" <?= set_value('settlement_status') == 'UNSETTLED' || !set_value('settlement_status') ? 'selected' : ''; ?>>Tertahan / Belum Cair (UNSETTLED)</option>
+                                    <option value="SETTLED" <?= set_value('settlement_status') == 'SETTLED' ? 'selected' : ''; ?>>Sudah Cair (SETTLED)</option>
+                                    <option value="PROCESSING" <?= set_value('settlement_status') == 'PROCESSING' ? 'selected' : ''; ?>>Sedang Diproses (PROCESSING)</option>
+                                </select>
+                                <small class="info help-block">Status penyelesaian dana oleh TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="estimated_settlement_amount" class="control-label">Estimated Settlement Amount 
+
+                        <div class="form-group ">
+                            <label for="estimated_settlement_amount" class="control-label">Estimasi Dana Cair 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="estimated_settlement_amount" id="estimated_settlement_amount" placeholder="Estimated Settlement Amount" value="<?= set_value('estimated_settlement_amount'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="estimated_settlement_amount" id="estimated_settlement_amount" placeholder="0" value="<?= set_value('estimated_settlement_amount'); ?>">
+                                </div>
+                                <small class="info help-block">Estimasi nominal dana bersih yang akan diterima.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="currency" class="control-label">Currency 
+
+                        <div class="form-group ">
+                            <label for="currency" class="control-label">Mata Uang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="currency" id="currency" placeholder="Currency" value="<?= set_value('currency'); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="currency" id="currency" placeholder="IDR" value="<?= set_value('currency', 'IDR'); ?>" readonly style="background: #f8fafc; font-weight: 600; width: 120px;">
                             </div>
                         </div>
                                                  
