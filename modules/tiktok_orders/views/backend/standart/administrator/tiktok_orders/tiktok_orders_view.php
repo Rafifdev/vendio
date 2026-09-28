@@ -50,7 +50,7 @@ jQuery(document).ready(domo);
                   <div class="form-horizontal" name="form_tiktok_orders" id="form_tiktok_orders" >
                    
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->id); ?>
@@ -58,7 +58,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Tiktok Shop Id </label>
+                        <label for="content" class="col-sm-2 control-label">Nama Toko </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->tiktok_shops_shop_name); ?>
@@ -66,7 +66,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Order Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID Pesanan </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->order_id); ?>
@@ -114,7 +114,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Payment Method Name </label>
+                        <label for="content" class="col-sm-2 control-label">Metode Pembayaran </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->payment_method_name); ?>
@@ -122,7 +122,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Buyer Message </label>
+                        <label for="content" class="col-sm-2 control-label">Catatan Pembeli </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->buyer_message); ?>
@@ -130,7 +130,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Cancel Reason </label>
+                        <label for="content" class="col-sm-2 control-label">Alasan Pembatalan </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->cancel_reason); ?>
@@ -138,7 +138,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Recipient Name </label>
+                        <label for="content" class="col-sm-2 control-label">Nama Penerima </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->recipient_name); ?>
@@ -146,7 +146,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Recipient Phone </label>
+                        <label for="content" class="col-sm-2 control-label">Nomor Telepon Penerima </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->recipient_phone); ?>
@@ -154,7 +154,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Recipient Address </label>
+                        <label for="content" class="col-sm-2 control-label">Alamat Penerima </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->recipient_address); ?>
@@ -162,7 +162,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shipping Provider </label>
+                        <label for="content" class="col-sm-2 control-label">Kurir Pengiriman </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->shipping_provider); ?>
@@ -170,7 +170,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shipping Type </label>
+                        <label for="content" class="col-sm-2 control-label">Tipe Pengiriman </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->shipping_type); ?>
@@ -178,7 +178,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Delivery Option </label>
+                        <label for="content" class="col-sm-2 control-label">Opsi Layanan Pengiriman </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->delivery_option_name); ?>
@@ -186,7 +186,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Tracking Number </label>
+                        <label for="content" class="col-sm-2 control-label">Nomor Resi </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->tracking_number); ?>
@@ -194,15 +194,24 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Package Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID Paket </label>
 
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_orders->package_id); ?>
+                           <?php if (!empty($tiktok_orders->package_id)): 
+                              $pkg_row = $this->db->get_where('tiktok_packages', ['package_id' => $tiktok_orders->package_id])->row();
+                           ?>
+                              <code><?= _ent($tiktok_orders->package_id); ?></code>
+                              <?php if ($pkg_row): ?>
+                                 &nbsp;&nbsp;<a href="<?= site_url('administrator/tiktok_packages/view/' . $pkg_row->id); ?>" class="btn btn-xs btn-flat btn-info"><i class="fa fa-cube"></i> Lihat Pengiriman Paket</a>
+                              <?php endif; ?>
+                           <?php else: ?>
+                              <span class="text-muted">-</span>
+                           <?php endif; ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Total Amount </label>
+                        <label for="content" class="col-sm-2 control-label">Total Pembayaran </label>
 
                         <div class="col-sm-8">
                            Rp <?= number_format($tiktok_orders->total_amount, 0, ',', '.'); ?>
@@ -210,7 +219,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shipping Fee </label>
+                        <label for="content" class="col-sm-2 control-label">Biaya Pengiriman </label>
 
                         <div class="col-sm-8">
                            Rp <?= number_format($tiktok_orders->shipping_fee, 0, ',', '.'); ?>
@@ -218,7 +227,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Seller Discount </label>
+                        <label for="content" class="col-sm-2 control-label">Diskon Penjual </label>
 
                         <div class="col-sm-8">
                            Rp <?= number_format($tiktok_orders->seller_discount, 0, ',', '.'); ?>
@@ -226,7 +235,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Tiktok Discount </label>
+                        <label for="content" class="col-sm-2 control-label">Diskon TikTok </label>
 
                         <div class="col-sm-8">
                            Rp <?= number_format($tiktok_orders->tiktok_discount, 0, ',', '.'); ?>
@@ -234,7 +243,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Order Created Time </label>
+                        <label for="content" class="col-sm-2 control-label">Waktu Pesanan Dibuat </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->order_created_time); ?>
@@ -242,7 +251,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Order Paid Time </label>
+                        <label for="content" class="col-sm-2 control-label">Waktu Pembayaran </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_orders->order_paid_time); ?>
@@ -254,9 +263,9 @@ jQuery(document).ready(domo);
                         <div class="col-sm-8">
                             <table class="table table-bordered table-striped" style="margin-top: 5px;">
                                 <thead>
-                                    <tr>
-                                        <th width="60" class="text-center">Foto</th>
-                                        <th>Nama Produk / Varian</th>
+                                     <tr class="bg-gray">
+                                         <th width="70" class="text-center">Gambar</th>
+                                         <th>Nama Produk</th>
                                         <th width="120">Harga Satuan</th>
                                         <th width="70" class="text-center">Qty</th>
                                         <th width="130">Subtotal</th>
@@ -268,21 +277,20 @@ jQuery(document).ready(domo);
                                             <tr>
                                                 <td class="text-center" style="vertical-align: middle;">
                                                     <?php if (!empty($item->sku_image)): ?>
-                                                        <img src="<?= $item->sku_image; ?>" style="width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" alt="item">
-                                                    <?php else: ?>
+                                                         <a class="fancybox" rel="group" href="<?= $item->sku_image; ?>">
+                                                             <img src="<?= $item->sku_image; ?>" style="width: 44px; height: 44px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" alt="item">
+                                                         </a>
+                                                     <?php else: ?>
                                                         <span class="text-muted">-</span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td style="vertical-align: middle;">
-                                                    <div><?= _ent($item->product_name); ?></div>
-                                                    <?php if (!empty($item->sku_name) && $item->sku_name != 'Default'): ?>
-                                                        <small class="text-muted">Varian: <?= _ent($item->sku_name); ?></small>
-                                                    <?php endif; ?>
-                                                    <?php if (!empty($item->seller_sku)): ?>
-                                                        <br><small class="text-muted">SKU: <?= _ent($item->seller_sku); ?></small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td style="vertical-align: middle;">Rp <?= number_format($item->item_price, 0, ',', '.'); ?></td>
+                                                     <div><?= _ent($item->product_name); ?></div>
+                                                     <?php if (!empty($item->seller_sku)): ?>
+                                                         <small class="text-muted">(SKU: <?= _ent($item->seller_sku); ?>)</small>
+                                                     <?php endif; ?>
+                                                 </td>
+                                                 <td style="vertical-align: middle;">Rp <?= number_format($item->item_price, 0, ',', '.'); ?></td>
                                                 <td class="text-center" style="vertical-align: middle;"><?= $item->quantity; ?></td>
                                                 <td style="vertical-align: middle;">Rp <?= number_format($item->item_price * $item->quantity, 0, ',', '.'); ?></td>
                                             </tr>

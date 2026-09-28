@@ -43,8 +43,9 @@ class Tiktok_returns extends Admin
 		];
 
 		$this->data['pagination'] = $this->pagination($config);
+		$this->data['reject_reasons'] = $this->db->get_where('tiktok_reject_reasons', ['applies_to' => 'RETURN'])->result();
 
-		$this->template->title('Retur Penjualan List');
+		$this->template->title('Retur Penjualan');
 		$this->render('backend/standart/administrator/tiktok_returns/tiktok_returns_list', $this->data);
 	}
 	
@@ -265,8 +266,9 @@ class Tiktok_returns extends Admin
 		$this->is_allowed('tiktok_returns_view');
 
 		$this->data['tiktok_returns'] = $this->model_tiktok_returns->join_avaiable()->filter_avaiable()->find($id);
+		$this->data['reject_reasons'] = $this->db->get_where('tiktok_reject_reasons', ['applies_to' => 'RETURN'])->result();
 
-		$this->template->title('Retur Penjualan Detail');
+		$this->template->title('Retur Penjualan');
 		$this->render('backend/standart/administrator/tiktok_returns/tiktok_returns_view', $this->data);
 	}
 	

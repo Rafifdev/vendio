@@ -24,11 +24,11 @@ class Tiktok_api
         $this->CI->load->database();
 
         $config = $this->CI->config->item('tiktok');
-        $this->auth_base_url      = $config['tiktok_auth_base_url'] ?? 'https://auth.tiktok-shops.com';
-        $this->api_base_url       = $config['tiktok_api_base_url'] ?? 'https://open-api.tiktokglobalshop.com';
-        $this->default_app_key    = $config['tiktok_app_key'] ?? '';
+        $this->auth_base_url = $config['tiktok_auth_base_url'] ?? 'https://auth.tiktok-shops.com';
+        $this->api_base_url = $config['tiktok_api_base_url'] ?? 'https://open-api.tiktokglobalshop.com';
+        $this->default_app_key = $config['tiktok_app_key'] ?? '';
         $this->default_app_secret = $config['tiktok_app_secret'] ?? '';
-        $this->redirect_uri       = $config['tiktok_redirect_uri'] ?? site_url('administrator/tiktok/callback');
+        $this->redirect_uri = $config['tiktok_redirect_uri'] ?? site_url('administrator/tiktok/callback');
     }
 
     /**
@@ -67,7 +67,7 @@ class Tiktok_api
 
         $params = [
             'service_id' => $service_id,
-            'state'      => $state ?: md5(uniqid(rand(), true)),
+            'state' => $state ?: md5(uniqid(rand(), true)),
         ];
 
         return $auth_url . '?' . http_build_query($params);
@@ -79,14 +79,14 @@ class Tiktok_api
      */
     public function get_access_token($auth_code, $app_key = null, $app_secret = null)
     {
-        $app_key    = $app_key ?: $this->default_app_key;
+        $app_key = $app_key ?: $this->default_app_key;
         $app_secret = $app_secret ?: $this->default_app_secret;
 
         $url = rtrim($this->auth_base_url, '/') . '/api/v2/token/get';
         $params = [
-            'app_key'    => $app_key,
+            'app_key' => $app_key,
             'app_secret' => $app_secret,
-            'auth_code'  => $auth_code,
+            'auth_code' => $auth_code,
             'grant_type' => 'authorized_code',
         ];
 
@@ -99,15 +99,15 @@ class Tiktok_api
      */
     public function refresh_access_token($refresh_token, $app_key = null, $app_secret = null)
     {
-        $app_key    = $app_key ?: $this->default_app_key;
+        $app_key = $app_key ?: $this->default_app_key;
         $app_secret = $app_secret ?: $this->default_app_secret;
 
         $url = rtrim($this->auth_base_url, '/') . '/api/v2/token/refresh';
         $params = [
-            'app_key'       => $app_key,
-            'app_secret'    => $app_secret,
+            'app_key' => $app_key,
+            'app_secret' => $app_secret,
             'refresh_token' => $refresh_token,
-            'grant_type'    => 'refresh_token',
+            'grant_type' => 'refresh_token',
         ];
 
         return $this->http_request('GET', $url . '?' . http_build_query($params));
@@ -119,14 +119,14 @@ class Tiktok_api
      */
     public function get_authorized_shops($access_token, $app_key = null, $app_secret = null)
     {
-        $app_key    = $app_key ?: $this->default_app_key;
+        $app_key = $app_key ?: $this->default_app_key;
         $app_secret = $app_secret ?: $this->default_app_secret;
 
         $path = '/authorization/202309/shops';
         $url = rtrim($this->api_base_url, '/') . $path;
 
         $params = [
-            'app_key'   => $app_key,
+            'app_key' => $app_key,
             'timestamp' => time(),
         ];
 
@@ -164,7 +164,7 @@ class Tiktok_api
         }
 
         if (!empty($body)) {
-            $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string)$body;
+            $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string) $body;
             $string_to_sign .= $body_string;
         }
 
@@ -191,13 +191,13 @@ class Tiktok_api
         if (!$shop) {
             return [
                 'success' => false,
-                'code'    => -1,
+                'code' => -1,
                 'message' => 'Toko TikTok belum terhubung atau tidak ditemukan.',
-                'data'    => null
+                'data' => null
             ];
         }
 
-        $app_key    = $shop->app_key ?: $this->default_app_key;
+        $app_key = $shop->app_key ?: $this->default_app_key;
         $app_secret = $shop->app_secret ?: $this->default_app_secret;
 
         // Cek jika token sudah kadaluarsa (atau tersisa < 5 menit), lakukan auto-refresh
@@ -207,11 +207,11 @@ class Tiktok_api
                 if (isset($refresh_result['code']) && $refresh_result['code'] === 0 && !empty($refresh_result['data']['access_token'])) {
                     $new_data = $refresh_result['data'];
                     $this->CI->db->where('id', $shop->id)->update('tiktok_shops', [
-                        'access_token'            => $new_data['access_token'],
-                        'access_token_expire_in'  => $new_data['access_token_expire_in'],
-                        'refresh_token'           => $new_data['refresh_token'],
+                        'access_token' => $new_data['access_token'],
+                        'access_token_expire_in' => $new_data['access_token_expire_in'],
+                        'refresh_token' => $new_data['refresh_token'],
                         'refresh_token_expire_in' => $new_data['refresh_token_expire_in'],
-                        'updated_at'              => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
                     ]);
                     $shop->access_token = $new_data['access_token'];
                 }
@@ -219,7 +219,7 @@ class Tiktok_api
         }
 
         // Susun parameter standar
-        $params['app_key']   = $app_key;
+        $params['app_key'] = $app_key;
         $params['timestamp'] = time();
 
         if (!empty($shop->shop_cipher) && !isset($params['shop_cipher'])) {
@@ -229,7 +229,7 @@ class Tiktok_api
         // Generate Signature dengan payload body yang konsisten
         $body_string = null;
         if ($body !== null) {
-            $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string)$body;
+            $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string) $body;
         }
 
         $params['sign'] = $this->generate_signature($path, $params, $body_string, $app_secret);
@@ -265,7 +265,7 @@ class Tiktok_api
      */
     public function save_token_response(array $token_data, $app_key = null, $app_secret = null, $auth_code = null)
     {
-        $app_key    = $app_key ?: $this->default_app_key;
+        $app_key = $app_key ?: $this->default_app_key;
         $app_secret = $app_secret ?: $this->default_app_secret;
 
         $existing = null;
@@ -274,27 +274,27 @@ class Tiktok_api
         }
 
         $shop_info = [
-            'app_key'                 => $app_key,
-            'app_secret'              => $app_secret,
-            'auth_code'               => $auth_code,
-            'access_token'            => $token_data['access_token'] ?? '',
-            'access_token_expire_in'  => $token_data['access_token_expire_in'] ?? null,
-            'refresh_token'           => $token_data['refresh_token'] ?? '',
+            'app_key' => $app_key,
+            'app_secret' => $app_secret,
+            'auth_code' => $auth_code,
+            'access_token' => $token_data['access_token'] ?? '',
+            'access_token_expire_in' => $token_data['access_token_expire_in'] ?? null,
+            'refresh_token' => $token_data['refresh_token'] ?? '',
             'refresh_token_expire_in' => $token_data['refresh_token_expire_in'] ?? null,
-            'open_id'                 => $token_data['open_id'] ?? null,
-            'seller_name'             => $token_data['seller_name'] ?? null,
-            'seller_base_region'      => $token_data['seller_base_region'] ?? 'ID',
-            'is_active'               => 1,
-            'updated_at'              => date('Y-m-d H:i:s'),
+            'open_id' => $token_data['open_id'] ?? null,
+            'seller_name' => $token_data['seller_name'] ?? null,
+            'seller_base_region' => $token_data['seller_base_region'] ?? 'ID',
+            'is_active' => 1,
+            'updated_at' => date('Y-m-d H:i:s'),
         ];
 
         // Ambil info toko dan shop_cipher
         $shops_resp = $this->get_authorized_shops($shop_info['access_token'], $app_key, $app_secret);
         if (!empty($shops_resp['data']['shops'][0])) {
             $first_shop = $shops_resp['data']['shops'][0];
-            $shop_info['shop_id']     = $first_shop['id'] ?? null;
-            $shop_info['shop_name']   = $first_shop['name'] ?? $shop_info['seller_name'];
-            $shop_info['shop_code']   = $first_shop['code'] ?? null;
+            $shop_info['shop_id'] = $first_shop['id'] ?? null;
+            $shop_info['shop_name'] = $first_shop['name'] ?? $shop_info['seller_name'];
+            $shop_info['shop_code'] = $first_shop['code'] ?? null;
             $shop_info['shop_cipher'] = $first_shop['cipher'] ?? null;
             $shop_info['seller_type'] = $first_shop['seller_type'] ?? 'LOCAL';
         }
@@ -317,15 +317,15 @@ class Tiktok_api
         $ch = curl_init();
 
         $options = [
-            CURLOPT_URL            => $url,
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_CUSTOMREQUEST  => strtoupper($method),
-            CURLOPT_ENCODING       => '',
-            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            CURLOPT_CUSTOMREQUEST => strtoupper($method),
+            CURLOPT_ENCODING => '',
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         ];
 
         if (!empty($headers)) {
@@ -339,18 +339,18 @@ class Tiktok_api
 
         curl_setopt_array($ch, $options);
 
-        $response   = curl_exec($ch);
-        $http_code  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curl_error = curl_error($ch);
         curl_close($ch);
 
         if ($curl_error) {
             return [
                 'success' => false,
-                'code'    => -1,
+                'code' => -1,
                 'message' => 'cURL Error: ' . $curl_error,
-                'data'    => null,
-                'raw'     => null
+                'data' => null,
+                'raw' => null
             ];
         }
 
@@ -359,23 +359,23 @@ class Tiktok_api
         if (json_last_error() !== JSON_ERROR_NONE) {
             return [
                 'success' => false,
-                'code'    => $http_code,
+                'code' => $http_code,
                 'message' => 'Invalid JSON response from server',
-                'data'    => null,
-                'raw'     => $response
+                'data' => null,
+                'raw' => $response
             ];
         }
 
         $is_success = isset($decoded['code']) && $decoded['code'] === 0;
 
         return [
-            'success'     => $is_success,
-            'code'        => $decoded['code'] ?? $http_code,
+            'success' => $is_success,
+            'code' => $decoded['code'] ?? $http_code,
             'http_status' => $http_code,
-            'message'     => $decoded['message'] ?? 'OK',
-            'data'        => $decoded['data'] ?? null,
-            'request_id'  => $decoded['request_id'] ?? null,
-            'raw'         => $response
+            'message' => $decoded['message'] ?? 'OK',
+            'data' => $decoded['data'] ?? null,
+            'request_id' => $decoded['request_id'] ?? null,
+            'raw' => $response
         ];
     }
 
@@ -386,15 +386,15 @@ class Tiktok_api
     {
         try {
             $this->CI->db->insert('tiktok_api_logs', [
-                'shop_id'            => $shop_id,
-                'endpoint'           => $endpoint,
-                'method'             => strtoupper($method),
-                'request_payload'    => is_string($request_payload) ? $request_payload : json_encode($request_payload),
-                'response_payload'   => is_string($response_payload) ? $response_payload : json_encode($response_payload),
-                'http_status'        => (int) $http_status,
-                'is_success'         => $is_success ? 1 : 0,
-                'execution_time_ms'  => (int) $duration_ms,
-                'created_at'         => date('Y-m-d H:i:s'),
+                'shop_id' => $shop_id,
+                'endpoint' => $endpoint,
+                'method' => strtoupper($method),
+                'request_payload' => is_string($request_payload) ? $request_payload : json_encode($request_payload),
+                'response_payload' => is_string($response_payload) ? $response_payload : json_encode($response_payload),
+                'http_status' => (int) $http_status,
+                'is_success' => $is_success ? 1 : 0,
+                'execution_time_ms' => (int) $duration_ms,
+                'created_at' => date('Y-m-d H:i:s'),
             ]);
         } catch (Exception $e) {
             log_message('error', 'Gagal mencatat log tiktok_api_logs: ' . $e->getMessage());
@@ -482,12 +482,12 @@ class Tiktok_api
             return ['success' => false, 'message' => 'Toko TikTok belum terhubung.'];
         }
 
-        $app_key    = $shop->app_key ?: $this->default_app_key;
+        $app_key = $shop->app_key ?: $this->default_app_key;
         $app_secret = $shop->app_secret ?: $this->default_app_secret;
 
-        $path   = '/product/202309/images/upload';
+        $path = '/product/202309/images/upload';
         $params = [
-            'app_key'   => $app_key,
+            'app_key' => $app_key,
             'timestamp' => time(),
         ];
         $params['sign'] = $this->generate_signature($path, $params, null, $app_secret);
@@ -615,8 +615,27 @@ class Tiktok_api
      */
     public function get_order_detail($order_id, array $params = [], $shop_identifier = null)
     {
-        $params['ids'] = (string)$order_id;
+        $params['ids'] = (string) $order_id;
         return $this->request('/order/202309/orders', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil / cari daftar paket dari TikTok Shop
+     * POST /fulfillment/202309/packages/search
+     */
+    public function search_packages(array $body = [], array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        return $this->request('/fulfillment/202309/packages/search', 'POST', $params, $body, $shop_identifier);
+    }
+
+    /**
+     * Ambil rincian lengkap satu paket TikTok
+     * GET /fulfillment/202309/packages/{package_id}
+     */
+    public function get_package_detail($package_id, array $params = [], $shop_identifier = null)
+    {
+        return $this->request('/fulfillment/202309/packages/' . $package_id, 'GET', $params, null, $shop_identifier);
     }
 
     /**
@@ -640,6 +659,15 @@ class Tiktok_api
     }
 
     /**
+     * Ambil pelacakan logistik kurir pesanan (Tracking Checkpoints)
+     * GET /fulfillment/202309/orders/{order_id}/tracking
+     */
+    public function get_order_tracking($order_id, array $params = [], $shop_identifier = null)
+    {
+        return $this->request('/fulfillment/202309/orders/' . $order_id . '/tracking', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
      * Batalkan pesanan TikTok Shop dari sisi penjual (Seller Cancel Order)
      * POST /return_refund/202309/cancellations
      *
@@ -651,7 +679,7 @@ class Tiktok_api
     public function cancel_order($order_id, $reason = 'seller_cancel_reason_out_of_stock', $shop_identifier = null)
     {
         $body = [
-            'order_id'      => (string) $order_id,
+            'order_id' => (string) $order_id,
             'cancel_reason' => $reason
         ];
         return $this->request('/return_refund/202309/cancellations', 'POST', [], $body, $shop_identifier);
@@ -672,6 +700,49 @@ class Tiktok_api
         $params['page_size'] = $params['page_size'] ?? 20;
         $params['sort_field'] = $params['sort_field'] ?? 'statement_time';
         return $this->request('/finance/202309/statements', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Tarik Rincian Transaksi dalam Statement Keuangan
+     * GET /finance/202309/statements/{statement_id}/statement_transactions
+     */
+    public function get_statement_transactions($statement_id, array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 50;
+        return $this->request('/finance/202309/statements/' . $statement_id . '/statement_transactions', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Tarik Riwayat Penarikan Dana (Withdrawals)
+     * GET /finance/202309/withdrawals
+     */
+    public function get_withdrawals(array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 50;
+        $params['types'] = $params['types'] ?? 'WITHDRAW';
+        return $this->request('/finance/202309/withdrawals', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Tarik Riwayat Pencairan / Pembayaran ke Rekening Bank (Payments)
+     * GET /finance/202309/payments
+     */
+    public function get_payments(array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 50;
+        $params['sort_field'] = $params['sort_field'] ?? 'create_time';
+        return $this->request('/finance/202309/payments', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Cari Dana Tertahan / Pesanan Belum Settle (Unsettled Orders)
+     * GET /finance/202507/orders/unsettled
+     */
+    public function get_unsettled_transactions(array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 50;
+        $params['sort_field'] = $params['sort_field'] ?? 'order_create_time';
+        return $this->request('/finance/202507/orders/unsettled', 'GET', $params, null, $shop_identifier);
     }
 
     /**
@@ -703,10 +774,50 @@ class Tiktok_api
     public function reject_return($return_id, $reject_reason = '', array $extra = [], $shop_identifier = null)
     {
         $body = array_merge([
-            'decision'       => 'REJECT',
-            'reject_reason'  => $reject_reason
+            'decision' => 'REJECT',
+            'reject_reason' => $reject_reason
         ], $extra);
         return $this->request('/return_refund/202309/returns/' . $return_id . '/reject', 'POST', [], $body, $shop_identifier);
+    }
+
+    /**
+     * Ambil daftar alasan penolakan resmi (Get Reject Reasons)
+     * GET /return_refund/202309/reject_reasons
+     */
+    public function get_reject_reasons(array $params = [], $shop_identifier = null)
+    {
+        return $this->request('/return_refund/202309/reject_reasons', 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Cari daftar pengajuan pembatalan pesanan (Search Cancellations)
+     * POST /return_refund/202309/cancellations/search
+     */
+    public function search_cancellations(array $body = [], array $params = [], $shop_identifier = null)
+    {
+        $params['page_size'] = $params['page_size'] ?? 20;
+        return $this->request('/return_refund/202309/cancellations/search', 'POST', $params, $body, $shop_identifier);
+    }
+
+    /**
+     * Setujui pengajuan pembatalan pesanan dari pembeli
+     * POST /return_refund/202309/cancellations/{cancel_id}/approve
+     */
+    public function approve_cancellation($cancel_id, $shop_identifier = null)
+    {
+        return $this->request('/return_refund/202309/cancellations/' . $cancel_id . '/approve', 'POST', [], [], $shop_identifier);
+    }
+
+    /**
+     * Tolak pengajuan pembatalan pesanan dari pembeli
+     * POST /return_refund/202309/cancellations/{cancel_id}/reject
+     */
+    public function reject_cancellation($cancel_id, $reject_reason = '', array $extra = [], $shop_identifier = null)
+    {
+        $body = array_merge([
+            'reject_reason' => $reject_reason
+        ], $extra);
+        return $this->request('/return_refund/202309/cancellations/' . $cancel_id . '/reject', 'POST', [], $body, $shop_identifier);
     }
 }
 

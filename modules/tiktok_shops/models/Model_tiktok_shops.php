@@ -5,7 +5,7 @@ class Model_tiktok_shops extends MY_Model {
 
     private $primary_key    = 'id';
     private $table_name     = 'tiktok_shops';
-    private $field_search   = ['shop_id', 'shop_name', 'seller_base_region', 'access_token_expire_in', 'is_active'];
+    private $field_search   = ['shop_id', 'shop_name', 'shop_code', 'seller_name', 'seller_base_region', 'is_active'];
 
     public function __construct()
     {

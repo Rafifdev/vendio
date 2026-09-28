@@ -56,7 +56,10 @@ class Tiktok_categories extends Admin
 		$this->is_allowed('tiktok_categories_list');
 		$this->load->library('tiktok_api');
 
-		$shop = $this->db->get_where('tiktok_shops', ['status' => 1])->row();
+		$shop = $this->db->get_where('tiktok_shops', ['is_active' => 1])->row();
+		if (!$shop) {
+			$shop = $this->db->get('tiktok_shops')->row();
+		}
 		if (!$shop) {
 			set_message('Toko TikTok belum aktif atau belum terhubung.', 'error');
 			redirect('administrator/tiktok_categories');

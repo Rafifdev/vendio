@@ -61,7 +61,7 @@ jQuery(document).ready(domo);
                   <div class="form-horizontal" name="form_tiktok_products" id="form_tiktok_products" >
                    
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->id); ?>
@@ -77,7 +77,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Product Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID Produk TikTok </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->product_id); ?>
@@ -85,7 +85,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Title </label>
+                        <label for="content" class="col-sm-2 control-label">Nama Produk </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->title); ?>
@@ -93,7 +93,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Main Image </label>
+                        <label for="content" class="col-sm-2 control-label">Foto Utama Produk </label>
 
                         <div class="col-sm-8">
                            <?php if (!empty($tiktok_products->main_image)): ?>
@@ -168,7 +168,7 @@ jQuery(document).ready(domo);
                     <?php endif; ?>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Category Name </label>
+                        <label for="content" class="col-sm-2 control-label">Kategori Produk </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->category_name); ?>
@@ -176,7 +176,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Brand Name </label>
+                        <label for="content" class="col-sm-2 control-label">Merek / Brand </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->brand_name); ?>
@@ -184,7 +184,7 @@ jQuery(document).ready(domo);
                     </div>
 
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Total Stock </label>
+                        <label for="content" class="col-sm-2 control-label">Total Stok </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->total_stock); ?>
@@ -193,7 +193,7 @@ jQuery(document).ready(domo);
 
                     <?php if (!$has_variant): ?>
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Seller Sku </label>
+                        <label for="content" class="col-sm-2 control-label">SKU Penjual </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->seller_sku); ?>
@@ -201,7 +201,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Price </label>
+                        <label for="content" class="col-sm-2 control-label">Harga </label>
 
                         <div class="col-sm-8">
                            Rp <?= number_format($tiktok_products->price, 0, ',', '.'); ?>
@@ -209,7 +209,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Currency </label>
+                        <label for="content" class="col-sm-2 control-label">Mata Uang </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->currency); ?>
@@ -218,7 +218,7 @@ jQuery(document).ready(domo);
                     <?php endif; ?>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Package Weight </label>
+                        <label for="content" class="col-sm-2 control-label">Berat Paket </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->package_weight); ?>
@@ -226,7 +226,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Description </label>
+                        <label for="content" class="col-sm-2 control-label">Deskripsi Produk </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_products->description); ?>
@@ -240,8 +240,8 @@ jQuery(document).ready(domo);
                             <table class="table table-bordered table-striped" style="margin-top: 5px;">
                                 <thead>
                                     <tr class="bg-gray">
-                                        <th>SKU ID</th>
-                                        <th>Seller SKU</th>
+                                        <th>ID SKU</th>
+                                        <th>SKU Penjual</th>
                                         <th>Nama Varian</th>
                                         <th>Stok</th>
                                         <th>Harga</th>

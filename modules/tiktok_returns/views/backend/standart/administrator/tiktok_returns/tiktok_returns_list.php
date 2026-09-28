@@ -1,17 +1,4 @@
 
-<style>
-.table-action-col {
-   width: 250px !important;
-   min-width: 250px !important;
-   text-align: left !important;
-   vertical-align: middle !important;
-}
-.table-action-col a.label-default {
-   display: inline-block;
-   margin: 2px 2px;
-   white-space: nowrap;
-}
-</style>
 <script src="<?= BASE_ASSET; ?>/js/jquery.hotkeys.js"></script>
 
 <script type="text/javascript">
@@ -153,23 +140,23 @@ jQuery(document).ready(domo);
                   ?>
 
                   <div class="table-responsive" style="overflow-x: auto; width: 100%;"> 
-                  <table class="table table-bordered table-striped dataTable" style="min-width: 1250px; width: 100%;">
+                  <table class="table table-bordered table-striped dataTable" style="min-width: 1400px; width: 100%;">
                      <thead>
                         <tr style="white-space: nowrap;">
                            <th width="5">
                             <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                            </th>
                            <th>Nama Toko</th>
-                           <th>ID Retur</th>
                            <th>ID Pesanan</th>
-                           <th>Produk</th>
+                           <th>Batas SLA Respon</th>
+                           <th style="min-width: 320px;">Produk</th>
                            <th>Tipe Retur</th>
                            <th>Status Retur</th>
                            <th>Alasan Retur</th>
                            <th>Nominal Pengembalian Dana</th>
                            <th>Nomor Resi</th>
                            <th>Tanggal Pengajuan</th>
-                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
+                           <th style="width: 100px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_returns">
@@ -183,37 +170,81 @@ jQuery(document).ready(domo);
                                  echo anchor('administrator/tiktok_shops/view/'.$tiktok_returns->tiktok_shop_id.'?popup=show', $tiktok_returns->tiktok_shops_shop_name, ['class' => 'popup-view']); 
                               } ?>
                            </td>
-                           <td><?= _ent($tiktok_returns->return_id); ?></td>
                            <td>
-                              <a href="<?= site_url('administrator/tiktok_orders?q=' . $tiktok_returns->order_id); ?>">
-                                 <?= _ent($tiktok_returns->order_id); ?>
-                              </a>
+                              <?php 
+                              $order_row = !empty($tiktok_returns->order_id) ? $this->db->get_where('tiktok_orders', ['order_id' => $tiktok_returns->order_id])->row() : null;
+                              if ($order_row): ?>
+                                 <a href="<?= site_url('administrator/tiktok_orders/view/' . $order_row->id); ?>" style="color: #3c8dbc;"><?= _ent($tiktok_returns->order_id); ?></a>
+                              <?php else: ?>
+                                 <span style="color: #3c8dbc;"><?= _ent($tiktok_returns->order_id ?: '-'); ?></span>
+                              <?php endif; ?>
                            </td>
-                            <td>
-                               <?php 
-                               $items = json_decode($tiktok_returns->items);
-                               if (!empty($items)): 
-                                  foreach ($items as $item): ?>
-                                     <div><?= _ent($item->product_name ?? '-'); ?></div>
-                                     <?php if (!empty($item->seller_sku)): ?>
-                                        <small class="text-muted">SKU: <?= _ent($item->seller_sku); ?></small>
-                                     <?php endif; ?>
-                                  <?php endforeach; 
-                               else: ?>
-                                  -
-                               <?php endif; ?>
-                            </td>
+                           <td>
+                              <?php
+                              if (!empty($tiktok_returns->return_created_time) && in_array($tiktok_returns->return_status, ['RETURN_OR_REFUND_REQUEST_PENDING', 'PROCESSING', 'AWAITING_SELLER_REVIEW'])) {
+                                 $diff = (strtotime($tiktok_returns->return_created_time) + 172800) - time();
+                                 if ($diff <= 0) {
+                                    echo '<span class="label label-danger">SLA Lewat (Auto-Approve)</span>';
+                                 } elseif ($diff < 21600) { // < 6 jam
+                                    $hours = floor($diff / 3600);
+                                    $mins = floor(($diff % 3600) / 60);
+                                    echo '<span class="label label-danger">' . $hours . 'j ' . $mins . 'm tersisa (Kritis)</span>';
+                                 } elseif ($diff < 43200) { // < 12 jam
+                                    $hours = floor($diff / 3600);
+                                    $mins = floor(($diff % 3600) / 60);
+                                    echo '<span class="label label-warning">' . $hours . 'j ' . $mins . 'm tersisa</span>';
+                                 } else {
+                                    $hours = floor($diff / 3600);
+                                    $mins = floor(($diff % 3600) / 60);
+                                    echo '<span class="label label-info">' . $hours . 'j ' . $mins . 'm tersisa</span>';
+                                 }
+                              } elseif (in_array($tiktok_returns->return_status, ['AWAITING_BUYER_SHIP', 'BUYER_SHIPPED', 'SELLER_RECEIVE_PACKAGE', 'RETURN_AND_REFUND_PACKAGE_DELIVERED'])) {
+                                 echo '<span class="label label-primary">Sudah Direspon Penjual</span>';
+                              } elseif (in_array($tiktok_returns->return_status, ['COMPLETE', 'COMPLETED', 'REFUND_SUCCESS', 'SUCCESS'])) {
+                                 echo '<span class="label label-success">Selesai Diproses</span>';
+                              } elseif (in_array($tiktok_returns->return_status, ['REJECT', 'REJECTED'])) {
+                                 echo '<span class="label label-danger">Pengajuan Ditolak</span>';
+                              } elseif (in_array($tiktok_returns->return_status, ['CANCEL', 'CANCELLED'])) {
+                                 echo '<span class="label bg-gray">Dibatalkan Pembeli</span>';
+                              } else {
+                                 echo '<span class="label bg-gray">Tidak Ada SLA Aktif</span>';
+                              }
+                              ?>
+                           </td>
+                            <td style="min-width: 320px;">
+                                <?php 
+                                $items = json_decode($tiktok_returns->items);
+                                if (!empty($items)): 
+                                   foreach ($items as $item): 
+                                      $img_url = $item->product_image->url ?? ($item->sku_image ?? "");
+                                ?>
+                                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                      <?php if (!empty($img_url)): ?>
+                                         <img src="<?= $img_url; ?>" style="width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; flex-shrink: 0;" alt="item">
+                                      <?php endif; ?>
+                                      <div style="flex-grow: 1;">
+                                         <div><?= _ent($item->product_name ?? "-"); ?></div>
+                                         <?php if (!empty($item->seller_sku)): ?>
+                                            <small class="text-muted">(SKU: <?= _ent($item->seller_sku); ?>)</small>
+                                         <?php endif; ?>
+                                      </div>
+                                   </div>
+                                <?php endforeach; 
+                                else: ?>
+                                   <span class="text-muted">-</span>
+                                <?php endif; ?>
+                             </td>
                            <td><?= format_tiktok_return_type($tiktok_returns->return_type); ?></td>
                            <td><?= format_tiktok_return_status($tiktok_returns->return_status); ?></td>
                            <td><?= format_tiktok_return_reason($tiktok_returns->return_reason); ?></td>
                            <td>Rp <?= number_format($tiktok_returns->refund_amount, 0, ',', '.'); ?></td>
                            <td><?= _ent($tiktok_returns->tracking_number ?: '-'); ?></td>
                            <td><?= $tiktok_returns->return_created_time ? date('d/m/Y H:i', strtotime($tiktok_returns->return_created_time)) : '-'; ?></td>
-                           <td style="min-width: 260px; text-align: center;">
+                           <td style="width: 100px; text-align: center; white-space: nowrap;">
                               <?php if ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING'): ?>
                                  <!-- Aksi Seller Center saat Menunggu Respon Penjual -->
                                  <a href="<?= site_url('administrator/tiktok_returns/approve/' . $tiktok_returns->id); ?>" class="label-default btn-approve-return" data-return-id="<?= $tiktok_returns->return_id; ?>" title="Setujui pengembalian"><i class="fa fa-check"></i> Setujui</a>
-                                 <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_returns/reject/' . $tiktok_returns->id); ?>" class="label-default btn-reject-return" data-return-id="<?= $tiktok_returns->return_id; ?>" title="Tolak pengembalian"><i class="fa fa-times"></i> Tolak</a>
+                                 <a href="javascript:void(0);" data-id="<?= $tiktok_returns->id; ?>" data-action="<?= site_url('administrator/tiktok_returns/reject/' . $tiktok_returns->id); ?>" data-return-id="<?= $tiktok_returns->return_id; ?>" class="label-default btn-reject-modal" title="Tolak pengembalian"><i class="fa fa-times"></i> Tolak</a>
                               <?php endif; ?>
 
                               <?php is_allowed('tiktok_returns_view', function() use ($tiktok_returns){?>
@@ -225,7 +256,7 @@ jQuery(document).ready(domo);
                       <?php if ($tiktok_returns_counts == 0) :?>
                          <tr>
                            <td colspan="100">
-                           Return Order data is not available
+                           Data Retur Penjualan tidak ditemukan
                            </td>
                          </tr>
                       <?php endif; ?>
@@ -286,6 +317,47 @@ jQuery(document).ready(domo);
          <!--/box -->
       </div>
    </div>
+
+   <!-- Modal Tolak Pengajuan Retur -->
+   <div class="modal fade" id="modal-reject-return" tabindex="-1" role="dialog" aria-labelledby="modalRejectLabel">
+     <div class="modal-dialog" role="document">
+       <div class="modal-content">
+         <form id="form-reject-return" method="POST" action="">
+           <div class="modal-header">
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+             <h4 class="modal-title" id="modalRejectLabel">Tolak Pengajuan Retur</h4>
+           </div>
+           <div class="modal-body">
+             <p class="text-muted">Pilih alasan resmi penolakan untuk pengajuan retur <span id="modal-return-id-label" style="color: #3c8dbc;"></span> sesuai ketentuan TikTok Shop:</p>
+             <div class="form-group">
+               <label>Alasan Penolakan Resmi <span class="text-danger">*</span></label>
+               <select name="reject_reason" id="select-reject-reason" class="form-control" required>
+                 <option value="">-- Pilih Alasan Penolakan --</option>
+                 <?php if (!empty($reject_reasons)): ?>
+                   <?php foreach ($reject_reasons as $reason): ?>
+                     <option value="<?= _ent($reason->reason_code); ?>"><?= _ent($reason->reason_text); ?></option>
+                   <?php endforeach; ?>
+                 <?php else: ?>
+                   <option value="seller_reject_reason_buyer_reason_not_valid">Alasan pembeli tidak valid atau tidak sesuai kondisi sebenarnya</option>
+                   <option value="seller_reject_reason_package_delivered_in_good_condition">Paket dan produk telah terkirim dalam kondisi baik dan lengkap</option>
+                   <option value="seller_reject_reason_insufficient_evidence">Bukti foto atau video unboxing yang dilampirkan pembeli tidak memadai</option>
+                   <option value="seller_reject_reason_mutual_agreement">Telah tercapai kesepakatan solusi alternatif bersama pembeli</option>
+                 <?php endif; ?>
+               </select>
+             </div>
+             <div class="form-group">
+               <label>Catatan / Keterangan untuk Pembeli (Opsional)</label>
+               <textarea name="comments" class="form-control" rows="3" placeholder="Tuliskan penjelasan tambahan jika diperlukan..."></textarea>
+             </div>
+           </div>
+           <div class="modal-footer">
+             <button type="button" class="btn btn-default btn-flat" data-dismiss="modal">Batal</button>
+             <button type="submit" class="btn btn-danger btn-flat"><i class="fa fa-times"></i> Konfirmasi Tolak Retur</button>
+           </div>
+         </form>
+       </div>
+     </div>
+   </div>
 </section>
 <!-- /.content -->
 
@@ -316,27 +388,14 @@ jQuery(document).ready(domo);
       return false;
     });
 
-    // Konfirmasi Tolak Retur (Reject)
-    $('.btn-reject-return').click(function(e){
+    // Buka Modal Tolak Retur dengan Alasan Resmi
+    $('.btn-reject-modal').click(function(e){
       e.preventDefault();
-      var url = $(this).data('href');
+      var actionUrl = $(this).data('action');
       var returnId = $(this).data('return-id');
-      swal({
-          title: "Tolak Pengajuan Retur?",
-          text: "Apakah Anda yakin ingin menolak pengajuan pengembalian ID: " + returnId + "?",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#DD6B55",
-          confirmButtonText: "Ya, Tolak Retur",
-          cancelButtonText: "Batal",
-          closeOnConfirm: true
-        },
-        function(isConfirm){
-          if (isConfirm) {
-            document.location.href = url;            
-          }
-        });
-      return false;
+      $('#form-reject-return').attr('action', actionUrl);
+      $('#modal-return-id-label').text('ID: ' + returnId);
+      $('#modal-reject-return').modal('show');
     });
 
     $('.remove-data').click(function(){

@@ -85,7 +85,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Tingkat (Level) </label>
+                        <label for="content" class="col-sm-2 control-label">Tingkat </label>
                         <div class="col-sm-8">
                            Level <?= _ent($tiktok_categories->level); ?>
                         </div>
@@ -111,62 +111,60 @@ jQuery(document).ready(domo);
                            <?= _ent($tiktok_categories->category_version ?: "-"); ?>
                         </div>
                     </div>
-                    <div class="row" style="margin-top: 20px;">
-                        <div class="col-sm-12">
-                           <h4><i class="fa fa-list-ul"></i> Atribut Spesifik Kategori TikTok</h4>
-                           <div class="table-responsive">
-                              <table class="table table-bordered table-striped">
-                                 <thead>
-                                    <tr>
-                                       <th>Nama Atribut</th>
-                                       <th>ID Atribut</th>
-                                       <th>Tipe Input</th>
-                                       <th>Wajib Diisi</th>
-                                       <th>Pilihan Nilai</th>
+                    <div class="form-group">
+                        <label for="content" class="col-sm-2 control-label">Atribut Kategori </label>
+                        <div class="col-sm-8">
+                            <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                <thead>
+                                    <tr class="bg-gray">
+                                        <th>Nama Atribut</th>
+                                        <th width="140">ID Atribut</th>
+                                        <th width="120">Tipe Input</th>
+                                        <th width="110" class="text-center">Wajib Diisi</th>
+                                        <th>Pilihan Nilai</th>
                                     </tr>
-                                 </thead>
-                                 <tbody>
+                                </thead>
+                                <tbody>
                                     <?php if (!empty($tiktok_categories->attributes)): ?>
-                                       <?php foreach ($tiktok_categories->attributes as $attr): ?>
-                                          <?php 
-                                             $vals = [];
-                                             if (!empty($attr->values_json)) {
-                                                $decoded = json_decode($attr->values_json, true);
-                                                if (is_array($decoded)) {
-                                                   foreach ($decoded as $val_item) {
-                                                      $vals[] = $val_item['name'] ?? $val_item['id'] ?? '';
-                                                   }
+                                        <?php foreach ($tiktok_categories->attributes as $attr): ?>
+                                            <?php 
+                                                $vals = [];
+                                                if (!empty($attr->values_json)) {
+                                                    $decoded = json_decode($attr->values_json, true);
+                                                    if (is_array($decoded)) {
+                                                        foreach ($decoded as $val_item) {
+                                                            $vals[] = $val_item['name'] ?? $val_item['id'] ?? '';
+                                                        }
+                                                    }
                                                 }
-                                             }
-                                          ?>
-                                          <tr>
-                                             <td><strong><?= _ent($attr->attribute_name); ?></strong></td>
-                                             <td><code><?= _ent($attr->tiktok_attribute_id); ?></code></td>
-                                             <td><?= _ent($attr->attribute_type ?: 'TEXT'); ?></td>
-                                             <td><?= $attr->is_required ? '<span class="label label-danger">Wajib</span>' : '<span class="label label-info">Opsional</span>'; ?></td>
-                                             <td>
-                                                <?php if (!empty($vals)): ?>
-                                                   <small><?= _ent(implode(', ', array_slice($vals, 0, 8))); ?><?= count($vals) > 8 ? ' ... (total ' . count($vals) . ')' : ''; ?></small>
-                                                <?php else: ?>
-                                                   <em class="text-muted">Input bebas / dinamis</em>
-                                                <?php endif; ?>
-                                             </td>
-                                          </tr>
-                                       <?php endforeach; ?>
+                                            ?>
+                                            <tr>
+                                                <td style="vertical-align: middle;"><strong><?= _ent($attr->attribute_name); ?></strong></td>
+                                                <td style="vertical-align: middle;"><?= _ent($attr->tiktok_attribute_id); ?></td>
+                                                <td style="vertical-align: middle;"><?= _ent($attr->attribute_type ?: 'TEXT'); ?></td>
+                                                <td class="text-center" style="vertical-align: middle;"><?= $attr->is_required ? '<span class="label label-danger">Wajib</span>' : '<span class="label label-info">Opsional</span>'; ?></td>
+                                                <td style="vertical-align: middle;">
+                                                    <?php if (!empty($vals)): ?>
+                                                        <small><?= _ent(implode(', ', array_slice($vals, 0, 8))); ?><?= count($vals) > 8 ? ' ... (total ' . count($vals) . ')' : ''; ?></small>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">Input bebas / dinamis</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
                                     <?php else: ?>
-                                       <tr>
-                                          <td colspan="5" class="text-center text-muted">
-                                             <?php if (!empty($tiktok_categories->is_leaf)): ?>
-                                                Belum ada atribut tercatat untuk leaf kategori ini.
-                                             <?php else: ?>
-                                                Kategori ini bukan level <em>leaf</em> (memiliki sub-kategori). Atribut produk hanya tersedia pada level leaf kategori.
-                                             <?php endif; ?>
-                                          </td>
-                                       </tr>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                <?php if (!empty($tiktok_categories->is_leaf)): ?>
+                                                    Belum ada atribut tercatat untuk leaf kategori ini.
+                                                <?php else: ?>
+                                                    Kategori ini bukan level <em>leaf</em> (memiliki sub-kategori). Atribut produk hanya tersedia pada level leaf kategori.
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
                                     <?php endif; ?>
-                                 </tbody>
-                              </table>
-                           </div>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <br>

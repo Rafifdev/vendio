@@ -60,11 +60,11 @@
                             ]); ?>
                          
                                                 <div class="form-group ">
-                            <label for="tiktok_shop_id" class="col-sm-2 control-label">Tiktok Shop Id 
+                            <label for="tiktok_shop_id" class="col-sm-2 control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Select Tiktok Shop Id" >
+                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok" >
                                     <option value=""></option>
                                     <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
                                     <option <?=  $row->id ==  $tiktok_finance->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id ?>"><?= $row->shop_name; ?></option>
@@ -77,23 +77,23 @@
 
                                                  
                                                 <div class="form-group ">
-                            <label for="statement_id" class="col-sm-2 control-label">Statement Id 
+                            <label for="statement_id" class="col-sm-2 control-label">ID Statement 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="statement_id" id="statement_id" placeholder="Statement Id" value="<?= set_value('statement_id', $tiktok_finance->statement_id); ?>">
+                                <input type="text" class="form-control" name="statement_id" id="statement_id" placeholder="ID Statement" value="<?= set_value('statement_id', $tiktok_finance->statement_id); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="statement_time" class="col-sm-2 control-label">Statement Time 
+                            <label for="statement_time" class="col-sm-2 control-label">Tanggal Statement 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-6">
                             <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="statement_time"  placeholder="Statement Time" id="statement_time" value="<?= set_value('statement_time', $tiktok_finance->statement_time); ?>">
+                              <input type="text" class="form-control pull-right datetimepicker" name="statement_time"  placeholder="Tanggal Statement" id="statement_time" value="<?= set_value('statement_time', $tiktok_finance->statement_time); ?>">
                             </div>
                             <small class="info help-block">
                             </small>
@@ -101,66 +101,66 @@
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="settlement_amount" class="col-sm-2 control-label">Settlement Amount 
+                            <label for="settlement_amount" class="col-sm-2 control-label">Total Pencairan Bersih 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="settlement_amount" id="settlement_amount" placeholder="Settlement Amount" value="<?= set_value('settlement_amount', $tiktok_finance->settlement_amount); ?>">
+                                <input type="text" class="form-control" name="settlement_amount" id="settlement_amount" placeholder="Total Pencairan Bersih" value="<?= set_value('settlement_amount', $tiktok_finance->settlement_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="revenue_amount" class="col-sm-2 control-label">Revenue Amount 
+                            <label for="revenue_amount" class="col-sm-2 control-label">Omzet Kotor 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="revenue_amount" id="revenue_amount" placeholder="Revenue Amount" value="<?= set_value('revenue_amount', $tiktok_finance->revenue_amount); ?>">
+                                <input type="text" class="form-control" name="revenue_amount" id="revenue_amount" placeholder="Omzet Kotor" value="<?= set_value('revenue_amount', $tiktok_finance->revenue_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="shipping_fee_amount" class="col-sm-2 control-label">Shipping Fee Amount 
+                            <label for="shipping_fee_amount" class="col-sm-2 control-label">Biaya Pengiriman 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_fee_amount" id="shipping_fee_amount" placeholder="Shipping Fee Amount" value="<?= set_value('shipping_fee_amount', $tiktok_finance->shipping_fee_amount); ?>">
+                                <input type="text" class="form-control" name="shipping_fee_amount" id="shipping_fee_amount" placeholder="Biaya Pengiriman" value="<?= set_value('shipping_fee_amount', $tiktok_finance->shipping_fee_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="fee_amount" class="col-sm-2 control-label">Fee Amount 
+                            <label for="fee_amount" class="col-sm-2 control-label">Biaya Layanan Platform 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="fee_amount" id="fee_amount" placeholder="Fee Amount" value="<?= set_value('fee_amount', $tiktok_finance->fee_amount); ?>">
+                                <input type="text" class="form-control" name="fee_amount" id="fee_amount" placeholder="Biaya Layanan Platform" value="<?= set_value('fee_amount', $tiktok_finance->fee_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="adjustment_amount" class="col-sm-2 control-label">Adjustment Amount 
+                            <label for="adjustment_amount" class="col-sm-2 control-label">Nominal Penyesuaian 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="adjustment_amount" id="adjustment_amount" placeholder="Adjustment Amount" value="<?= set_value('adjustment_amount', $tiktok_finance->adjustment_amount); ?>">
+                                <input type="text" class="form-control" name="adjustment_amount" id="adjustment_amount" placeholder="Nominal Penyesuaian" value="<?= set_value('adjustment_amount', $tiktok_finance->adjustment_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="currency" class="col-sm-2 control-label">Currency 
+                            <label for="currency" class="col-sm-2 control-label">Mata Uang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="currency" id="currency" placeholder="Currency" value="<?= set_value('currency', $tiktok_finance->currency); ?>">
+                                <input type="text" class="form-control" name="currency" id="currency" placeholder="Mata Uang (IDR)" value="<?= set_value('currency', $tiktok_finance->currency); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>

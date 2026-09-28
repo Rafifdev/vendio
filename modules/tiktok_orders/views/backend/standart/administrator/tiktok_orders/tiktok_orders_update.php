@@ -60,11 +60,11 @@
                             ]); ?>
                          
                                                 <div class="form-group ">
-                            <label for="tiktok_shop_id" class="col-sm-2 control-label">Tiktok Shop Id 
+                            <label for="tiktok_shop_id" class="col-sm-2 control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Select Tiktok Shop Id" >
+                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Select Toko TikTok" >
                                     <option value=""></option>
                                     <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
                                     <option <?=  $row->id ==  $tiktok_orders->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id ?>"><?= $row->shop_name; ?></option>
@@ -77,22 +77,22 @@
 
                                                  
                                                 <div class="form-group ">
-                            <label for="order_id" class="col-sm-2 control-label">Order Id 
+                            <label for="order_id" class="col-sm-2 control-label">ID Pesanan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="Order Id" value="<?= set_value('order_id', $tiktok_orders->order_id); ?>">
+                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="ID Pesanan" value="<?= set_value('order_id', $tiktok_orders->order_id); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="order_status" class="col-sm-2 control-label">Order Status 
+                            <label for="order_status" class="col-sm-2 control-label">Status Pesanan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select  class="form-control chosen chosen-select" name="order_status" id="order_status" data-placeholder="Select Order Status" >
+                                <select  class="form-control chosen chosen-select" name="order_status" id="order_status" data-placeholder="Pilih Status Pesanan" >
                                     <option value=""></option>
                                     <option <?= $tiktok_orders->order_status == "AWAITING_COLLECTION" ? 'selected' :''; ?> value="AWAITING_COLLECTION">Menunggu Pickup</option>
                                     <option <?= $tiktok_orders->order_status == "AWAITING_SHIPMENT" ? 'selected' :''; ?> value="AWAITING_SHIPMENT">Perlu Dikirim</option>
@@ -107,29 +107,29 @@
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="recipient_name" class="col-sm-2 control-label">Recipient Name 
+                            <label for="recipient_name" class="col-sm-2 control-label">Nama Penerima 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="recipient_name" id="recipient_name" placeholder="Recipient Name" value="<?= set_value('recipient_name', $tiktok_orders->recipient_name); ?>">
+                                <input type="text" class="form-control" name="recipient_name" id="recipient_name" placeholder="Nama Penerima" value="<?= set_value('recipient_name', $tiktok_orders->recipient_name); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="recipient_phone" class="col-sm-2 control-label">Recipient Phone 
+                            <label for="recipient_phone" class="col-sm-2 control-label">Nomor Telepon Penerima 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="recipient_phone" id="recipient_phone" placeholder="Recipient Phone" value="<?= set_value('recipient_phone', $tiktok_orders->recipient_phone); ?>">
+                                <input type="text" class="form-control" name="recipient_phone" id="recipient_phone" placeholder="Nomor Telepon Penerima" value="<?= set_value('recipient_phone', $tiktok_orders->recipient_phone); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="recipient_address" class="col-sm-2 control-label">Recipient Address 
+                            <label for="recipient_address" class="col-sm-2 control-label">Alamat Penerima 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
@@ -140,53 +140,53 @@
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="shipping_provider" class="col-sm-2 control-label">Shipping Provider 
+                            <label for="shipping_provider" class="col-sm-2 control-label">Kurir Pengiriman 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_provider" id="shipping_provider" placeholder="Shipping Provider" value="<?= set_value('shipping_provider', $tiktok_orders->shipping_provider); ?>">
+                                <input type="text" class="form-control" name="shipping_provider" id="shipping_provider" placeholder="Kurir Pengiriman" value="<?= set_value('shipping_provider', $tiktok_orders->shipping_provider); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="tracking_number" class="col-sm-2 control-label">Tracking Number 
+                            <label for="tracking_number" class="col-sm-2 control-label">Nomor Resi 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="tracking_number" id="tracking_number" placeholder="Tracking Number" value="<?= set_value('tracking_number', $tiktok_orders->tracking_number); ?>">
+                                <input type="text" class="form-control" name="tracking_number" id="tracking_number" placeholder="Nomor Resi" value="<?= set_value('tracking_number', $tiktok_orders->tracking_number); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="total_amount" class="col-sm-2 control-label">Total Amount 
+                            <label for="total_amount" class="col-sm-2 control-label">Total Pembayaran 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="total_amount" id="total_amount" placeholder="Total Amount" value="<?= set_value('total_amount', $tiktok_orders->total_amount); ?>">
+                                <input type="number" class="form-control" name="total_amount" id="total_amount" placeholder="Total Pembayaran" value="<?= set_value('total_amount', $tiktok_orders->total_amount); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="shipping_type" class="col-sm-2 control-label">Shipping Type 
+                            <label for="shipping_type" class="col-sm-2 control-label">Tipe Pengiriman 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_type" id="shipping_type" placeholder="Shipping Type" value="<?= set_value('shipping_type', $tiktok_orders->shipping_type); ?>">
+                                <input type="text" class="form-control" name="shipping_type" id="shipping_type" placeholder="Tipe Pengiriman" value="<?= set_value('shipping_type', $tiktok_orders->shipping_type); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>
                         </div>
                                                  
                                                 <div class="form-group ">
-                            <label for="delivery_option_name" class="col-sm-2 control-label">Delivery Option Name 
+                            <label for="delivery_option_name" class="col-sm-2 control-label">Opsi Pengiriman 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="delivery_option_name" id="delivery_option_name" placeholder="Delivery Option Name" value="<?= set_value('delivery_option_name', $tiktok_orders->delivery_option_name); ?>">
+                                <input type="text" class="form-control" name="delivery_option_name" id="delivery_option_name" placeholder="Opsi Pengiriman" value="<?= set_value('delivery_option_name', $tiktok_orders->delivery_option_name); ?>">
                                 <small class="info help-block">
                                 </small>
                             </div>

@@ -268,7 +268,42 @@ class Tiktok_finance extends Admin
 	{
 		$this->is_allowed('tiktok_finance_view');
 
-		$this->data['tiktok_finance'] = $this->model_tiktok_finance->join_avaiable()->filter_avaiable()->find($id);
+		$finance = $this->model_tiktok_finance->join_avaiable()->filter_avaiable()->find($id);
+		if ($finance) {
+			$transactions = $this->db->get_where('tiktok_statement_transactions', ['tiktok_finance_id' => $finance->id])->result();
+			if (empty($transactions) && !empty($finance->statement_id) && !empty($finance->tiktok_shop_id)) {
+				$this->load->library('tiktok_api');
+				$res = $this->tiktok_api->get_statement_transactions($finance->statement_id, ['page_size' => 100], $finance->tiktok_shop_id);
+				$tx_list = $res['data']['statement_transactions'] ?? ($res['data']['transactions'] ?? []);
+				if (!empty($tx_list)) {
+					foreach ($tx_list as $tx) {
+						$p_time = null;
+						if (!empty($tx['paid_time'])) {
+							$ts = intval($tx['paid_time']);
+							if ($ts > 100000000000) $ts = round($ts / 1000);
+							$p_time = date('Y-m-d H:i:s', $ts);
+						}
+						$data_tx = [
+							'tiktok_finance_id'  => $finance->id,
+							'statement_id'       => $finance->statement_id,
+							'order_id'           => $tx['order_id'] ?? null,
+							'transaction_type'   => $tx['type'] ?? ($tx['transaction_type'] ?? 'ORDER'),
+							'order_amount'       => floatval($tx['order_amount'] ?? 0),
+							'shipping_fee'       => floatval($tx['shipping_cost_amount'] ?? ($tx['shipping_fee'] ?? 0)),
+							'platform_fee'       => floatval($tx['fee_amount'] ?? ($tx['platform_fee'] ?? 0)),
+							'settlement_amount'  => floatval($tx['settlement_amount'] ?? 0),
+							'paid_time'          => $p_time,
+							'created_at'         => date('Y-m-d H:i:s')
+						];
+						$this->db->insert('tiktok_statement_transactions', $data_tx);
+					}
+					$transactions = $this->db->get_where('tiktok_statement_transactions', ['tiktok_finance_id' => $finance->id])->result();
+				}
+			}
+			$this->data['statement_transactions'] = $transactions;
+		}
+
+		$this->data['tiktok_finance'] = $finance;
 
 		$this->template->title('Penghasilan Toko Detail');
 		$this->render('backend/standart/administrator/tiktok_finance/tiktok_finance_view', $this->data);

@@ -57,7 +57,7 @@ jQuery(document).ready(domo);
                   <div class="form-horizontal" name="form_tiktok_shops" id="form_tiktok_shops" >
                    
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shop Id </label>
+                        <label for="content" class="col-sm-2 control-label">ID Toko </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->shop_id); ?>
@@ -65,7 +65,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shop Name </label>
+                        <label for="content" class="col-sm-2 control-label">Nama Toko </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->shop_name); ?>
@@ -73,7 +73,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Shop Code </label>
+                        <label for="content" class="col-sm-2 control-label">Kode Toko </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->shop_code); ?>
@@ -89,7 +89,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Seller Type </label>
+                        <label for="content" class="col-sm-2 control-label">Tipe Penjual </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->seller_type); ?>
@@ -97,7 +97,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Seller Base Region </label>
+                        <label for="content" class="col-sm-2 control-label">Region Penjual </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->seller_base_region); ?>
@@ -105,7 +105,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Seller Name </label>
+                        <label for="content" class="col-sm-2 control-label">Nama Penjual </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->seller_name); ?>
@@ -113,7 +113,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Open Id </label>
+                        <label for="content" class="col-sm-2 control-label">Open ID </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->open_id); ?>
@@ -121,7 +121,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">App Key </label>
+                        <label for="content" class="col-sm-2 control-label">App Key Partner </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->app_key); ?>
@@ -129,7 +129,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">App Secret </label>
+                        <label for="content" class="col-sm-2 control-label">App Secret Partner </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->app_secret); ?>
@@ -137,7 +137,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Auth Code </label>
+                        <label for="content" class="col-sm-2 control-label">Kode Otorisasi (Auth Code) </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->auth_code); ?>
@@ -153,7 +153,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Access Token Expire In </label>
+                        <label for="content" class="col-sm-2 control-label">Masa Aktif Token </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->access_token_expire_in); ?>
@@ -169,7 +169,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Refresh Token Expire In </label>
+                        <label for="content" class="col-sm-2 control-label">Masa Aktif Refresh Token </label>
 
                         <div class="col-sm-8">
                            <?= _ent($tiktok_shops->refresh_token_expire_in); ?>
@@ -177,10 +177,10 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-2 control-label">Is Active </label>
+                        <label for="content" class="col-sm-2 control-label">Status Toko </label>
 
                         <div class="col-sm-8">
-                           <?= _ent($tiktok_shops->is_active); ?>
+                           <?= $tiktok_shops->is_active == '1' ? '<span class="label label-success">Aktif</span>' : '<span class="label label-danger">Nonaktif</span>'; ?>
                         </div>
                     </div>
                                         
@@ -189,9 +189,9 @@ jQuery(document).ready(domo);
 
                     <div class="view-nav">
                         <?php is_allowed('tiktok_shops_update', function() use ($tiktok_shops){?>
-                        <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype='back' title="edit tiktok_shops (Ctrl+e)" href="<?= site_url('administrator/tiktok_shops/edit/'.$tiktok_shops->id); ?>"><i class="fa fa-edit" ></i> <?= cclang('update', ['Tiktok Shops']); ?> </a>
+                        <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype='back' title="Edit Akun Toko (Ctrl+e)" href="<?= site_url('administrator/tiktok_shops/edit/'.$tiktok_shops->id); ?>"><i class="fa fa-edit" ></i> <?= cclang('update', ['Tiktok Shops']); ?> </a>
                         <?php }) ?>
-                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="back (Ctrl+x)" href="<?= site_url('administrator/tiktok_shops/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Tiktok Shops']); ?></a>
+                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="Kembali (Ctrl+x)" href="<?= site_url('administrator/tiktok_shops/'); ?>"><i class="fa fa-undo" ></i> <?= cclang('go_list_button', ['Tiktok Shops']); ?></a>
                      </div>
                     
                   </div>

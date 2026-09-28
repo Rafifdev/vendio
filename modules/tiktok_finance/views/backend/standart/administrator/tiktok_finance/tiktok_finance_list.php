@@ -87,7 +87,7 @@ jQuery(document).ready(domo);
                            <th>Omzet Kotor</th>
                            <th>Biaya Pengiriman</th>
                            <th>Biaya Layanan</th>
-                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
+                           <th style="width: 140px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_finance">

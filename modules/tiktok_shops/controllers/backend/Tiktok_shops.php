@@ -159,18 +159,22 @@ class Tiktok_shops extends Admin
 			exit;
 		}
 		
+		$this->form_validation->set_rules('shop_name', 'Nama Toko', 'trim|required');
 		$this->form_validation->set_rules('app_key', 'App Key', 'trim|required');
 		$this->form_validation->set_rules('app_secret', 'App Secret', 'trim|required');
-		$this->form_validation->set_rules('is_active', 'Is Active', 'trim|required');
+		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		
 		if ($this->form_validation->run()) {
 		
 			$save_data = [
-				'app_key' => $this->input->post('app_key'),
+				'shop_name'  => $this->input->post('shop_name'),
+				'app_key'    => $this->input->post('app_key'),
 				'app_secret' => $this->input->post('app_secret'),
-				'auth_code' => $this->input->post('auth_code'),
-				'is_active' => $this->input->post('is_active'),
+				'is_active'  => $this->input->post('is_active'),
 			];
+			if ($this->input->post('auth_code') !== null && $this->input->post('auth_code') !== '') {
+				$save_data['auth_code'] = $this->input->post('auth_code');
+			}
 
 			
 			$save_tiktok_shops = $this->model_tiktok_shops->change($id, $save_data);
@@ -206,6 +210,49 @@ class Tiktok_shops extends Admin
 		}
 
 		echo json_encode($this->data);
+	}
+
+	/**
+	* Refresh Access Token TikTok Shop
+	*
+	* @param int $id
+	*/
+	public function refresh_token($id = null)
+	{
+		$this->is_allowed('tiktok_shops_update');
+
+		$shop = $this->model_tiktok_shops->find($id);
+		if (!$shop) {
+			set_message('Data toko tidak ditemukan.', 'error');
+			redirect_back();
+		}
+
+		if (empty($shop->refresh_token)) {
+			set_message('Refresh token tidak tersedia untuk toko ini. Silakan lakukan otorisasi ulang.', 'error');
+			redirect_back();
+		}
+
+		$this->load->library('tiktok_api');
+		$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $shop->app_key, $shop->app_secret);
+
+		if (isset($ref_res['code']) && $ref_res['code'] === 0 && !empty($ref_res['data']['access_token'])) {
+			$new_data = $ref_res['data'];
+			$this->db->where('id', $shop->id)->update('tiktok_shops', [
+				'access_token'            => $new_data['access_token'],
+				'access_token_expire_in'  => $new_data['access_token_expire_in'],
+				'refresh_token'           => $new_data['refresh_token'],
+				'refresh_token_expire_in' => $new_data['refresh_token_expire_in'],
+				'updated_at'              => date('Y-m-d H:i:s'),
+			]);
+
+			$hours = round(($new_data['access_token_expire_in'] - time()) / 3600, 1);
+			set_message("Berhasil memperbarui access token toko {$shop->shop_name}! Token aktif untuk {$hours} jam ke depan.", 'success');
+		} else {
+			$err_msg = $ref_res['message'] ?? 'Terjadi kesalahan saat refresh token ke TikTok Shop API.';
+			set_message("Gagal memperbarui token toko {$shop->shop_name}: {$err_msg}", 'error');
+		}
+
+		redirect_back();
 	}
 	
 	/**

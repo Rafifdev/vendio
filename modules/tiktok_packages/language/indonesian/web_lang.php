@@ -1,0 +1,31 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+$lang['tiktok_packages'] = 'Pengiriman Paket';
+$lang['id'] = 'ID';
+$lang['tiktok_shop_id'] = 'Toko TikTok';
+$lang['package_id'] = 'ID Paket';
+$lang['order_id'] = 'ID Pesanan';
+$lang['package_status'] = 'Status Paket';
+$lang['package_sub_status'] = 'Sub Status';
+$lang['shipping_provider_id'] = 'ID Kurir';
+$lang['shipping_provider_name'] = 'Kurir Logistik';
+$lang['shipping_type'] = 'Tipe Pengiriman';
+$lang['delivery_option_id'] = 'ID Opsi Pengiriman';
+$lang['delivery_option_name'] = 'Opsi Pengiriman';
+$lang['tracking_number'] = 'Nomor Resi';
+$lang['handover_method'] = 'Metode Serah Terima';
+$lang['dimension_length'] = 'Panjang';
+$lang['dimension_width'] = 'Lebar';
+$lang['dimension_height'] = 'Tinggi';
+$lang['dimension_unit'] = 'Satuan Dimensi';
+$lang['weight_val'] = 'Berat';
+$lang['weight_unit'] = 'Satuan Berat';
+$lang['sender_name'] = 'Nama Pengirim';
+$lang['sender_phone'] = 'Telepon Pengirim';
+$lang['sender_address'] = 'Alamat Pengirim';
+$lang['recipient_name'] = 'Nama Penerima';
+$lang['recipient_phone'] = 'Telepon Penerima';
+$lang['recipient_address'] = 'Alamat Penerima';
+$lang['package_create_time'] = 'Waktu Dibuat';
+$lang['package_update_time'] = 'Waktu Diperbarui';

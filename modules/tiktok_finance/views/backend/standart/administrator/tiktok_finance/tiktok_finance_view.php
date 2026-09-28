@@ -64,7 +64,7 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">ID Pencairan (Payout) </label>
+                        <label for="content" class="col-sm-3 control-label">ID Pencairan </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            <?= _ent($tiktok_finance->payout_id ?: '-'); ?>
                         </div>
@@ -87,35 +87,35 @@ jQuery(document).ready(domo);
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">Total Dana Dicairkan (Settlement) </label>
+                        <label for="content" class="col-sm-3 control-label">Total Dana Dicairkan </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            Rp <?= number_format($tiktok_finance->settlement_amount, 0, ',', '.'); ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">Omzet Kotor (Gross Sales) </label>
+                        <label for="content" class="col-sm-3 control-label">Omzet Kotor </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            Rp <?= number_format($tiktok_finance->revenue_amount, 0, ',', '.'); ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">Biaya Pengiriman (Shipping Fee) </label>
+                        <label for="content" class="col-sm-3 control-label">Biaya Pengiriman </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            Rp <?= number_format($tiktok_finance->shipping_fee_amount, 0, ',', '.'); ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">Biaya Komisi Platform (Fee Amount) </label>
+                        <label for="content" class="col-sm-3 control-label">Biaya Komisi Platform </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            Rp <?= number_format($tiktok_finance->fee_amount, 0, ',', '.'); ?>
                         </div>
                     </div>
                                          
                     <div class="form-group ">
-                        <label for="content" class="col-sm-3 control-label">Penyesuaian (Adjustment) </label>
+                        <label for="content" class="col-sm-3 control-label">Penyesuaian </label>
                         <div class="col-sm-8" style="padding-top: 7px;">
                            Rp <?= number_format($tiktok_finance->adjustment_amount, 0, ',', '.'); ?>
                         </div>
@@ -134,6 +134,67 @@ jQuery(document).ready(domo);
                            <?= $tiktok_finance->updated_at ? date('d F Y - H:i:s', strtotime($tiktok_finance->updated_at)) : '-'; ?>
                         </div>
                     </div>
+                     <div class="form-group">
+                         <label class="col-sm-3 control-label">Rincian Transaksi Pesanan </label>
+                         <div class="col-sm-8">
+                             <table class="table table-bordered table-striped" style="margin-top: 5px;">
+                                 <thead>
+                                     <tr class="bg-gray">
+                                         <th width="40" class="text-center">No</th>
+                                         <th>ID Pesanan</th>
+                                         <th>Tipe Transaksi</th>
+                                         <th>Nilai Pesanan</th>
+                                         <th>Biaya Ongkir</th>
+                                         <th>Komisi Platform</th>
+                                         <th>Dana Bersih Cair</th>
+                                         <th>Waktu Pembayaran</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody>
+                                     <?php if (!empty($statement_transactions)): ?>
+                                         <?php $no = 1; foreach ($statement_transactions as $tx): ?>
+                                             <tr>
+                                                 <td class="text-center" style="vertical-align: middle;"><?= $no++; ?></td>
+                                                 <td style="vertical-align: middle;">
+                                                     <?php 
+                                                     $ord = !empty($tx->order_id) ? $this->db->get_where('tiktok_orders', ['order_id' => $tx->order_id])->row() : null;
+                                                     if ($ord): ?>
+                                                         <a href="<?= site_url('administrator/tiktok_orders/view/' . $ord->id); ?>" style="color: #3c8dbc;"><?= _ent($tx->order_id); ?></a>
+                                                     <?php else: ?>
+                                                         <span style="color: #3c8dbc;"><?= _ent($tx->order_id ?: '-'); ?></span>
+                                                     <?php endif; ?>
+                                                 </td>
+                                                 <td style="vertical-align: middle;">
+                                                     <?php
+                                                     $type = strtoupper($tx->transaction_type);
+                                                     if ($type == 'ORDER' || $type == 'PAYMENT') {
+                                                         echo '<span class=\"label label-success\">Pesanan</span>';
+                                                     } elseif ($type == 'REFUND') {
+                                                         echo '<span class=\"label label-danger\">Pengembalian / Refund</span>';
+                                                     } elseif ($type == 'ADJUSTMENT') {
+                                                         echo '<span class=\"label label-warning\">Penyesuaian</span>';
+                                                     } else {
+                                                         echo '<span class=\"label label-info\">' . _ent($tx->transaction_type ?: '-') . '</span>';
+                                                     }
+                                                     ?>
+                                                 </td>
+                                                 <td style="vertical-align: middle;">Rp <?= number_format($tx->order_amount, 0, ',', '.'); ?></td>
+                                                 <td style="vertical-align: middle;">Rp <?= number_format($tx->shipping_fee, 0, ',', '.'); ?></td>
+                                                 <td style="vertical-align: middle;">Rp <?= number_format($tx->platform_fee, 0, ',', '.'); ?></td>
+                                                 <td style="vertical-align: middle; font-weight: bold;">Rp <?= number_format($tx->settlement_amount, 0, ',', '.'); ?></td>
+                                                 <td style="vertical-align: middle;"><?= $tx->paid_time ? date('d/m/Y H:i', strtotime($tx->paid_time)) : '-'; ?></td>
+                                             </tr>
+                                         <?php endforeach; ?>
+                                     <?php else: ?>
+                                         <tr>
+                                             <td colspan="8" class="text-center text-muted">Belum ada rincian transaksi untuk statement ini.</td>
+                                         </tr>
+                                     <?php endif; ?>
+                                 </tbody>
+                             </table>
+                         </div>
+                     </div>
+
                                         
                     <br>
                     <br>

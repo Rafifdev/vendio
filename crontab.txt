@@ -1,0 +1,34 @@
+# ==============================================================================
+# Vendio - TikTok Shop Auto-Sync Crontab Configuration (Linux Server)
+#
+# Cara Pasang:
+#   1. Buka terminal di server Linux Anda.
+#   2. Jalankan: crontab -e
+#   3. Salin baris konfigurasi di bawah ini (sesuaikan path folder /var/www/vendio).
+#   4. Simpan dan keluar (Ctrl+O, Enter, Ctrl+X pada nano).
+#
+# Cek cron aktif:
+#   crontab -l
+# ==============================================================================
+
+# Variabel Path Project (Sesuaikan jika path web server Anda berbeda)
+VENDIO_DIR=/var/www/vendio
+PHP_BIN=/usr/bin/php
+
+# 1. Tarik Pesanan Baru & Detail Items (Setiap 3 Menit)
+*/3 * * * * $PHP_BIN $VENDIO_DIR/cron.php pull_orders >> $VENDIO_DIR/application/logs/cron_orders.log 2>&1
+
+# 2. Tarik Paket Pengiriman & Resi AWB (Setiap 5 Menit)
+*/5 * * * * $PHP_BIN $VENDIO_DIR/cron.php pull_packages >> $VENDIO_DIR/application/logs/cron_packages.log 2>&1
+
+# 3. Tarik Pengajuan Retur & Pembatalan Pesanan (Setiap 10 Menit - Menjaga SLA Respon 48 Jam)
+*/10 * * * * $PHP_BIN $VENDIO_DIR/cron.php pull_returns_cancellations >> $VENDIO_DIR/application/logs/cron_returns.log 2>&1
+
+# 4. Refresh Token TikTok Shop (Setiap 12 Jam - Sebelum Token Expired)
+0 0,12 * * * $PHP_BIN $VENDIO_DIR/cron.php refresh_token >> $VENDIO_DIR/application/logs/cron_token.log 2>&1
+
+# 5. Tarik Keuangan, Penarikan Dana & Dana Tertahan (Setiap Hari Pukul 02:00 Pagi)
+0 2 * * * $PHP_BIN $VENDIO_DIR/cron.php pull_statements >> $VENDIO_DIR/application/logs/cron_finance.log 2>&1
+
+# (Alternatif) Jika ingin menjalankan seluruh sinkronisasi dalam 1 job sekaligus:
+# */15 * * * * $PHP_BIN $VENDIO_DIR/cron.php sync_all >> $VENDIO_DIR/application/logs/cron_master.log 2>&1

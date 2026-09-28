@@ -52,7 +52,7 @@ jQuery(document).ready(domo);
                   <!-- Add the bg color to the header using any of the bg-* classes -->
                   <div class="widget-user-header ">
                      <div class="row pull-right">
-                        <a class="btn btn-flat btn-info" id="btn_sync_categories" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik kategori resmi TikTok Shop"><i class="fa fa-refresh"></i> Tarik Data Kategori</a>
+                        <a class="btn btn-flat btn-success" id="btn_sync_categories" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik kategori resmi TikTok Shop"><i class="fa fa-refresh"></i> Tarik Data Kategori</a>
                         <?php is_allowed('tiktok_categories_export', function(){?>
                         <a class="btn btn-flat btn-success" title="<?= cclang('export'); ?> <?= cclang('tiktok_categories') ?>']); ?>" href="<?= site_url('administrator/tiktok_categories/export'); ?>"><i class="fa fa-file-excel-o" ></i> <?= cclang('export'); ?> XLS</a>
                         <?php }) ?>
@@ -83,7 +83,7 @@ jQuery(document).ready(domo);
                            <th>Tingkat</th>
                            <th>Tipe Kategori</th>
                            <th>Status Izin</th>
-                           <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
+                           <th style="width: 100px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_tiktok_categories">
@@ -97,7 +97,7 @@ jQuery(document).ready(domo);
                            <td>Level <?= _ent($tiktok_categories->level); ?></td>
                            <td><?= $tiktok_categories->is_leaf ? "Leaf Kategori" : "Induk Kategori"; ?></td>
                            <td style="white-space: nowrap;"><?= strtoupper($tiktok_categories->permission_status) == "AVAILABLE" ? '<span class="label label-success">Tersedia</span>' : '<span class="label label-warning">Dibatasi</span>'; ?></td>
-                           <td class="text-center">
+                           <td style="width: 100px; text-align: center;">
                               <?php is_allowed("tiktok_categories_view", function() use ($tiktok_categories){?>
                                  <a href="<?= site_url("administrator/tiktok_categories/view/" . $tiktok_categories->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang("view_button"); ?></a>
                               <?php }) ?>

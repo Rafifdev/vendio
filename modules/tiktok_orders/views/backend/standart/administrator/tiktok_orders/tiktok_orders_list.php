@@ -99,11 +99,8 @@ jQuery(document).ready(domo);
                               <?php endif; ?>
                            </td>                             
                            <td style="white-space: nowrap;">
-                              <div><?= _ent($tiktok_orders->order_id); ?></div>
-                              <?php if (!empty($tiktok_orders->order_created_time)): ?>
-                                 <small class="text-muted"><?= _ent($tiktok_orders->order_created_time); ?></small>
-                              <?php endif; ?>
-                           </td> 
+                               <a href="<?= site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id); ?>" style="color: #3c8dbc;"><?= _ent($tiktok_orders->order_id); ?></a>
+                            </td> 
                            <td style="white-space: nowrap;">
                                <div><?= _ent($tiktok_orders->recipient_name ?: '-'); ?></div>
                                <?php if (!empty($tiktok_orders->recipient_phone)): ?>
@@ -118,12 +115,11 @@ jQuery(document).ready(domo);
                                           <img src="<?= $item->sku_image; ?>" style="width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; flex-shrink: 0;" alt="item">
                                        <?php endif; ?>
                                        <div style="flex-grow: 1;">
-                                          <div style="font-weight: 500; font-size: 13px; line-height: 1.3;"><?= _ent($item->product_name); ?></div>
-                                          <small class="text-muted">
-                                             <?= (!empty($item->sku_name) && $item->sku_name != 'Default') ? _ent($item->sku_name) . ' | ' : ''; ?>
-                                             x<?= $item->quantity; ?> (Rp <?= number_format($item->item_price, 0, ',', '.'); ?>)
-                                          </small>
-                                       </div>
+                                           <div><?= _ent($item->product_name); ?></div>
+                                           <?php if (!empty($item->seller_sku)): ?>
+                                              <small class="text-muted">(SKU: <?= _ent($item->seller_sku); ?>)</small>
+                                           <?php endif; ?>
+                                        </div>
                                     </div>
                                  <?php endforeach; ?>
                               <?php else: ?>
@@ -166,12 +162,12 @@ jQuery(document).ready(domo);
                                  }
                               ?>
                            </td> 
-                           <td style="white-space: nowrap;">
-                              <div><?= _ent($tiktok_orders->shipping_type ?: '-'); ?></div>
-                              <?php if (!empty($tiktok_orders->shipping_provider)): ?>
-                                 <small class="text-muted"><?= _ent($tiktok_orders->shipping_provider); ?></small>
-                              <?php endif; ?>
-                           </td> 
+                            <td style="white-space: nowrap;">
+                               <div><?= _ent($tiktok_orders->shipping_type ?: '-'); ?></div>
+                               <?php if (!empty($tiktok_orders->shipping_provider)): ?>
+                                  <small class="text-muted"><?= _ent($tiktok_orders->shipping_provider); ?></small>
+                               <?php endif; ?>
+                            </td>
                            <td style="white-space: nowrap;"><?= _ent($tiktok_orders->delivery_option_name ?: '-'); ?></td> 
                            <td style="white-space: nowrap;">Rp <?= number_format($tiktok_orders->total_amount, 0, ',', '.'); ?></td> 
                            <td style="min-width: 260px; text-align: center;">
