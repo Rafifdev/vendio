@@ -33,6 +33,8 @@ captcha/*
 phploy
 phploy.ini
 
+vendor/
+/vendor/
 /vendor/*
 
 # IDE Files
@@ -51,3 +53,10 @@ phploy.ini
 .env.*.local
 !.env.example
 scratch/
+
+
+AGENTS.md
+changelog-new.md
+router.php
+UX_AUDIT_AND_PLAN.md
+manual-test-scenario.md
