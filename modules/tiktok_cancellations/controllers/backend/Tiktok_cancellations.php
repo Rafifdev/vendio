@@ -29,18 +29,14 @@ class Tiktok_cancellations extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
-		$shop_id = $this->input->get('shop_id');
 
-		$this->data['tiktok_cancellationss'] = $this->model_tiktok_cancellations->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
-		$this->data['tiktok_cancellations_counts'] = $this->model_tiktok_cancellations->count_all($filter, $field, $shop_id);
+		$this->data['tiktok_cancellationss'] = $this->model_tiktok_cancellations->get($filter, $field, $this->limit_page, $offset);
+		$this->data['tiktok_cancellations_counts'] = $this->model_tiktok_cancellations->count_all($filter, $field);
 		$this->data['reject_reasons'] = $this->db->get_where('tiktok_reject_reasons', ['applies_to' => 'CANCELLATION'])->result();
-
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
-		$this->data['selected_shop_id'] = $shop_id;
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_cancellations/index/',
-			'total_rows'   => $this->model_tiktok_cancellations->count_all($filter, $field, $shop_id),
+			'total_rows'   => $this->model_tiktok_cancellations->count_all($filter, $field),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];

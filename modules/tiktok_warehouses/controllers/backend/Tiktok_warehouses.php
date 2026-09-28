@@ -31,17 +31,13 @@ class Tiktok_warehouses extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
-		$shop_id = $this->input->get('shop_id');
 
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
-		$this->data['selected_shop_id'] = $shop_id;
-
-		$this->data['tiktok_warehousess'] = $this->model_tiktok_warehouses->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
-		$this->data['tiktok_warehouses_counts'] = $this->model_tiktok_warehouses->count_all($filter, $field, $shop_id);
+		$this->data['tiktok_warehousess'] = $this->model_tiktok_warehouses->get($filter, $field, $this->limit_page, $offset);
+		$this->data['tiktok_warehouses_counts'] = $this->model_tiktok_warehouses->count_all($filter, $field);
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_warehouses/index/',
-			'total_rows'   => $this->data['tiktok_warehouses_counts'],
+			'total_rows'   => $this->model_tiktok_warehouses->count_all($filter, $field),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];
@@ -60,147 +56,130 @@ class Tiktok_warehouses extends Admin
 		$this->is_allowed('tiktok_warehouses_list');
 		$this->load->library('tiktok_api');
 
-		$shop_id = $this->input->get('shop_id');
-		if (!empty($shop_id)) {
-			$shops = $this->db->get_where('tiktok_shops', ['id' => $shop_id])->result();
-		} else {
-			$shops = $this->db->get_where('tiktok_shops', ['is_active' => 1])->result();
-			if (empty($shops)) {
-				$shops = $this->db->get('tiktok_shops')->result();
-			}
+		$shop = $this->db->get_where('tiktok_shops', ['is_active' => 1])->row();
+		if (!$shop) {
+			$shop = $this->db->get('tiktok_shops')->row();
 		}
-
-		if (empty($shops)) {
+		if (!$shop) {
 			set_message('Toko TikTok belum aktif atau belum terhubung.', 'error');
-			redirect('administrator/tiktok_warehouses' . (!empty($shop_id) ? '?shop_id=' . $shop_id : ''));
+			redirect('administrator/tiktok_warehouses');
 			return;
 		}
 
-		$total_synced = 0;
-		$error_messages = [];
+		$response = $this->tiktok_api->get_warehouses($shop->id);
+		if (empty($response['success']) && (!isset($response['code']) || $response['code'] !== 0)) {
+			set_message('Gagal menarik data gudang dari TikTok Shop: ' . ($response['message'] ?? 'Error API'), 'error');
+			redirect('administrator/tiktok_warehouses');
+			return;
+		}
 
-		foreach ($shops as $shop) {
-			$response = $this->tiktok_api->get_warehouses($shop->id);
-			if (empty($response['success']) && (!isset($response['code']) || $response['code'] !== 0)) {
-				$error_messages[] = $shop->shop_name . ': ' . ($response['message'] ?? 'Error API');
-				continue;
+		$warehouses = $response['data']['warehouses'] ?? [];
+		$synced_count = 0;
+
+		foreach ($warehouses as $wh) {
+			$wh_id = $wh['id'] ?? '';
+			if (empty($wh_id)) continue;
+
+			$address_str = '';
+			if (!empty($wh['address'])) {
+				$addr = $wh['address'];
+				$parts = array_filter([
+					$addr['full_address'] ?? '',
+					$addr['district_name'] ?? '',
+					$addr['city_name'] ?? '',
+					$addr['province_name'] ?? '',
+					$addr['postal_code'] ?? ''
+				]);
+				$address_str = implode(', ', $parts);
 			}
 
-			$warehouses = $response['data']['warehouses'] ?? [];
+			$data_warehouse = [
+				'shop_id'             => $shop->id,
+				'tiktok_warehouse_id' => $wh_id,
+				'name'                => $wh['name'] ?? '',
+				'warehouse_type'      => $wh['warehouse_type'] ?? 'SALES_WAREHOUSE',
+				'effect_status'       => $wh['effect_status'] ?? 'EFFECTIVE',
+				'is_default'          => !empty($wh['is_default']) ? 1 : 0,
+				'address'             => $address_str,
+				'updated_at'          => date('Y-m-d H:i:s'),
+			];
 
-			foreach ($warehouses as $wh) {
-				$wh_id = $wh['id'] ?? '';
-				if (empty($wh_id)) continue;
+			$existing = $this->db->get_where('tiktok_warehouses', [
+				'tiktok_warehouse_id' => $wh_id
+			])->row();
 
-				$address_str = '';
-				if (!empty($wh['address'])) {
-					$addr = $wh['address'];
-					$parts = array_filter([
-						$addr['full_address'] ?? '',
-						$addr['district_name'] ?? '',
-						$addr['city_name'] ?? '',
-						$addr['province_name'] ?? '',
-						$addr['postal_code'] ?? ''
-					]);
-					$address_str = implode(', ', $parts);
-				}
+			if ($existing) {
+				$this->db->where('id', $existing->id)->update('tiktok_warehouses', $data_warehouse);
+				$local_wh_id = $existing->id;
+			} else {
+				$data_warehouse['created_at'] = date('Y-m-d H:i:s');
+				$this->db->insert('tiktok_warehouses', $data_warehouse);
+				$local_wh_id = $this->db->insert_id();
+			}
 
-				$data_warehouse = [
-					'shop_id'             => $shop->id,
-					'tiktok_warehouse_id' => $wh_id,
-					'name'                => $wh['name'] ?? '',
-					'warehouse_type'      => $wh['warehouse_type'] ?? 'SALES_WAREHOUSE',
-					'effect_status'       => $wh['effect_status'] ?? 'EFFECTIVE',
-					'is_default'          => !empty($wh['is_default']) ? 1 : 0,
-					'address'             => $address_str,
-					'updated_at'          => date('Y-m-d H:i:s'),
-				];
+			// Tarik Opsi Pengiriman Gudang
+			$del_res = $this->tiktok_api->get_warehouse_delivery_options($wh_id, $shop->id);
+			if (!empty($del_res['data']['delivery_options'])) {
+				foreach ($del_res['data']['delivery_options'] as $dopt) {
+					$dopt_id = $dopt['id'] ?? '';
+					if (empty($dopt_id)) continue;
 
-				$existing = $this->db->get_where('tiktok_warehouses', [
-					'shop_id'             => $shop->id,
-					'tiktok_warehouse_id' => $wh_id
-				])->row();
+					$dopt_data = [
+						'warehouse_id'              => $local_wh_id,
+						'tiktok_delivery_option_id' => $dopt_id,
+						'name'                      => $dopt['name'] ?? '',
+						'scope'                     => $dopt['scope'] ?? '',
+						'is_active'                 => !empty($dopt['is_active']) ? 1 : 1,
+					];
 
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_warehouses', $data_warehouse);
-					$local_wh_id = $existing->id;
-				} else {
-					$data_warehouse['created_at'] = date('Y-m-d H:i:s');
-					$this->db->insert('tiktok_warehouses', $data_warehouse);
-					$local_wh_id = $this->db->insert_id();
-				}
+					$exist_dopt = $this->db->get_where('tiktok_delivery_options', [
+						'warehouse_id'              => $local_wh_id,
+						'tiktok_delivery_option_id' => $dopt_id
+					])->row();
 
-				// Tarik Opsi Pengiriman Gudang
-				$del_res = $this->tiktok_api->get_warehouse_delivery_options($wh_id, $shop->id);
-				if (!empty($del_res['data']['delivery_options'])) {
-					foreach ($del_res['data']['delivery_options'] as $dopt) {
-						$dopt_id = $dopt['id'] ?? '';
-						if (empty($dopt_id)) continue;
+					if ($exist_dopt) {
+						$this->db->where('id', $exist_dopt->id)->update('tiktok_delivery_options', $dopt_data);
+						$local_dopt_id = $exist_dopt->id;
+					} else {
+						$dopt_data['created_at'] = date('Y-m-d H:i:s');
+						$this->db->insert('tiktok_delivery_options', $dopt_data);
+						$local_dopt_id = $this->db->insert_id();
+					}
 
-						$dopt_data = [
-							'warehouse_id'              => $local_wh_id,
-							'tiktok_delivery_option_id' => $dopt_id,
-							'name'                      => $dopt['name'] ?? '',
-							'scope'                     => $dopt['scope'] ?? '',
-							'is_active'                 => !empty($dopt['is_active']) ? 1 : 1,
-						];
+					// Tarik Kurir / Shipping Providers
+					$sp_res = $this->tiktok_api->get_shipping_providers($dopt_id, $shop->id);
+					if (!empty($sp_res['data']['shipping_providers'])) {
+						foreach ($sp_res['data']['shipping_providers'] as $sp) {
+							$sp_id = $sp['id'] ?? '';
+							if (empty($sp_id)) continue;
 
-						$exist_dopt = $this->db->get_where('tiktok_delivery_options', [
-							'warehouse_id'              => $local_wh_id,
-							'tiktok_delivery_option_id' => $dopt_id
-						])->row();
+							$sp_data = [
+								'delivery_option_id' => $local_dopt_id,
+								'tiktok_provider_id' => $sp_id,
+								'name'               => $sp['name'] ?? '',
+							];
 
-						if ($exist_dopt) {
-							$this->db->where('id', $exist_dopt->id)->update('tiktok_delivery_options', $dopt_data);
-							$local_dopt_id = $exist_dopt->id;
-						} else {
-							$dopt_data['created_at'] = date('Y-m-d H:i:s');
-							$this->db->insert('tiktok_delivery_options', $dopt_data);
-							$local_dopt_id = $this->db->insert_id();
-						}
+							$exist_sp = $this->db->get_where('tiktok_shipping_providers', [
+								'delivery_option_id' => $local_dopt_id,
+								'tiktok_provider_id' => $sp_id
+							])->row();
 
-						// Tarik Kurir / Shipping Providers
-						$sp_res = $this->tiktok_api->get_shipping_providers($dopt_id, $shop->id);
-						if (!empty($sp_res['data']['shipping_providers'])) {
-							foreach ($sp_res['data']['shipping_providers'] as $sp) {
-								$sp_id = $sp['id'] ?? '';
-								if (empty($sp_id)) continue;
-
-								$sp_data = [
-									'delivery_option_id' => $local_dopt_id,
-									'tiktok_provider_id' => $sp_id,
-									'name'               => $sp['name'] ?? '',
-								];
-
-								$exist_sp = $this->db->get_where('tiktok_shipping_providers', [
-									'delivery_option_id' => $local_dopt_id,
-									'tiktok_provider_id' => $sp_id
-								])->row();
-
-								if ($exist_sp) {
-									$this->db->where('id', $exist_sp->id)->update('tiktok_shipping_providers', $sp_data);
-								} else {
-									$sp_data['created_at'] = date('Y-m-d H:i:s');
-									$this->db->insert('tiktok_shipping_providers', $sp_data);
-								}
+							if ($exist_sp) {
+								$this->db->where('id', $exist_sp->id)->update('tiktok_shipping_providers', $sp_data);
+							} else {
+								$sp_data['created_at'] = date('Y-m-d H:i:s');
+								$this->db->insert('tiktok_shipping_providers', $sp_data);
 							}
 						}
 					}
 				}
-
-				$total_synced++;
 			}
+
+			$synced_count++;
 		}
 
-		$redirect_url = 'administrator/tiktok_warehouses' . (!empty($shop_id) ? '?shop_id=' . $shop_id : '');
-
-		if (!empty($error_messages)) {
-			set_message("Sebagian data gudang gagal ditarik: " . implode('; ', $error_messages), 'warning');
-		} else {
-			set_message("Berhasil menarik {$total_synced} data gudang beserta opsi pengiriman dan kurir logistik.", 'success');
-		}
-
-		redirect($redirect_url);
+		set_message("Berhasil menarik {$synced_count} data gudang beserta opsi pengiriman dan kurir logistik.", 'success');
+		redirect('administrator/tiktok_warehouses');
 	}
 	
 	/**

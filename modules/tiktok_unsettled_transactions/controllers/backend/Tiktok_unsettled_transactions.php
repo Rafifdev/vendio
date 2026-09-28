@@ -29,21 +29,18 @@ class Tiktok_unsettled_transactions extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
-		$shop_id = $this->input->get('shop_id');
 
-		$this->data['tiktok_unsettled_transactionss'] = $this->model_tiktok_unsettled_transactions->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
-		$this->data['tiktok_unsettled_transactions_counts'] = $this->model_tiktok_unsettled_transactions->count_all($filter, $field, $shop_id);
+		$this->data['tiktok_unsettled_transactionss'] = $this->model_tiktok_unsettled_transactions->get($filter, $field, $this->limit_page, $offset);
+		$this->data['tiktok_unsettled_transactions_counts'] = $this->model_tiktok_unsettled_transactions->count_all($filter, $field);
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_unsettled_transactions/index/',
-			'total_rows'   => $this->model_tiktok_unsettled_transactions->count_all($filter, $field, $shop_id),
+			'total_rows'   => $this->model_tiktok_unsettled_transactions->count_all($filter, $field),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];
 
 		$this->data['pagination'] = $this->pagination($config);
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
-		$this->data['selected_shop_id'] = $shop_id;
 
 		$this->template->title('Dana Tertahan');
 		$this->render('backend/standart/administrator/tiktok_unsettled_transactions/tiktok_unsettled_transactions_list', $this->data);

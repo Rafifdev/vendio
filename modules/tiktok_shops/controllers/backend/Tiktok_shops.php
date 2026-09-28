@@ -44,9 +44,6 @@ class Tiktok_shops extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
-		$this->load->library('tiktok_api');
-		$this->data['auth_url'] = $this->tiktok_api->get_auth_url();
-
 		$this->template->title('Akun Toko List');
 		$this->render('backend/standart/administrator/tiktok_shops/tiktok_shops_list', $this->data);
 	}
@@ -78,10 +75,9 @@ class Tiktok_shops extends Admin
 			exit;
 		}
 
-		$this->form_validation->set_rules('auth_code', 'Auth Code', 'trim|required');
-		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		$this->form_validation->set_rules('app_key', 'App Key', 'trim');
 		$this->form_validation->set_rules('app_secret', 'App Secret', 'trim');
+		$this->form_validation->set_rules('is_active', 'Status Toko', 'trim|required');
 		
 
 		if ($this->form_validation->run()) {
@@ -168,9 +164,6 @@ class Tiktok_shops extends Admin
 		$this->is_allowed('tiktok_shops_update');
 
 		$this->data['tiktok_shops'] = $this->model_tiktok_shops->find($id);
-
-		$this->load->library('tiktok_api');
-		$this->data['auth_url'] = $this->tiktok_api->get_auth_url();
 
 		$this->template->title('Akun Toko Update');
 		$this->render('backend/standart/administrator/tiktok_shops/tiktok_shops_update', $this->data);
@@ -440,10 +433,6 @@ class Tiktok_shops extends Admin
 		$this->load->library('tiktok_api');
 
 		$auth_url = $this->tiktok_api->get_auth_url();
-		if ($this->input->is_ajax_request() || $this->input->get('json')) {
-			echo json_encode(['success' => true, 'auth_url' => $auth_url]);
-			return;
-		}
 		redirect($auth_url);
 	}
 
@@ -473,76 +462,6 @@ class Tiktok_shops extends Admin
 		} else {
 			$err = $res['message'] ?? 'Terjadi kesalahan saat memproses token.';
 			set_message('Gagal menukarkan token dari TikTok: ' . $err, 'error');
-		}
-
-		redirect('administrator/tiktok_shops');
-	}
-
-	/**
-	 * Tarik / Sinkronisasi Semua Data Toko dari TikTok API
-	 */
-	public function sync()
-	{
-		$this->is_allowed('tiktok_shops_list');
-		$this->load->library('tiktok_api');
-
-		$shops = $this->db->get('tiktok_shops')->result();
-		if (empty($shops)) {
-			set_message('Belum ada akun toko yang terdaftar.', 'warning');
-			redirect('administrator/tiktok_shops');
-			return;
-		}
-
-		$total_synced = 0;
-		$error_messages = [];
-		$cfg = $this->config->item('tiktok');
-
-		foreach ($shops as $shop) {
-			if (empty($shop->access_token)) {
-				continue;
-			}
-
-			// Refresh token jika mendekati expired
-			$expire_ts = (int) $shop->access_token_expire_in;
-			if ($expire_ts > 0 && ($expire_ts - time()) < 3600 && !empty($shop->refresh_token)) {
-				$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $shop->app_key, $shop->app_secret);
-				if (!empty($ref_res['success']) && !empty($ref_res['data']['access_token'])) {
-					$shop->access_token = $ref_res['data']['access_token'];
-					$this->tiktok_api->save_token_response($ref_res['data'], $shop->app_key, $shop->app_secret);
-				}
-			}
-
-			$app_key = !empty($shop->app_key) ? $shop->app_key : (!empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : $this->config->item('tiktok_app_key'));
-			$app_secret = !empty($shop->app_secret) ? $shop->app_secret : (!empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : $this->config->item('tiktok_app_secret'));
-
-			$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
-
-			if (!empty($shops_resp['data']['shops'][0])) {
-				$first_shop = $shops_resp['data']['shops'][0];
-				$update_data = [
-					'shop_id'     => $first_shop['id'] ?? $shop->shop_id,
-					'shop_name'   => $first_shop['name'] ?? $shop->shop_name,
-					'shop_code'   => $first_shop['code'] ?? $shop->shop_code,
-					'shop_cipher' => $first_shop['cipher'] ?? $shop->shop_cipher,
-					'seller_type' => $first_shop['seller_type'] ?? $shop->seller_type,
-					'updated_at'  => date('Y-m-d H:i:s'),
-				];
-				$this->db->where('id', $shop->id)->update('tiktok_shops', $update_data);
-				$total_synced++;
-			} else {
-				$err_msg = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API';
-				$error_messages[] = $shop->shop_name . ': ' . $err_msg;
-			}
-		}
-
-		if ($total_synced > 0) {
-			set_message("Berhasil menarik & memperbarui data {$total_synced} akun toko dari TikTok Shop.", 'success');
-		} else {
-			if (!empty($error_messages)) {
-				set_message("Gagal menarik data toko: " . implode('; ', $error_messages), 'error');
-			} else {
-				set_message("Belum ada akun toko dengan token aktif yang dapat ditarik.", 'warning');
-			}
 		}
 
 		redirect('administrator/tiktok_shops');
