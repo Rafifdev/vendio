@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `tiktok_products` (
   `title` VARCHAR(255) NOT NULL COMMENT 'Judul / Nama Produk',
   `main_image` TEXT DEFAULT NULL COMMENT 'URL Gambar Utama Produk',
   `status` VARCHAR(50) DEFAULT 'LIVE' COMMENT 'Status: LIVE, DRAFT, FAILED, SELLER_DEACTIVATED, PLATFORM_DEACTIVATED, FREEZE, DELETED',
+  `listing_platforms` VARCHAR(255) DEFAULT 'TIKTOK_SHOP,TOKOPEDIA' COMMENT 'Platform Listing TikTok Shop / Tokopedia',
   `category_name` VARCHAR(255) DEFAULT NULL COMMENT 'Kategori Produk',
   `brand_name` VARCHAR(100) DEFAULT NULL COMMENT 'Brand Produk',
   `seller_sku` VARCHAR(100) DEFAULT NULL COMMENT 'SKU Induk / Seller SKU',

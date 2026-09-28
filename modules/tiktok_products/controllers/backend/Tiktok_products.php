@@ -32,12 +32,14 @@ class Tiktok_products extends Admin
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
 		$shop_id = $this->input->get('shop_id');
+		$platform = $this->input->get('platform');
 
-		$this->data['tiktok_productss'] = $this->model_tiktok_products->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
-		$this->data['tiktok_products_counts'] = $this->model_tiktok_products->count_all($filter, $field, $shop_id);
+		$this->data['tiktok_productss'] = $this->model_tiktok_products->get($filter, $field, $this->limit_page, $offset, [], $shop_id, $platform);
+		$this->data['tiktok_products_counts'] = $this->model_tiktok_products->count_all($filter, $field, $shop_id, $platform);
 
 		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
+		$this->data['selected_platform'] = $platform;
 
 		// Ambil varian SKU untuk setiap produk di halaman ini
 		$product_ids = array_column($this->data['tiktok_productss'], 'id');

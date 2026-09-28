@@ -528,7 +528,7 @@
                      </div>
 
                      <div class="header-right">
-                        <div style="width: 200px; text-align: left;">
+                        <div style="width: 175px; text-align: left;">
                            <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
                               <option value="">Semua Toko</option>
                               <?php foreach ($shops as $shop): ?>
@@ -536,6 +536,13 @@
                                     <?= _ent($shop->shop_name); ?>
                                  </option>
                               <?php endforeach; ?>
+                           </select>
+                        </div>
+                        <div style="width: 165px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="platform_filter" id="platform_filter">
+                              <option value="">Semua Platform</option>
+                              <option <?= ($selected_platform == 'TIKTOK_SHOP') ? 'selected' : ''; ?> value="TIKTOK_SHOP">TikTok Shop</option>
+                              <option <?= ($selected_platform == 'TOKOPEDIA') ? 'selected' : ''; ?> value="TOKOPEDIA">Tokopedia</option>
                            </select>
                         </div>
                         <?php is_allowed('tiktok_products_add', function () { ?>
@@ -572,6 +579,7 @@
                                  <th style="width: 320px;">Nama Produk</th>
                                  <th style="width: 180px;">ID Produk</th>
                                  <th style="width: 160px;">Nama Toko</th>
+                                 <th style="width: 130px; text-align: center;">Platform</th>
                                  <th style="width: 70px; text-align: center;">Stok</th>
                                  <th style="width: 120px; text-align: right;">Harga</th>
                                  <th style="width: 95px; text-align: center;">Status</th>
@@ -615,6 +623,23 @@
                                     } else {
                                        echo '-';
                                     } ?>
+                                 </td>
+                                 <td style="text-align: center; white-space: nowrap;">
+                                    <?php
+                                    $platforms = !empty($tiktok_products->listing_platforms) ? explode(",", $tiktok_products->listing_platforms) : ["TIKTOK_SHOP"];
+                                    foreach ($platforms as $plat):
+                                       $plat = trim($plat);
+                                       if ($plat === "TIKTOK_SHOP"):
+                                    ?>
+                                       <span class="label" style="background-color: #0f172a; color: #fff; font-size: 10.5px; padding: 3px 6px; margin: 1px; display: inline-block;">
+                                          <i class="fa fa-music"></i> TikTok
+                                       </span>
+                                    <?php elseif ($plat === "TOKOPEDIA"):
+                                    ?>
+                                       <span class="label" style="background-color: #03ac0e; color: #fff; font-size: 10.5px; padding: 3px 6px; margin: 1px; display: inline-block;">
+                                          <i class="fa fa-shopping-bag"></i> Tokopedia
+                                       </span>
+                                    <?php endif; endforeach; ?>
                                  </td>
                                  <td style="text-align: center; font-weight: 600;">
                                     <?= _ent($tiktok_products->total_stock); ?>
@@ -864,13 +889,17 @@
          }
          checkAll.iCheck('update');
       });
-      // Filter toko
-      $('#shop_id_filter').on('change', function () {
-         var shop_id = $(this).val();
+      // Filter toko dan platform
+      function applyProductFilters() {
+         var shop_id = $('#shop_id_filter').val();
+         var platform = $('#platform_filter').val();
          var url = '<?= site_url("administrator/tiktok_products"); ?>';
          var params = [];
          if (shop_id) {
             params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         if (platform) {
+            params.push('platform=' + encodeURIComponent(platform));
          }
          <?php if ($this->input->get('q')): ?>
             params.push('q=<?= urlencode($this->input->get('q')); ?>');
@@ -882,7 +911,8 @@
             url += '?' + params.join('&');
          }
          window.location.href = url;
-      });
+      }
+      $('#shop_id_filter, #platform_filter').on('change', applyProductFilters);
 
    });
 </script>

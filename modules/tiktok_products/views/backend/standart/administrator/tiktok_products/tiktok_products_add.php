@@ -282,18 +282,33 @@
                         </div>
 
                         <div class="form-group ">
-                            <label for="title" class="control-label">Title 
+                            <label for="listing_platforms" class="control-label">Platform Penjualan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="title" id="title" placeholder="Title" value="<?= set_value('title'); ?>">
+                                <select class="form-control chosen chosen-select" name="listing_platforms" id="listing_platforms" data-placeholder="Pilih Platform Penjualan">
+                                    <option value="TIKTOK_SHOP,TOKOPEDIA" <?= (set_value('listing_platforms') == 'TIKTOK_SHOP,TOKOPEDIA' || !set_value('listing_platforms')) ? 'selected' : ''; ?>>TikTok Shop & Tokopedia (Multi-channel)</option>
+                                    <option value="TIKTOK_SHOP" <?= set_value('listing_platforms') == 'TIKTOK_SHOP' ? 'selected' : ''; ?>>Hanya TikTok Shop</option>
+                                    <option value="TOKOPEDIA" <?= set_value('listing_platforms') == 'TOKOPEDIA' ? 'selected' : ''; ?>>Hanya Tokopedia</option>
+                                </select>
                                 <small class="info help-block">
-                                <b>Input Title</b> minimal 25 karakter, maksimal 255 karakter sesuai ketentuan TikTok.</small>
+                                Kanal marketplace tempat produk akan dipublikasikan dan disinkronkan.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
+                            <label for="title" class="control-label">Nama Produk 
+                            <i class="required">*</i>
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="title" id="title" placeholder="Nama Lengkap Produk" value="<?= set_value('title'); ?>">
+                                <small class="info help-block">
+                                <b>Nama Produk</b> minimal 25 karakter, maksimal 255 karakter sesuai ketentuan TikTok.</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="main_image" class="control-label">Main Image 
+                            <label for="main_image" class="control-label">Foto Utama Produk 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
@@ -306,7 +321,7 @@
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="category_name" class="control-label">Category 
+                            <label for="category_name" class="control-label">Kategori Produk 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
@@ -322,7 +337,7 @@
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="brand_name" class="control-label">Brand Name 
+                            <label for="brand_name" class="control-label">Merek / Brand 
                             </label>
                             <div class="col-sm-8">
                                 <select class="form-control chosen chosen-select-deselect" name="brand_name" id="brand_name" data-placeholder="Pilih Brand TikTok">
@@ -339,54 +354,63 @@
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="seller_sku" class="control-label">Seller Sku 
+                            <label for="seller_sku" class="control-label">SKU Penjual 
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="seller_sku" id="seller_sku" placeholder="Seller Sku" value="<?= set_value('seller_sku'); ?>">
+                                <input type="text" class="form-control" name="seller_sku" id="seller_sku" placeholder="Contoh: SKU-PROD-001" value="<?= set_value('seller_sku'); ?>">
                                 <small class="info help-block">
                                 Kode SKU unik penjual (Otomatis dibuat jika kosong).</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="price" class="control-label">Price 
+                            <label for="price" class="control-label">Harga Satuan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="price" id="price" placeholder="Price" value="<?= set_value('price'); ?>">
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="background:#f8fafc; font-weight:600; color:#475569;">Rp</span>
+                                    <input type="number" class="form-control" name="price" id="price" placeholder="Contoh: 50000" value="<?= set_value('price'); ?>">
+                                </div>
                                 <small class="info help-block">
                                 Harga produk dalam Rupiah (IDR), minimal Rp 1.000.</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="total_stock" class="control-label">Total Stock 
+                            <label for="total_stock" class="control-label">Total Stok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="total_stock" id="total_stock" placeholder="Total Stock" value="<?= set_value('total_stock'); ?>">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="total_stock" id="total_stock" placeholder="Contoh: 100" value="<?= set_value('total_stock'); ?>">
+                                    <span class="input-group-addon" style="background:#f8fafc; font-weight:600; color:#475569;">Unit / Pcs</span>
+                                </div>
                                 <small class="info help-block">
                                 Jumlah stok produk di gudang TikTok (minimal 0).</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="package_weight" class="control-label">Package Weight (Kg) 
+                            <label for="package_weight" class="control-label">Berat Paket 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="package_weight" id="package_weight" placeholder="Package Weight (Kg)" value="<?= set_value('package_weight'); ?>">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="package_weight" id="package_weight" placeholder="Contoh: 0.5 atau 1" value="<?= set_value('package_weight'); ?>">
+                                    <span class="input-group-addon" style="background:#f8fafc; font-weight:600; color:#475569;">Kg</span>
+                                </div>
                                 <small class="info help-block">
                                 Berat paket dalam kilogram (Contoh: 1 atau 0.5 kg, min 0.01 kg).</small>
                             </div>
                         </div>
                                                  
                         <div class="form-group ">
-                            <label for="description" class="control-label">Description 
+                            <label for="description" class="control-label">Deskripsi Produk 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <textarea id="description" name="description" rows="5" class="textarea form-control"><?= set_value('description'); ?></textarea>
+                                <textarea id="description" name="description" rows="5" class="textarea form-control" placeholder="Tuliskan deskripsi lengkap produk..."><?= set_value('description'); ?></textarea>
                                 <small class="info help-block">
                                 Deskripsi produk minimal 10 karakter sesuai ketentuan TikTok.</small>
                             </div>
