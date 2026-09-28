@@ -84,6 +84,21 @@
                         </div>
 
                         <div class="form-group ">
+                            <label for="listing_platforms" class="col-sm-2 control-label">Platform Penjualan 
+                            <i class="required">*</i>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control chosen chosen-select" name="listing_platforms" id="listing_platforms" data-placeholder="Pilih Platform Penjualan" >
+                                    <option value="TIKTOK_SHOP,TOKOPEDIA" <?= set_select('listing_platforms', 'TIKTOK_SHOP,TOKOPEDIA', TRUE); ?>>TikTok Shop &amp; Tokopedia (Keduanya)</option>
+                                    <option value="TIKTOK_SHOP" <?= set_select('listing_platforms', 'TIKTOK_SHOP'); ?>>Hanya TikTok Shop</option>
+                                    <option value="TOKOPEDIA" <?= set_select('listing_platforms', 'TOKOPEDIA'); ?>>Hanya Tokopedia</option>
+                                </select>
+                                <small class="info help-block">
+                                Pilih saluran etalase tempat produk ini akan aktif dijual (integrasi resmi Tokopedia &amp; Shop Seller Center).</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group ">
                             <label for="title" class="col-sm-2 control-label">Title 
                             <i class="required">*</i>
                             </label>

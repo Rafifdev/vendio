@@ -155,6 +155,22 @@ jQuery(document).ready(domo);
                         </div>
                     </div>
 
+                    <div class="form-group ">
+                        <label for="content" class="col-sm-2 control-label">Platform Penjualan </label>
+
+                        <div class="col-sm-8">
+                           <?php
+                           $platforms = !empty($tiktok_products->listing_platforms) ? explode(',', $tiktok_products->listing_platforms) : ['TIKTOK_SHOP', 'TOKOPEDIA'];
+                           if (in_array('TIKTOK_SHOP', $platforms)) {
+                               echo '<span class="label" style="background-color: #000; color: #fff; margin-right: 5px; padding: 4px 8px; font-weight: 500;"><i class="fa fa-music"></i> TikTok Shop</span> ';
+                           }
+                           if (in_array('TOKOPEDIA', $platforms)) {
+                               echo '<span class="label" style="background-color: #42b549; color: #fff; padding: 4px 8px; font-weight: 500;"><i class="fa fa-shopping-bag"></i> Tokopedia</span>';
+                           }
+                           ?>
+                        </div>
+                    </div>
+
                     <?php if ($status == 'FAILED' && !empty($tiktok_products->reject_reason)): ?>
                     <div class="form-group">
                         <label class="col-sm-2 control-label text-danger">Alasan Penolakan </label>

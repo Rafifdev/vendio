@@ -87,20 +87,20 @@
                      action="<?= base_url('administrator/tiktok_products/index'); ?>">
 
 
-                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped dataTable">
+                      <div class="table-responsive" style="overflow-x: auto;">
+                         <table class="table table-bordered table-striped dataTable" style="min-width: 1250px;">
                             <thead>
                                <tr>
                                   <th style="width: 40px; text-align: center;">
                                      <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="Pilih Semua">
                                   </th>
-                                  <th style="width: 70px; text-align: center;">Gambar</th>
-                                  <th style="width: 25%;">Nama Produk</th>
-                                  <th style="width: 17%;">ID Produk</th>
-                                  <th style="width: 14%;">Nama Toko</th>
-                                  <th style="width: 9%; text-align: center;">Stok</th>
-                                  <th style="width: 13%;">Harga</th>
-                                  <th style="width: 10%; text-align: center;">Status</th>
+                                  <th style="width: 140px; min-width: 130px;">Nama Toko</th>
+                                  <th style="min-width: 320px;">Produk</th>
+                                  <th style="width: 150px; min-width: 140px;">ID Produk</th>
+                                  <th style="width: 130px; min-width: 120px; text-align: center;">Platform</th>
+                                  <th style="width: 80px; min-width: 70px; text-align: center;">Stok</th>
+                                  <th style="width: 130px; min-width: 120px;">Harga</th>
+                                  <th style="width: 110px; min-width: 100px; text-align: center;">Status</th>
                                   <th style="width: 260px; min-width: 260px; text-align: center;">Aksi</th>
                                </tr>
                             </thead>
@@ -110,31 +110,55 @@
                                      <td style="text-align: center;">
                                         <input type="checkbox" class="flat-red check" name="id[]" value="<?= $tiktok_products->id; ?>">
                                      </td>
-                                     <td style="text-align: center;">
-                                        <?php if (!empty($tiktok_products->main_image)): ?>
-                                           <?php if (strpos($tiktok_products->main_image, 'http://') === 0 || strpos($tiktok_products->main_image, 'https://') === 0): ?>
-                                              <a class="fancybox" rel="group" href="<?= $tiktok_products->main_image; ?>">
-                                                 <img src="<?= $tiktok_products->main_image; ?>" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;" alt="image">
-                                              </a>
-                                           <?php elseif (is_image($tiktok_products->main_image)): ?>
-                                              <a class="fancybox" rel="group" href="<?= BASE_URL . 'uploads/tiktok_products/' . $tiktok_products->main_image; ?>">
-                                                 <img src="<?= BASE_URL . 'uploads/tiktok_products/' . $tiktok_products->main_image; ?>" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px;" alt="image">
-                                              </a>
-                                           <?php else: ?>
-                                              <span class="text-muted">-</span>
-                                           <?php endif; ?>
-                                        <?php else: ?>
-                                           <span class="text-muted">-</span>
-                                        <?php endif; ?>
-                                     </td>
-                                     <td><?= _ent($tiktok_products->title); ?></td>
-                                     <td><?= _ent($tiktok_products->product_id); ?></td>
-                                     <td>
+                                     <td style="white-space: nowrap;">
                                         <?php if ($tiktok_products->tiktok_shop_id) {
-                                           echo anchor('administrator/tiktok_shops/view/' . $tiktok_products->tiktok_shop_id . '?popup=show', $tiktok_products->tiktok_shops_shop_name, ['class' => 'popup-view']);
+                                           echo anchor('administrator/tiktok_shops/view/' . $tiktok_products->tiktok_shop_id . '?popup=show', $tiktok_products->tiktok_shops_shop_name, ['class' => 'popup-view', 'style' => 'font-weight: 600; color: #3c8dbc;']);
+                                        } else {
+                                           echo '<span class="text-muted">-</span>';
                                         } ?>
                                      </td>
-                                     <td style="text-align: center;"><?= _ent($tiktok_products->total_stock); ?></td>
+                                     <td style="min-width: 320px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                           <?php if (!empty($tiktok_products->main_image)): ?>
+                                              <?php 
+                                              $img_src = '';
+                                              if (strpos($tiktok_products->main_image, 'http://') === 0 || strpos($tiktok_products->main_image, 'https://') === 0) {
+                                                  $img_src = $tiktok_products->main_image;
+                                              } elseif (is_image($tiktok_products->main_image)) {
+                                                  $img_src = BASE_URL . 'uploads/tiktok_products/' . $tiktok_products->main_image;
+                                              }
+                                              ?>
+                                              <?php if (!empty($img_src)): ?>
+                                                 <a class="fancybox" rel="group" href="<?= $img_src; ?>" style="flex-shrink: 0;">
+                                                    <img src="<?= $img_src; ?>" style="width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" alt="product">
+                                                 </a>
+                                              <?php else: ?>
+                                                 <div style="width: 45px; height: 45px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #999;"><i class="fa fa-image"></i></div>
+                                              <?php endif; ?>
+                                           <?php else: ?>
+                                              <div style="width: 45px; height: 45px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #999;"><i class="fa fa-image"></i></div>
+                                           <?php endif; ?>
+                                           <div style="flex-grow: 1;">
+                                              <div style="font-weight: 600; line-height: 1.3; margin-bottom: 3px;"><?= _ent($tiktok_products->title); ?></div>
+                                              <?php if (!empty($tiktok_products->seller_sku)): ?>
+                                                 <small class="text-muted"><i class="fa fa-barcode"></i> SKU: <?= _ent($tiktok_products->seller_sku); ?></small>
+                                              <?php endif; ?>
+                                           </div>
+                                        </div>
+                                     </td>
+                                     <td style="white-space: nowrap;"><?= _ent($tiktok_products->product_id); ?></td>
+                                     <td style="text-align: center; white-space: nowrap;">
+                                        <?php
+                                        $platforms = !empty($tiktok_products->listing_platforms) ? explode(',', $tiktok_products->listing_platforms) : ['TIKTOK_SHOP', 'TOKOPEDIA'];
+                                        if (in_array('TIKTOK_SHOP', $platforms)) {
+                                            echo '<span class="label" style="background-color: #000; color: #fff; font-size: 10px; margin: 2px 2px; padding: 3px 6px; display: inline-block;"><i class="fa fa-music"></i> TikTok</span> ';
+                                        }
+                                        if (in_array('TOKOPEDIA', $platforms)) {
+                                            echo '<span class="label" style="background-color: #42b549; color: #fff; font-size: 10px; margin: 2px 2px; padding: 3px 6px; display: inline-block;"><i class="fa fa-shopping-bag"></i> Tokopedia</span>';
+                                        }
+                                        ?>
+                                     </td>
+                                     <td style="text-align: center; font-weight: 600;"><?= _ent($tiktok_products->total_stock); ?></td>
                                      <td>Rp <?= number_format($tiktok_products->price, 0, ',', '.'); ?></td>
                                                                           <td style="text-align: center;">
                                          <?php

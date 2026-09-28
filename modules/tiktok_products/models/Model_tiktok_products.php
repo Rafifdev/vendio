@@ -5,7 +5,7 @@ class Model_tiktok_products extends MY_Model {
 
     private $primary_key    = 'id';
     private $table_name     = 'tiktok_products';
-    private $field_search   = ['tiktok_shop_id', 'product_id', 'title', 'main_image', 'status', 'seller_sku', 'price', 'total_stock'];
+    private $field_search   = ['tiktok_shop_id', 'product_id', 'title', 'main_image', 'status', 'listing_platforms', 'seller_sku', 'price', 'total_stock'];
 
     public function __construct()
     {

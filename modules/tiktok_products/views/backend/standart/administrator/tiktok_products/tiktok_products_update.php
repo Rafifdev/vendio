@@ -66,7 +66,6 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
                         <div class="form-group ">
                             <label for="tiktok_shop_id" class="col-sm-2 control-label">Toko TikTok 
                             <i class="required">*</i>
@@ -80,6 +79,24 @@
                                 </select>
                                 <small class="info help-block">
                                 </small>
+                            </div>
+                        </div>
+
+                        <?php 
+                        $cur_platforms = !empty($tiktok_products->listing_platforms) ? $tiktok_products->listing_platforms : 'TIKTOK_SHOP,TOKOPEDIA';
+                        ?>
+                        <div class="form-group ">
+                            <label for="listing_platforms" class="col-sm-2 control-label">Platform Penjualan 
+                            <i class="required">*</i>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control chosen chosen-select" name="listing_platforms" id="listing_platforms" data-placeholder="Pilih Platform Penjualan" >
+                                    <option value="TIKTOK_SHOP,TOKOPEDIA" <?= $cur_platforms == 'TIKTOK_SHOP,TOKOPEDIA' ? 'selected' : ''; ?>>TikTok Shop &amp; Tokopedia (Keduanya)</option>
+                                    <option value="TIKTOK_SHOP" <?= $cur_platforms == 'TIKTOK_SHOP' ? 'selected' : ''; ?>>Hanya TikTok Shop</option>
+                                    <option value="TOKOPEDIA" <?= $cur_platforms == 'TOKOPEDIA' ? 'selected' : ''; ?>>Hanya Tokopedia</option>
+                                </select>
+                                <small class="info help-block">
+                                Pilih saluran etalase tempat produk ini akan aktif dijual (integrasi resmi Tokopedia &amp; Shop Seller Center).</small>
                             </div>
                         </div>
 
