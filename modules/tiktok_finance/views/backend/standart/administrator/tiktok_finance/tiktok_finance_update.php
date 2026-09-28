@@ -257,110 +257,114 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
+                        <div class="form-group ">
                             <label for="tiktok_shop_id" class="control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select  class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok" >
+                                <select class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok" >
                                     <option value=""></option>
                                     <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
-                                    <option <?=  $row->id ==  $tiktok_finance->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id ?>"><?= $row->shop_name; ?></option>
+                                    <option <?= $row->id == $tiktok_finance->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id ?>"><?= _ent($row->shop_name); ?></option>
                                     <?php endforeach; ?>  
                                 </select>
-                                <small class="info help-block">
-                                </small>
+                                <small class="info help-block">Toko pemilik laporan keuangan ini.</small>
                             </div>
                         </div>
 
-                                                 
-                                                <div class="form-group ">
-                            <label for="statement_id" class="control-label">ID Statement 
+                        <div class="form-group ">
+                            <label for="statement_id" class="control-label">ID Laporan (Statement ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="statement_id" id="statement_id" placeholder="ID Statement" value="<?= set_value('statement_id', $tiktok_finance->statement_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <small class="info help-block">Nomor unik laporan dari TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="statement_time" class="control-label">Tanggal Statement 
+
+                        <div class="form-group ">
+                            <label for="statement_time" class="control-label">Waktu Laporan 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-6">
                             <div class="input-group date col-sm-8">
-                              <input type="text" class="form-control pull-right datetimepicker" name="statement_time"  placeholder="Tanggal Statement" id="statement_time" value="<?= set_value('statement_time', $tiktok_finance->statement_time); ?>">
+                              <input type="text" class="form-control pull-right datetimepicker" name="statement_time" placeholder="Tanggal & waktu laporan" id="statement_time" value="<?= set_value('statement_time', $tiktok_finance->statement_time); ?>">
                             </div>
-                            <small class="info help-block">
-                            </small>
+                            <small class="info help-block">Tanggal dan waktu periode laporan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="settlement_amount" class="control-label">Total Pencairan Bersih 
+
+                        <div class="form-group ">
+                            <label for="settlement_amount" class="control-label">Total Dana Bersih (Settlement) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="settlement_amount" id="settlement_amount" placeholder="Total Pencairan Bersih" value="<?= set_value('settlement_amount', $tiktok_finance->settlement_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="settlement_amount" id="settlement_amount" placeholder="0" value="<?= set_value('settlement_amount', $tiktok_finance->settlement_amount); ?>">
+                                </div>
+                                <small class="info help-block">Total dana bersih yang dicairkan ke rekening bank.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="revenue_amount" class="control-label">Omzet Kotor 
+
+                        <div class="form-group ">
+                            <label for="revenue_amount" class="control-label">Omzet Kotor (Revenue) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="revenue_amount" id="revenue_amount" placeholder="Omzet Kotor" value="<?= set_value('revenue_amount', $tiktok_finance->revenue_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #16a34a;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="revenue_amount" id="revenue_amount" placeholder="0" value="<?= set_value('revenue_amount', $tiktok_finance->revenue_amount); ?>">
+                                </div>
+                                <small class="info help-block">Total nilai penjualan kotor sebelum potongan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="shipping_fee_amount" class="control-label">Biaya Pengiriman 
+
+                        <div class="form-group ">
+                            <label for="shipping_fee_amount" class="control-label">Biaya Pengiriman (Ongkir) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="shipping_fee_amount" id="shipping_fee_amount" placeholder="Biaya Pengiriman" value="<?= set_value('shipping_fee_amount', $tiktok_finance->shipping_fee_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #dc2626;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="shipping_fee_amount" id="shipping_fee_amount" placeholder="0" value="<?= set_value('shipping_fee_amount', $tiktok_finance->shipping_fee_amount); ?>">
+                                </div>
+                                <small class="info help-block">Biaya ongkos kirim yang dibebankan.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="fee_amount" class="control-label">Biaya Layanan Platform 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="fee_amount" id="fee_amount" placeholder="Biaya Layanan Platform" value="<?= set_value('fee_amount', $tiktok_finance->fee_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #dc2626;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="fee_amount" id="fee_amount" placeholder="0" value="<?= set_value('fee_amount', $tiktok_finance->fee_amount); ?>">
+                                </div>
+                                <small class="info help-block">Total potongan komisi dan biaya transaksi TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="adjustment_amount" class="control-label">Nominal Penyesuaian 
+
+                        <div class="form-group ">
+                            <label for="adjustment_amount" class="control-label">Penyesuaian (Adjustment) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="adjustment_amount" id="adjustment_amount" placeholder="Nominal Penyesuaian" value="<?= set_value('adjustment_amount', $tiktok_finance->adjustment_amount); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <div class="input-group">
+                                    <span class="input-group-addon" style="font-weight: 600; background: #f8fafc; color: #475569;">Rp</span>
+                                    <input type="number" step="any" class="form-control" name="adjustment_amount" id="adjustment_amount" placeholder="0" value="<?= set_value('adjustment_amount', $tiktok_finance->adjustment_amount); ?>">
+                                </div>
+                                <small class="info help-block">Kompensasi atau penyesuaian dana jika ada.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="currency" class="control-label">Mata Uang 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="currency" id="currency" placeholder="Mata Uang (IDR)" value="<?= set_value('currency', $tiktok_finance->currency); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="currency" id="currency" placeholder="IDR" value="<?= set_value('currency', $tiktok_finance->currency ?: 'IDR'); ?>" readonly style="background: #f8fafc; font-weight: 600; width: 120px;">
                             </div>
                         </div>
                                                 

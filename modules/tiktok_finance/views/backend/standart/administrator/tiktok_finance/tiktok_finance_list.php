@@ -201,6 +201,61 @@ jQuery(document).ready(domo);
    display: inline-block;
 }
 
+/* Action Links: Keep on 1 single line with clean gaps */
+.action-buttons-wrap {
+   display: inline-flex;
+   align-items: center;
+   gap: 6px;
+   white-space: nowrap;
+}
+
+.action-link {
+   display: inline-flex !important;
+   align-items: center !important;
+   gap: 5px !important;
+   padding: 4px 10px !important;
+   height: 28px !important;
+   border-radius: 4px !important;
+   font-size: 12px !important;
+   font-weight: 500 !important;
+   color: #334155 !important;
+   background: #ffffff !important;
+   border: 1px solid #cbd5e1 !important;
+   text-decoration: none !important;
+   transition: all 0.15s ease !important;
+   white-space: nowrap !important;
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+.action-link i {
+   font-size: 12px !important;
+   color: #64748b !important;
+   transition: color 0.15s ease !important;
+}
+
+.action-link:hover {
+   background: #f8fafc !important;
+   color: #0f172a !important;
+   border-color: #94a3b8 !important;
+   box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08) !important;
+}
+
+.action-link:hover i {
+   color: #0f172a !important;
+}
+
+.action-link.remove-data:hover,
+.action-link.item-danger:hover {
+   background: #fef2f2 !important;
+   color: #dc2626 !important;
+   border-color: #fca5a5 !important;
+}
+
+.action-link.remove-data:hover i,
+.action-link.item-danger:hover i {
+   color: #dc2626 !important;
+}
+
 /* Action Dropdown 3-Dots Component */
 .action-dropdown {
    position: relative;
@@ -548,6 +603,22 @@ jQuery(document).ready(domo);
                      </div>
                   </div>
 
+                  <!-- Summary KPI Cards -->
+                  <div style="padding: 16px 25px; background: #f8fafc; border-bottom: 1px solid #edf2f7; display: flex; gap: 16px; flex-wrap: wrap;">
+                     <div style="flex: 1; min-width: 200px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Omzet Kotor</div>
+                        <div style="font-size: 19px; font-weight: 700; color: #16a34a; margin-top: 4px;">Rp <?= number_format($finance_summary->total_revenue ?? 0, 0, ',', '.'); ?></div>
+                     </div>
+                     <div style="flex: 1; min-width: 200px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Biaya Layanan</div>
+                        <div style="font-size: 19px; font-weight: 700; color: #dc2626; margin-top: 4px;">- Rp <?= number_format(abs($finance_summary->total_fee ?? 0), 0, ',', '.'); ?></div>
+                     </div>
+                     <div style="flex: 1; min-width: 200px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Dana Bersih Dicairkan</div>
+                        <div style="font-size: 19px; font-weight: 700; color: #0f172a; margin-top: 4px;">Rp <?= number_format($finance_summary->total_settlement ?? 0, 0, ',', '.'); ?></div>
+                     </div>
+                  </div>
+
                   <!-- Form & Table -->
                   <form name="form_tiktok_finance" id="form_tiktok_finance" action="<?= base_url('administrator/tiktok_finance/index'); ?>
                      <?php if (!empty($selected_shop_id)): ?>
@@ -565,10 +636,10 @@ jQuery(document).ready(domo);
                                  <th style="width: 95px;">Tgl Statement</th>
                                  <th style="width: 95px;">ID Pencairan</th>
                                  <th style="width: 95px; text-align: center;">Status Pencairan</th>
-                                 <th style="width: 95px; text-align: right;">Total Pencairan</th>
-                                 <th style="width: 90px; text-align: right;">Omzet Kotor</th>
+                                 <th style="width: 105px; text-align: right;">Total Pencairan</th>
+                                 <th style="width: 95px; text-align: right;">Omzet Kotor</th>
                                  <th style="width: 85px; text-align: right;">Biaya Kirim</th>
-                                 <th style="width: 85px; text-align: right;">Biaya Layanan</th>
+                                 <th style="width: 95px; text-align: right;">Biaya Layanan</th>
                                  <th style="width: 48px; text-align: center;">Aksi</th>
                               </tr>
                            </thead>
@@ -606,17 +677,17 @@ jQuery(document).ready(domo);
                                     }
                                     ?>
                                  </td>
-                                 <td style="text-align: right; font-weight: 600; color: #1e293b;">
+                                 <td style="text-align: right; font-weight: 700; color: #0f172a; font-size: 13px;">
                                     Rp <?= number_format($tiktok_finance->settlement_amount, 0, ',', '.'); ?>
                                  </td>
-                                 <td style="text-align: right; font-weight: 500; color: #334155;">
+                                 <td style="text-align: right; font-weight: 600; color: #16a34a;">
                                     Rp <?= number_format($tiktok_finance->revenue_amount, 0, ',', '.'); ?>
                                  </td>
                                  <td style="text-align: right; color: #64748b;">
                                     Rp <?= number_format($tiktok_finance->shipping_fee_amount, 0, ',', '.'); ?>
                                  </td>
-                                 <td style="text-align: right; color: #64748b;">
-                                    Rp <?= number_format($tiktok_finance->fee_amount, 0, ',', '.'); ?>
+                                 <td style="text-align: right; font-weight: 600; color: #dc2626;">
+                                    - Rp <?= number_format(abs($tiktok_finance->fee_amount), 0, ',', '.'); ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
                                      <?= render_table_action([

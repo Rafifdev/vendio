@@ -39,6 +39,13 @@ class Tiktok_finance extends Admin
 		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
 
+		// Summary KPI keuangan
+		$sum_builder = $this->db->select('SUM(settlement_amount) as total_settlement, SUM(revenue_amount) as total_revenue, SUM(fee_amount) as total_fee, SUM(shipping_fee_amount) as total_shipping')->from('tiktok_finance');
+		if (!empty($shop_id)) {
+			$sum_builder->where('tiktok_shop_id', $shop_id);
+		}
+		$this->data['finance_summary'] = $sum_builder->get()->row();
+
 		$config = [
 			'base_url'     => 'administrator/tiktok_finance/index/',
 			'total_rows'   => $this->model_tiktok_finance->count_all($filter, $field, $shop_id),
