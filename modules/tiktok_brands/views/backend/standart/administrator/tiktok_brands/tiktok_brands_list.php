@@ -237,31 +237,50 @@
 }
 
 .action-link {
-   display: inline-flex;
-   align-items: center;
-   gap: 4px;
-   padding: 4px 9px;
-   border-radius: 4px;
-   font-size: 12px;
-   font-weight: 500;
-   color: #1e293b !important;
-   background: #f8fafc;
-   border: 1px solid #cbd5e1;
+   display: inline-flex !important;
+   align-items: center !important;
+   gap: 5px !important;
+   padding: 4px 10px !important;
+   height: 28px !important;
+   border-radius: 4px !important;
+   font-size: 12px !important;
+   font-weight: 500 !important;
+   color: #334155 !important;
+   background: #ffffff !important;
+   border: 1px solid #cbd5e1 !important;
    text-decoration: none !important;
-   transition: all 0.15s ease;
-   white-space: nowrap;
+   transition: all 0.15s ease !important;
+   white-space: nowrap !important;
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+.action-link i {
+   font-size: 12px !important;
+   color: #64748b !important;
+   transition: color 0.15s ease !important;
 }
 
 .action-link:hover {
-   background: #e2e8f0;
+   background: #f8fafc !important;
    color: #0f172a !important;
-   border-color: #94a3b8;
+   border-color: #94a3b8 !important;
+   box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08) !important;
 }
 
-.action-link.remove-data:hover {
-   background: #fee2e2;
+.action-link:hover i {
+   color: #0f172a !important;
+}
+
+.action-link.remove-data:hover,
+.action-link.item-danger:hover {
+   background: #fef2f2 !important;
    color: #dc2626 !important;
-   border-color: #fecaca;
+   border-color: #fca5a5 !important;
+}
+
+.action-link.remove-data:hover i,
+.action-link.item-danger:hover i {
+   color: #dc2626 !important;
 }
 
 /* Fixed Bottom Toolbar (Clean Footer Container) */

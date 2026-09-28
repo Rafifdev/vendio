@@ -1455,7 +1455,7 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
     padding-left: 17px !important;
 }
 
-/* Single Action Link (consistent sleek dark button) */
+/* Single Action Link (Clean Bordered Style Button) */
 .action-buttons-wrap {
     display: inline-flex;
     align-items: center;
@@ -1470,18 +1470,56 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
     padding: 0 10px !important;
     border-radius: 4px !important;
     font-size: 12px !important;
-    font-weight: 600 !important;
-    background-color: #1e293b !important;
-    border: 1px solid #0f172a !important;
-    color: #ffffff !important;
+    font-weight: 500 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
     text-decoration: none !important;
-    transition: all 0.15s ease;
+    transition: all 0.15s ease !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    white-space: nowrap !important;
+}
+
+.action-link i {
+    font-size: 12px !important;
+    color: #64748b !important;
+    transition: color 0.15s ease !important;
 }
 
 .action-link:hover,
 .action-link:focus {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25) !important;
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08) !important;
     text-decoration: none !important;
+}
+
+.action-link:hover i,
+.action-link:focus i {
+    color: #0f172a !important;
+}
+
+.action-link.remove-data,
+.action-link.item-danger {
+    color: #ef4444 !important;
+    border-color: #fecaca !important;
+    background-color: #ffffff !important;
+}
+
+.action-link.remove-data i,
+.action-link.item-danger i {
+    color: #ef4444 !important;
+}
+
+.action-link.remove-data:hover,
+.action-link.item-danger:hover {
+    background-color: #fef2f2 !important;
+    border-color: #f87171 !important;
+    color: #dc2626 !important;
+}
+
+.action-link.remove-data:hover i,
+.action-link.item-danger:hover i {
+    color: #dc2626 !important;
 }
