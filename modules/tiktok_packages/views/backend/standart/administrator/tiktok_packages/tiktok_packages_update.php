@@ -257,47 +257,53 @@
                             'method'  => 'POST'
                             ]); ?>
                          
-                                                <div class="form-group ">
-                            <label for="tiktok_shop_id" class="control-label">ID Toko TikTok 
+                        <div class="form-group ">
+                            <label for="tiktok_shop_id" class="control-label">Toko TikTok 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="number" class="form-control" name="tiktok_shop_id" id="tiktok_shop_id" placeholder="ID Toko TikTok" value="<?= set_value('tiktok_shop_id', $tiktok_packages->tiktok_shop_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select-deselect" name="tiktok_shop_id" id="tiktok_shop_id" data-placeholder="Pilih Toko TikTok">
+                                    <option value=""></option>
+                                    <?php foreach (db_get_all_data('tiktok_shops') as $row): ?>
+                                    <option <?= $row->id == $tiktok_packages->tiktok_shop_id ? 'selected' : ''; ?> value="<?= $row->id; ?>"><?= _ent($row->shop_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="info help-block">Toko pemilik paket ini.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="package_id" class="control-label">ID Paket 
+
+                        <div class="form-group ">
+                            <label for="package_id" class="control-label">ID Paket (Package ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="package_id" id="package_id" placeholder="ID Paket" value="<?= set_value('package_id', $tiktok_packages->package_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="package_id" id="package_id" placeholder="ID Paket" value="<?= set_value('package_id', $tiktok_packages->package_id); ?>" readonly>
+                                <small class="info help-block">ID unik paket dari TikTok Shop.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
-                            <label for="order_id" class="control-label">ID Pesanan 
+
+                        <div class="form-group ">
+                            <label for="order_id" class="control-label">ID Pesanan (Order ID) 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="ID Pesanan" value="<?= set_value('order_id', $tiktok_packages->order_id); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <input type="text" class="form-control" name="order_id" id="order_id" placeholder="ID Pesanan" value="<?= set_value('order_id', $tiktok_packages->order_id); ?>" readonly>
+                                <small class="info help-block">Nomor pesanan yang terkait dengan paket ini.</small>
                             </div>
                         </div>
-                                                 
-                                                <div class="form-group ">
+
+                        <div class="form-group ">
                             <label for="package_status" class="control-label">Status Paket 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="package_status" id="package_status" placeholder="Status Paket" value="<?= set_value('package_status', $tiktok_packages->package_status); ?>">
-                                <small class="info help-block">
-                                </small>
+                                <select class="form-control chosen chosen-select" name="package_status" id="package_status" data-placeholder="Pilih Status Paket">
+                                    <option value="READY_FOR_SHIPMENT" <?= $tiktok_packages->package_status == 'READY_FOR_SHIPMENT' ? 'selected' : ''; ?>>Siap Dikirim (READY_FOR_SHIPMENT)</option>
+                                    <option value="SHIPPED" <?= $tiktok_packages->package_status == 'SHIPPED' ? 'selected' : ''; ?>>Sedang Dikirim (SHIPPED)</option>
+                                    <option value="DELIVERED" <?= $tiktok_packages->package_status == 'DELIVERED' ? 'selected' : ''; ?>>Terkirim (DELIVERED)</option>
+                                    <option value="CANCELLED" <?= $tiktok_packages->package_status == 'CANCELLED' ? 'selected' : ''; ?>>Dibatalkan (CANCELLED)</option>
+                                </select>
+                                <small class="info help-block">Status operasional pengiriman paket saat ini.</small>
                             </div>
                         </div>
                                                  

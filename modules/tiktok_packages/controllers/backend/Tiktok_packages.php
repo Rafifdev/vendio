@@ -311,11 +311,24 @@ class Tiktok_packages extends Admin
 
 	/**
 	* Add new tiktok_packagess
-	*
 	*/
 	public function add()
 	{
 		$this->is_allowed('tiktok_packages_add');
+
+		$order_id = $this->input->get('order_id');
+		$selected_order = null;
+		if (!empty($order_id)) {
+			$selected_order = $this->db->get_where('tiktok_orders', ['order_id' => $order_id])->row();
+		}
+
+		$this->data['selected_order'] = $selected_order;
+		$this->data['awaiting_orders'] = $this->db->select('id, order_id, tiktok_shop_id, recipient_name, recipient_phone, recipient_address, shipping_provider, tracking_number, total_amount, order_status')
+			->where('order_status', 'AWAITING_SHIPMENT')
+			->order_by('id', 'DESC')
+			->limit(50)
+			->get('tiktok_orders')
+			->result();
 
 		$this->template->title('Pengiriman Paket');
 		$this->render('backend/standart/administrator/tiktok_packages/tiktok_packages_add', $this->data);
@@ -336,36 +349,44 @@ class Tiktok_packages extends Admin
 			exit;
 		}
 
-		$this->form_validation->set_rules('package_id', 'ID Paket', 'trim|required');
 		$this->form_validation->set_rules('order_id', 'ID Pesanan', 'trim|required');
 		
 		if ($this->form_validation->run()) {
-		
+			$order_id = $this->input->post('order_id');
+			$package_id = $this->input->post('package_id');
+			if (empty($package_id)) {
+				$package_id = 'PKG-' . (!empty($order_id) ? $order_id : time());
+			}
+
+			$shipping_provider_name = $this->input->post('shipping_provider_name') ?: 'J&T Express';
+			$shipping_provider_id = $this->input->post('shipping_provider_id') ?: ('SP-' . strtoupper(preg_replace('/[^A-Z0-9]/i', '', $shipping_provider_name)));
+			$tracking_number = $this->input->post('tracking_number') ?: ('AWB' . strtoupper(substr(md5($order_id . time()), 0, 12)));
+
 			$save_data = [
 				'tiktok_shop_id'         => $this->input->post('tiktok_shop_id') ?: 1,
-				'package_id'             => $this->input->post('package_id'),
-				'order_id'               => $this->input->post('order_id'),
-				'package_status'         => $this->input->post('package_status'),
-				'package_sub_status'     => $this->input->post('package_sub_status'),
-				'shipping_provider_id'   => $this->input->post('shipping_provider_id'),
-				'shipping_provider_name' => $this->input->post('shipping_provider_name'),
-				'shipping_type'          => $this->input->post('shipping_type'),
-				'delivery_option_id'     => $this->input->post('delivery_option_id'),
-				'delivery_option_name'   => $this->input->post('delivery_option_name'),
-				'tracking_number'        => $this->input->post('tracking_number'),
-				'handover_method'        => $this->input->post('handover_method'),
-				'dimension_length'       => $this->input->post('dimension_length') ?: 0,
-				'dimension_width'        => $this->input->post('dimension_width') ?: 0,
-				'dimension_height'       => $this->input->post('dimension_height') ?: 0,
+				'package_id'             => $package_id,
+				'order_id'               => $order_id,
+				'package_status'         => $this->input->post('package_status') ?: 'READY_FOR_SHIPMENT',
+				'package_sub_status'     => $this->input->post('package_sub_status') ?: '',
+				'shipping_provider_id'   => $shipping_provider_id,
+				'shipping_provider_name' => $shipping_provider_name,
+				'shipping_type'          => $this->input->post('shipping_type') ?: 'TIKTOK',
+				'delivery_option_id'     => $this->input->post('delivery_option_id') ?: 'STANDARD',
+				'delivery_option_name'   => $this->input->post('delivery_option_name') ?: 'Standard Shipping',
+				'tracking_number'        => $tracking_number,
+				'handover_method'        => $this->input->post('handover_method') ?: 'DROP_OFF',
+				'dimension_length'       => $this->input->post('dimension_length') ?: 10,
+				'dimension_width'        => $this->input->post('dimension_width') ?: 10,
+				'dimension_height'       => $this->input->post('dimension_height') ?: 10,
 				'dimension_unit'         => $this->input->post('dimension_unit') ?: 'CM',
-				'weight_val'             => $this->input->post('weight_val') ?: 0,
+				'weight_val'             => $this->input->post('weight_val') ?: 1000,
 				'weight_unit'            => $this->input->post('weight_unit') ?: 'GRAM',
-				'sender_name'            => $this->input->post('sender_name'),
-				'sender_phone'           => $this->input->post('sender_phone'),
-				'sender_address'         => $this->input->post('sender_address'),
-				'recipient_name'         => $this->input->post('recipient_name'),
-				'recipient_phone'        => $this->input->post('recipient_phone'),
-				'recipient_address'      => $this->input->post('recipient_address'),
+				'sender_name'            => $this->input->post('sender_name') ?: 'Gudang Utama',
+				'sender_phone'           => $this->input->post('sender_phone') ?: '08123456789',
+				'sender_address'         => $this->input->post('sender_address') ?: 'Jakarta, Indonesia',
+				'recipient_name'         => $this->input->post('recipient_name') ?: 'Pembeli TikTok',
+				'recipient_phone'        => $this->input->post('recipient_phone') ?: '-',
+				'recipient_address'      => $this->input->post('recipient_address') ?: '-',
 				'package_create_time'    => $this->input->post('package_create_time') ?: date('Y-m-d H:i:s'),
 				'package_update_time'    => $this->input->post('package_update_time') ?: date('Y-m-d H:i:s'),
 				'created_at'             => date('Y-m-d H:i:s'),
@@ -375,6 +396,15 @@ class Tiktok_packages extends Admin
 			$save_tiktok_packages = $this->model_tiktok_packages->store($save_data);
 
 			if ($save_tiktok_packages) {
+				// Sinkronkan status pesanan di tiktok_orders
+				if (!empty($order_id)) {
+					$this->db->where('order_id', $order_id)->update('tiktok_orders', [
+						'package_id'      => $package_id,
+						'tracking_number' => $tracking_number,
+						'order_status'    => 'AWAITING_COLLECTION'
+					]);
+				}
+
 				if ($this->input->post('save_type') == 'stay') {
 					$this->data['success'] = true;
 					$this->data['id'] 	   = $save_tiktok_packages;
