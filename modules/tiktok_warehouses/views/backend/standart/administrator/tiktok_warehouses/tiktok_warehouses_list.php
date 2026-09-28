@@ -463,24 +463,27 @@
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync_warehouses" href="<?= site_url('administrator/tiktok_warehouses/sync'); ?>" title="Tarik data gudang terbaru dari TikTok Shop">
-                           <i class="fa fa-refresh"></i> Tarik Data Gudang
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Gudang dari TikTok Shop" href="<?= site_url('administrator/tiktok_warehouses/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php is_allowed('tiktok_warehouses_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_warehouses/export'); ?>">
-                           <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
-                        </a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_warehouses_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_warehouses/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
-                        </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_warehouses" id="form_tiktok_warehouses" action="<?= base_url('administrator/tiktok_warehouses/index'); ?>">
+                  <form name="form_tiktok_warehouses" id="form_tiktok_warehouses" action="<?= base_url('administrator/tiktok_warehouses/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -539,15 +542,14 @@
                                         <span class="label label-danger">Nonaktif</span>
                                      <?php endif; ?>
                                   </td>
-                                 <td style="text-align: right; padding-right: 20px; white-space: nowrap;">
-                                    <div class="action-buttons-wrap">
-                                       <?php is_allowed("tiktok_warehouses_view", function () use ($tiktok_warehouses) { ?>
-                                          <a href="<?= site_url("administrator/tiktok_warehouses/view/" . $tiktok_warehouses->id); ?>" class="action-link" title="<?= cclang('view_button'); ?>">
-                                             <i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                                          </a>
-                                       <?php }) ?>
-                                    </div>
-                                 </td>
+                                 <td style="text-align: center; white-space: nowrap;">
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_warehouses/view/' . $tiktok_warehouses->id),
+                                           'permission' => 'tiktok_warehouses_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_warehouses_counts == 0): ?>
@@ -713,6 +715,26 @@
         }
         checkAll.iCheck('update');
     });
+    // Filter toko
+    $('#shop_id_filter').on('change', function () {
+       var shop_id = $(this).val();
+       var url = '<?= site_url("administrator/tiktok_warehouses"); ?>';
+       var params = [];
+       if (shop_id) {
+          params.push('shop_id=' + encodeURIComponent(shop_id));
+       }
+       <?php if ($this->input->get('q')): ?>
+          params.push('q=<?= urlencode($this->input->get('q')); ?>');
+       <?php endif; ?>
+       <?php if ($this->input->get('f')): ?>
+          params.push('f=<?= urlencode($this->input->get('f')); ?>');
+       <?php endif; ?>
+       if (params.length > 0) {
+          url += '?' + params.join('&');
+       }
+       window.location.href = url;
+    });
+
 
   }); /*end doc ready*/
 </script>

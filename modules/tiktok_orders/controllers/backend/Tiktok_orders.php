@@ -31,17 +31,21 @@ class Tiktok_orders extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
+		$shop_id = $this->input->get('shop_id');
 
-		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset);
+		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
 		foreach ($orders as $order) {
 			$order->items = $this->db->get_where('tiktok_order_items', ['tiktok_order_id' => $order->id])->result();
 		}
 		$this->data['tiktok_orderss'] = $orders;
-		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field);
+		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id);
+
+		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$this->data['selected_shop_id'] = $shop_id;
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_orders/index/',
-			'total_rows'   => $this->model_tiktok_orders->count_all($filter, $field),
+			'total_rows'   => $this->model_tiktok_orders->count_all($filter, $field, $shop_id),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];

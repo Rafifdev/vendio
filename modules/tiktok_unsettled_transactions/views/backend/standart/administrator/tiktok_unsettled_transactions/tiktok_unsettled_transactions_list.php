@@ -381,24 +381,33 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync" title="Tarik Dana Tertahan dari TikTok Shop" href="<?= site_url('administrator/tiktok_unsettled_transactions/sync'); ?>">
-                           <i class="fa fa-refresh"></i> Tarik Dana Belum Settle
-                        </a>
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <?php is_allowed('tiktok_unsettled_transactions_export', function () { ?>
                         <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_unsettled_transactions/export'); ?>">
                            <i class="fa fa-file-excel-o"></i> XLS
                         </a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_unsettled_transactions_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_unsettled_transactions/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> PDF
+                        
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Dana Tertahan dari TikTok Shop" href="<?= site_url('administrator/tiktok_unsettled_transactions/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_unsettled_transactions" id="form_tiktok_unsettled_transactions" action="<?= base_url('administrator/tiktok_unsettled_transactions/index'); ?>">
+                  <form name="form_tiktok_unsettled_transactions" id="form_tiktok_unsettled_transactions" action="<?= base_url('administrator/tiktok_unsettled_transactions/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -463,13 +472,13 @@ jQuery(document).ready(domo);
                                     <?= $tiktok_unsettled_transactions->synced_at ? date('d/m/Y H:i', strtotime($tiktok_unsettled_transactions->synced_at)) : '-'; ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <!-- Only 1 action -> Single clean action link -->
-                                    <?php is_allowed('tiktok_unsettled_transactions_view', function () use ($tiktok_unsettled_transactions) { ?>
-                                       <a href="<?= site_url('administrator/tiktok_unsettled_transactions/view/' . $tiktok_unsettled_transactions->id); ?>" class="action-link" title="<?= cclang('view_button'); ?>">
-                                          <i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                                       </a>
-                                    <?php }) ?>
-                                 </td>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_unsettled_transactions/view/' . $tiktok_unsettled_transactions->id),
+                                           'permission' => 'tiktok_unsettled_transactions_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_unsettled_transactions_counts == 0): ?>
@@ -547,6 +556,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_unsettled_transactions"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

@@ -352,9 +352,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -560,6 +558,16 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <a class="btn btn-top-action btn_add_new" id="btn_sync" title="Tarik Data Pembatalan dari TikTok Shop" href="<?= site_url('administrator/tiktok_cancellations/sync'); ?>">
                            <i class="fa fa-refresh"></i> Tarik Data Pembatalan
                         </a>
@@ -568,16 +576,18 @@ jQuery(document).ready(domo);
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
                         </a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_cancellations_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_cancellations/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
+                        
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Pembatalan dari TikTok Shop" href="<?= site_url('administrator/tiktok_cancellations/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_cancellations" id="form_tiktok_cancellations" action="<?= base_url('administrator/tiktok_cancellations/index'); ?>">
+                  <form name="form_tiktok_cancellations" id="form_tiktok_cancellations" action="<?= base_url('administrator/tiktok_cancellations/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
 
                   <?php
                   if (!function_exists('format_tiktok_cancel_status')) {
@@ -717,45 +727,35 @@ jQuery(document).ready(domo);
                                     <?= $tiktok_cancellations->cancel_created_time ? date('d/m/Y H:i', strtotime($tiktok_cancellations->cancel_created_time)) : '-'; ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <?php 
-                                    $is_pending = in_array(strtoupper($tiktok_cancellations->cancel_status), ['AWAITING_SELLER_REVIEW', 'PENDING', 'CANCELLATION_REQUEST_PENDING', 'REVIEWING']);
-                                    ?>
-                                    <?php if ($is_pending): ?>
-                                       <!-- > 1 actions: Render 3-dots Dropdown -->
-                                       <div class="dropdown action-dropdown">
-                                          <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                             <i class="fa fa-ellipsis-v"></i>
-                                          </button>
-                                          <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_cancellations/approve/' . $tiktok_cancellations->id); ?>" class="dropdown-item-action btn-approve-cancel" data-cancel-id="<?= $tiktok_cancellations->cancel_id; ?>" title="Setujui pembatalan">
-                                                   <i class="fa fa-check" style="color: #059669;"></i> Setujui Batal
-                                                </a>
-                                             </li>
-                                             <li>
-                                                <a href="javascript:void(0);" data-action="<?= site_url('administrator/tiktok_cancellations/reject/' . $tiktok_cancellations->id); ?>" data-cancel-id="<?= $tiktok_cancellations->cancel_id; ?>" class="dropdown-item-action item-danger btn-reject-cancel-modal" title="Tolak pembatalan">
-                                                   <i class="fa fa-times" style="color: #ef4444;"></i> Tolak Batal
-                                                </a>
-                                             </li>
-                                             <li class="divider"></li>
-                                             <?php is_allowed('tiktok_cancellations_view', function () use ($tiktok_cancellations) { ?>
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_cancellations/view/' . $tiktok_cancellations->id); ?>" class="dropdown-item-action" title="<?= cclang('view_button'); ?>">
-                                                   <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                                </a>
-                                             </li>
-                                             <?php }) ?>
-                                          </ul>
-                                       </div>
-                                    <?php else: ?>
-                                       <!-- 1 action: Clean Single Action Link -->
-                                       <?php is_allowed('tiktok_cancellations_view', function () use ($tiktok_cancellations) { ?>
-                                          <a href="<?= site_url('administrator/tiktok_cancellations/view/' . $tiktok_cancellations->id); ?>" class="action-link" title="<?= cclang('view_button'); ?>">
-                                             <i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                                          </a>
-                                       <?php }) ?>
-                                    <?php endif; ?>
-                                 </td>
+                                     <?= render_table_action([
+                                        [
+                                           'label' => 'Setujui Batal',
+                                           'url' => site_url('administrator/tiktok_cancellations/approve/' . $tiktok_cancellations->id),
+                                           'icon' => 'fa fa-check',
+                                           'icon_color' => '#059669',
+                                           'class' => 'btn-approve-cancel',
+                                           'attrs' => ['data-cancel-id' => $tiktok_cancellations->cancel_id],
+                                           'visible' => in_array(strtoupper($tiktok_cancellations->cancel_status), ['AWAITING_SELLER_REVIEW', 'PENDING', 'CANCELLATION_REQUEST_PENDING', 'REVIEWING']),
+                                        ],
+                                        [
+                                           'label' => 'Tolak Batal',
+                                           'url' => 'javascript:void(0);',
+                                           'icon' => 'fa fa-times',
+                                           'icon_color' => '#ef4444',
+                                           'class' => 'item-danger btn-reject-cancel-modal',
+                                           'attrs' => [
+                                              'data-action' => site_url('administrator/tiktok_cancellations/reject/' . $tiktok_cancellations->id),
+                                              'data-cancel-id' => $tiktok_cancellations->cancel_id
+                                           ],
+                                           'visible' => in_array(strtoupper($tiktok_cancellations->cancel_status), ['AWAITING_SELLER_REVIEW', 'PENDING', 'CANCELLATION_REQUEST_PENDING', 'REVIEWING']),
+                                        ],
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_cancellations/view/' . $tiktok_cancellations->id),
+                                           'divider' => in_array(strtoupper($tiktok_cancellations->cancel_status), ['AWAITING_SELLER_REVIEW', 'PENDING', 'CANCELLATION_REQUEST_PENDING', 'REVIEWING']),
+                                           'permission' => 'tiktok_cancellations_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_cancellations_counts == 0): ?>
@@ -987,6 +987,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_cancellations"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

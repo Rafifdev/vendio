@@ -334,9 +334,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -542,9 +540,16 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync" href="<?= site_url('administrator/tiktok_packages/sync'); ?>" title="Tarik Data Paket dari TikTok Shop">
-                           <i class="fa fa-refresh"></i> Tarik Data Paket
-                        </a>
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <?php is_allowed('tiktok_packages_add', function () { ?>
                         <a class="btn btn-top-action btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_packages')]); ?> (Ctrl+a)" href="<?= site_url('administrator/tiktok_packages/add'); ?>">
                            <i class="fa fa-plus-square-o"></i> <?= cclang('add_new_button', [cclang('tiktok_packages')]); ?>
@@ -560,11 +565,17 @@ jQuery(document).ready(domo);
                            <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
                         </a>
                         <?php }) ?>
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Paket dari TikTok Shop" href="<?= site_url('administrator/tiktok_packages/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
+                        </a>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_packages" id="form_tiktok_packages" action="<?= base_url('administrator/tiktok_packages/index'); ?>">
+                  <form name="form_tiktok_packages" id="form_tiktok_packages" action="<?= base_url('administrator/tiktok_packages/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -647,41 +658,34 @@ jQuery(document).ready(domo);
                                     <?= _ent($tiktok_packages->package_create_time ?: '-'); ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <div class="dropdown action-dropdown">
-                                       <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                          <i class="fa fa-ellipsis-v"></i>
-                                       </button>
-                                       <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                          <?php is_allowed('tiktok_packages_view', function () use ($tiktok_packages) { ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_packages/view/' . $tiktok_packages->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                             </a>
-                                          </li>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_packages/print_label/' . $tiktok_packages->id); ?>" target="_blank" class="dropdown-item-action" title="Cetak Label Resi Pengiriman">
-                                                <i class="fa fa-print" style="color: #0284c7;"></i> Cetak Label
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                          <?php if (in_array(strtoupper($tiktok_packages->package_status), ['FULFILLING', 'AWAITING_SHIPMENT'])): ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_packages/ship/' . $tiktok_packages->id); ?>" onclick="return confirm('Konfirmasi serah terima pengiriman paket ini ke kurir?');" class="dropdown-item-action" title="Kirim Paket">
-                                                <i class="fa fa-truck" style="color: #059669;"></i> Kirim Paket
-                                             </a>
-                                          </li>
-                                          <?php endif; ?>
-                                          <?php is_allowed('tiktok_packages_delete', function () use ($tiktok_packages) { ?>
-                                          <li class="divider"></li>
-                                          <li>
-                                             <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_packages/delete/' . $tiktok_packages->id); ?>" class="dropdown-item-action item-danger remove-data">
-                                                <i class="fa fa-trash-o" style="color: #ef4444;"></i> <?= cclang('remove_button'); ?>
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                       </ul>
-                                    </div>
-                                 </td>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_packages/view/' . $tiktok_packages->id),
+                                           'permission' => 'tiktok_packages_view',
+                                        ],
+                                        [
+                                           'label' => 'Cetak Label',
+                                           'url' => site_url('administrator/tiktok_packages/print_label/' . $tiktok_packages->id),
+                                           'icon' => 'fa fa-print',
+                                           'icon_color' => '#0284c7',
+                                           'attrs' => ['target' => '_blank'],
+                                           'permission' => 'tiktok_packages_view',
+                                        ],
+                                        [
+                                           'label' => 'Kirim Paket',
+                                           'url' => site_url('administrator/tiktok_packages/ship/' . $tiktok_packages->id),
+                                           'icon' => 'fa fa-truck',
+                                           'icon_color' => '#059669',
+                                           'onclick' => "return confirm('Konfirmasi serah terima pengiriman paket ini ke kurir?');",
+                                           'visible' => in_array(strtoupper($tiktok_packages->package_status), ['FULFILLING', 'AWAITING_SHIPMENT']),
+                                           'permission' => 'tiktok_packages_view',
+                                        ],
+                                        'delete' => [
+                                           'data_href' => site_url('administrator/tiktok_packages/delete/' . $tiktok_packages->id),
+                                           'permission' => 'tiktok_packages_delete',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_packages_counts == 0): ?>
@@ -844,6 +848,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_packages"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

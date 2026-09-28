@@ -1217,3 +1217,159 @@ if(!function_exists('get_user_first_group')) {
 		return false;
 	}
 }
+
+if (!function_exists('render_table_action')) {
+	/**
+	 * Reusable Table Action Component (CodeIgniter 3 / Cicool)
+	 *
+	 * Automatically renders:
+	 * - A sleek single action button (e.g. "Lihat") if only 1 action is valid/permitted.
+	 * - A modern three-dots dropdown menu if 2 or more actions are valid/permitted.
+	 *
+	 * @param array $actions List of action items
+	 * @param array $options Configuration options
+	 * @return string HTML output
+	 */
+	function render_table_action(array $actions, array $options = [])
+	{
+		$filtered = [];
+
+		foreach ($actions as $key => $action) {
+			if (!is_array($action)) {
+				continue;
+			}
+
+			// Visibility check
+			if (isset($action['visible']) && !$action['visible']) {
+				continue;
+			}
+
+			// Permission check via Aauth
+			if (!empty($action['permission'])) {
+				$ci =& get_instance();
+				if (isset($ci->aauth) && !$ci->aauth->is_allowed($action['permission'])) {
+					continue;
+				}
+			}
+
+			// Identify type
+			$type = is_string($key) ? strtolower($key) : (!empty($action['type']) ? strtolower($action['type']) : '');
+
+			// Preset defaults
+			$default_icon = 'fa fa-circle-o';
+			$default_icon_color = '#64748b';
+			$default_label = 'Aksi';
+			$default_class = '';
+			$divider_before = !empty($action['divider']);
+
+			if ($type === 'view') {
+				$default_icon = 'fa fa-newspaper-o';
+				$default_icon_color = '#64748b';
+				$default_label = function_exists('cclang') ? cclang('view_button') : 'Lihat';
+			} elseif ($type === 'update' || $type === 'edit') {
+				$default_icon = 'fa fa-pencil-square-o';
+				$default_icon_color = '#2563eb';
+				$default_label = function_exists('cclang') ? cclang('update_button') : 'Ubah';
+			} elseif ($type === 'delete' || $type === 'remove') {
+				$default_icon = 'fa fa-trash-o';
+				$default_icon_color = '#ef4444';
+				$default_label = function_exists('cclang') ? cclang('remove_button') : 'Hapus';
+				$default_class = 'item-danger remove-data';
+				$divider_before = true;
+			} elseif ($type === 'pdf') {
+				$default_icon = 'fa fa-file-pdf-o';
+				$default_icon_color = '#0284c7';
+				$default_label = 'Cetak PDF';
+			}
+
+			$label = $action['label'] ?? $default_label;
+			$icon = $action['icon'] ?? $default_icon;
+			$icon_color = $action['icon_color'] ?? $default_icon_color;
+			$class = trim(($action['class'] ?? $default_class));
+			$url = $action['url'] ?? 'javascript:void(0);';
+
+			$attrs = [];
+			if (isset($action['attrs']) && is_array($action['attrs'])) {
+				foreach ($action['attrs'] as $ak => $av) {
+					$attrs[] = $ak . '="' . htmlspecialchars($av, ENT_QUOTES, 'UTF-8') . '"';
+				}
+			}
+
+			if (!empty($action['data_href'])) {
+				$attrs[] = 'data-href="' . htmlspecialchars($action['data_href'], ENT_QUOTES, 'UTF-8') . '"';
+			}
+			if (!empty($action['onclick'])) {
+				$attrs[] = 'onclick="' . htmlspecialchars($action['onclick'], ENT_QUOTES, 'UTF-8') . '"';
+			}
+			if (!empty($action['title'])) {
+				$attrs[] = 'title="' . htmlspecialchars($action['title'], ENT_QUOTES, 'UTF-8') . '"';
+			}
+
+			if (($type === 'delete' || $type === 'remove') && empty($action['data_href'])) {
+				$attrs[] = 'data-href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"';
+				$url = 'javascript:void(0);';
+			}
+
+			$attr_str = !empty($attrs) ? ' ' . implode(' ', $attrs) : '';
+
+			$filtered[] = [
+				'type' => $type,
+				'label' => $label,
+				'url' => $url,
+				'icon' => $icon,
+				'icon_color' => $icon_color,
+				'class' => $class,
+				'attr_str' => $attr_str,
+				'divider' => $divider_before
+			];
+		}
+
+		if (empty($filtered)) {
+			return '';
+		}
+
+		$force_dropdown = !empty($options['force_dropdown']);
+
+		// Single Action Mode (1 item & not forced dropdown) -> render sleek button
+		if (count($filtered) === 1 && !$force_dropdown) {
+			$act = $filtered[0];
+			return '<div class="action-buttons-wrap">' .
+				   '<a href="' . $act['url'] . '" class="action-link ' . $act['class'] . '"' . $act['attr_str'] . ' title="' . htmlspecialchars($act['label'], ENT_QUOTES, 'UTF-8') . '">' .
+				   '<i class="' . $act['icon'] . '"></i> ' . $act['label'] .
+				   '</a>' .
+				   '</div>';
+		}
+
+		// Multi Action Mode -> Dropdown
+		$align_class = (!empty($options['align']) && $options['align'] === 'left') ? '' : ' dropdown-menu-right';
+		$html = '<div class="dropdown action-dropdown">' .
+				'<button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">' .
+				'<i class="fa fa-ellipsis-v"></i>' .
+				'</button>' .
+				'<ul class="dropdown-menu' . $align_class . ' action-dropdown-menu">';
+
+		foreach ($filtered as $act) {
+			if ($act['divider']) {
+				$html .= '<li class="divider"></li>';
+			}
+			$icon_style = !empty($act['icon_color']) ? ' style="color: ' . $act['icon_color'] . ';"' : '';
+			$html .= '<li>' .
+					 '<a href="' . $act['url'] . '" class="dropdown-item-action ' . $act['class'] . '"' . $act['attr_str'] . '>' .
+					 '<i class="' . $act['icon'] . '"' . $icon_style . '></i> ' . $act['label'] .
+					 '</a>' .
+					 '</li>';
+		}
+
+		$html .= '</ul></div>';
+
+		return $html;
+	}
+}
+
+if (!function_exists('render_action_dropdown')) {
+	function render_action_dropdown(array $actions, array $options = [])
+	{
+		return render_table_action($actions, $options);
+	}
+}
+

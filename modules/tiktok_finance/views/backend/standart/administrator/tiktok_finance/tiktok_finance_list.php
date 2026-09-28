@@ -316,9 +316,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -524,9 +522,16 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync" title="Tarik Data Keuangan dari TikTok Shop" href="<?= site_url('administrator/tiktok_finance/sync'); ?>">
-                           <i class="fa fa-refresh"></i> Tarik Data Keuangan
-                        </a>
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <?php is_allowed('tiktok_finance_export', function () { ?>
                         <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_finance/export'); ?>">
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
@@ -537,11 +542,17 @@ jQuery(document).ready(domo);
                            <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
                         </a>
                         <?php }) ?>
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Laporan Keuangan dari TikTok Shop" href="<?= site_url('administrator/tiktok_finance/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
+                        </a>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_finance" id="form_tiktok_finance" action="<?= base_url('administrator/tiktok_finance/index'); ?>">
+                  <form name="form_tiktok_finance" id="form_tiktok_finance" action="<?= base_url('administrator/tiktok_finance/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -608,34 +619,21 @@ jQuery(document).ready(domo);
                                     Rp <?= number_format($tiktok_finance->fee_amount, 0, ',', '.'); ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <div class="dropdown action-dropdown">
-                                       <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                          <i class="fa fa-ellipsis-v"></i>
-                                       </button>
-                                       <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                          <?php is_allowed('tiktok_finance_view', function () use ($tiktok_finance) { ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_finance/view/' . $tiktok_finance->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                             </a>
-                                          </li>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_finance/single_pdf/' . $tiktok_finance->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-file-pdf-o" style="color: #0284c7;"></i> Cetak PDF
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                          <?php is_allowed('tiktok_finance_delete', function () use ($tiktok_finance) { ?>
-                                          <li class="divider"></li>
-                                          <li>
-                                             <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_finance/delete/' . $tiktok_finance->id); ?>" class="dropdown-item-action item-danger remove-data">
-                                                <i class="fa fa-trash-o" style="color: #ef4444;"></i> <?= cclang('remove_button'); ?>
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                       </ul>
-                                    </div>
-                                 </td>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_finance/view/' . $tiktok_finance->id),
+                                           'permission' => 'tiktok_finance_view',
+                                        ],
+                                        'pdf' => [
+                                           'url' => site_url('administrator/tiktok_finance/single_pdf/' . $tiktok_finance->id),
+                                           'permission' => 'tiktok_finance_view',
+                                        ],
+                                        'delete' => [
+                                           'data_href' => site_url('administrator/tiktok_finance/delete/' . $tiktok_finance->id),
+                                           'permission' => 'tiktok_finance_delete',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_finance_counts == 0): ?>
@@ -807,6 +805,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_finance"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

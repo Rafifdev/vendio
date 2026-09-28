@@ -451,19 +451,9 @@
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync_brands" href="<?= site_url('administrator/tiktok_brands/sync'); ?>" title="Tarik brand resmi TikTok Shop">
-                           <i class="fa fa-refresh"></i> Tarik Data Brand
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" href="<?= site_url('administrator/tiktok_brands/sync'); ?>" title="Tarik Data Merek dari TikTok Shop">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php is_allowed('tiktok_brands_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_brands/export'); ?>">
-                           <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
-                        </a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_brands_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_brands/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
-                        </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
@@ -499,15 +489,14 @@
                                  <td style="text-align: center; white-space: nowrap;">
                                      <?= $tiktok_brands->is_authorized ? '<span class="label label-success">Terotorisasi</span>' : '<span class="label label-danger">Belum Terotorisasi</span>'; ?>
                                   </td>
-                                 <td style="text-align: right; padding-right: 20px; white-space: nowrap;">
-                                    <div class="action-buttons-wrap">
-                                       <?php is_allowed("tiktok_brands_view", function () use ($tiktok_brands) { ?>
-                                          <a href="<?= site_url("administrator/tiktok_brands/view/" . $tiktok_brands->id); ?>" class="action-link" title="<?= cclang("view_button"); ?>">
-                                             <i class="fa fa-newspaper-o"></i> <?= cclang("view_button"); ?>
-                                          </a>
-                                       <?php }) ?>
-                                    </div>
-                                 </td>
+                                 <td style="text-align: center; white-space: nowrap;">
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_brands/view/' . $tiktok_brands->id),
+                                           'permission' => 'tiktok_brands_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_brands_counts == 0): ?>

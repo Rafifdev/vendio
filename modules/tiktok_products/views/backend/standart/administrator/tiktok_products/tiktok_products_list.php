@@ -322,9 +322,7 @@
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -530,29 +528,39 @@
                      </div>
 
                      <div class="header-right">
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <?php is_allowed('tiktok_products_add', function () { ?>
                         <a class="btn btn-top-action btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_products')]); ?> (Ctrl+a)" href="<?= site_url('administrator/tiktok_products/add'); ?>">
                            <i class="fa fa-plus-square-o"></i> <?= cclang('add_new_button', [cclang('tiktok_products')]); ?>
                         </a>
-                        <a class="btn btn-top-action" id="btn_sync" title="Tarik Data Produk dari TikTok Shop" href="<?= site_url('administrator/tiktok_products/sync'); ?>">
-                           <i class="fa fa-refresh"></i> Tarik Data Produk
-                        </a>
+                        
                         <?php }) ?>
                         <?php is_allowed('tiktok_products_export', function () { ?>
                         <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_products/export'); ?>">
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
                         </a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_products_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_products/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
+                        
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Produk dari TikTok Shop" href="<?= site_url('administrator/tiktok_products/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_products" id="form_tiktok_products" action="<?= base_url('administrator/tiktok_products/index'); ?>">
+                  <form name="form_tiktok_products" id="form_tiktok_products" action="<?= base_url('administrator/tiktok_products/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -648,58 +656,44 @@
                                     ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <div class="dropdown action-dropdown">
-                                       <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                          <i class="fa fa-ellipsis-v"></i>
-                                       </button>
-                                       <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                          <?php is_allowed('tiktok_products_view', function () use ($tiktok_products) { ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_products/view/' . $tiktok_products->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                             </a>
-                                          </li>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_products/single_pdf/' . $tiktok_products->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-file-pdf-o" style="color: #0284c7;"></i> Cetak PDF
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                          <?php is_allowed('tiktok_products_update', function () use ($tiktok_products, $status) { ?>
-                                             <?php if (in_array($status, ['DEACTIVATED', 'SELLER_DEACTIVATED']) && intval($tiktok_products->total_stock) > 0): ?>
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_products/activate/' . $tiktok_products->id); ?>" class="dropdown-item-action" title="Aktifkan Produk di TikTok">
-                                                   <i class="fa fa-play" style="color: #059669;"></i> Aktifkan Produk
-                                                </a>
-                                             </li>
-                                             <?php elseif (in_array($status, ['ACTIVATE', 'LIVE'])): ?>
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_products/deactivate/' . $tiktok_products->id); ?>" class="dropdown-item-action" title="Nonaktifkan Produk dari TikTok" onclick="return confirm('Apakah Anda yakin ingin menonaktifkan produk ini dari etalase TikTok?');">
-                                                   <i class="fa fa-pause" style="color: #d97706;"></i> Nonaktifkan Produk
-                                                </a>
-                                             </li>
-                                             <?php endif; ?>
-                                             <?php if ($status != 'FREEZE'): ?>
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_products/edit/' . $tiktok_products->id); ?>" class="dropdown-item-action">
-                                                   <i class="fa fa-pencil-square-o" style="color: #2563eb;"></i> <?= cclang('update_button'); ?>
-                                                </a>
-                                             </li>
-                                             <?php endif; ?>
-                                          <?php }) ?>
-                                          <?php if ($status != 'FREEZE'): ?>
-                                             <?php is_allowed('tiktok_products_delete', function () use ($tiktok_products) { ?>
-                                             <li class="divider"></li>
-                                             <li>
-                                                <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_products/delete/' . $tiktok_products->id); ?>" class="dropdown-item-action item-danger remove-data">
-                                                   <i class="fa fa-trash-o" style="color: #ef4444;"></i> <?= cclang('remove_button'); ?>
-                                                </a>
-                                             </li>
-                                             <?php }) ?>
-                                          <?php endif; ?>
-                                       </ul>
-                                    </div>
-                                 </td>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_products/view/' . $tiktok_products->id),
+                                           'permission' => 'tiktok_products_view',
+                                        ],
+                                        'pdf' => [
+                                           'url' => site_url('administrator/tiktok_products/single_pdf/' . $tiktok_products->id),
+                                           'permission' => 'tiktok_products_view',
+                                        ],
+                                        [
+                                           'label' => 'Aktifkan Produk',
+                                           'url' => site_url('administrator/tiktok_products/activate/' . $tiktok_products->id),
+                                           'icon' => 'fa fa-play',
+                                           'icon_color' => '#059669',
+                                           'visible' => (in_array($status, ['DEACTIVATED', 'SELLER_DEACTIVATED']) && intval($tiktok_products->total_stock) > 0),
+                                           'permission' => 'tiktok_products_update',
+                                        ],
+                                        [
+                                           'label' => 'Nonaktifkan Produk',
+                                           'url' => site_url('administrator/tiktok_products/deactivate/' . $tiktok_products->id),
+                                           'icon' => 'fa fa-pause',
+                                           'icon_color' => '#d97706',
+                                           'onclick' => "return confirm('Apakah Anda yakin ingin menonaktifkan produk ini dari etalase TikTok?');",
+                                           'visible' => in_array($status, ['ACTIVATE', 'LIVE']),
+                                           'permission' => 'tiktok_products_update',
+                                        ],
+                                        'edit' => [
+                                           'url' => site_url('administrator/tiktok_products/edit/' . $tiktok_products->id),
+                                           'visible' => ($status != 'FREEZE'),
+                                           'permission' => 'tiktok_products_update',
+                                        ],
+                                        'delete' => [
+                                           'data_href' => site_url('administrator/tiktok_products/delete/' . $tiktok_products->id),
+                                           'visible' => ($status != 'FREEZE'),
+                                           'permission' => 'tiktok_products_delete',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_products_counts == 0): ?>
@@ -869,6 +863,25 @@
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_products"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

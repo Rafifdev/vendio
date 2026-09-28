@@ -31,9 +31,13 @@ class Tiktok_products extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
+		$shop_id = $this->input->get('shop_id');
 
-		$this->data['tiktok_productss'] = $this->model_tiktok_products->get($filter, $field, $this->limit_page, $offset);
-		$this->data['tiktok_products_counts'] = $this->model_tiktok_products->count_all($filter, $field);
+		$this->data['tiktok_productss'] = $this->model_tiktok_products->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
+		$this->data['tiktok_products_counts'] = $this->model_tiktok_products->count_all($filter, $field, $shop_id);
+
+		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$this->data['selected_shop_id'] = $shop_id;
 
 		// Ambil varian SKU untuk setiap produk di halaman ini
 		$product_ids = array_column($this->data['tiktok_productss'], 'id');
@@ -48,7 +52,7 @@ class Tiktok_products extends Admin
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_products/index/',
-			'total_rows'   => $this->model_tiktok_products->count_all($filter, $field),
+			'total_rows'   => $this->model_tiktok_products->count_all($filter, $field, $shop_id),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];
@@ -358,17 +362,25 @@ class Tiktok_products extends Admin
 			$raw_weight = floatval($this->input->post('package_weight'));
 			$package_weight = max(0.01, round($raw_weight, 2));
 
+			$listing_platforms_input = $this->input->post('listing_platforms') ?: 'TIKTOK_SHOP,TOKOPEDIA';
+			$listing_platforms_arr = array_values(array_filter(array_map('trim', explode(',', $listing_platforms_input))));
+			if (empty($listing_platforms_arr)) {
+				$listing_platforms_arr = ['TIKTOK_SHOP', 'TOKOPEDIA'];
+				$listing_platforms_input = 'TIKTOK_SHOP,TOKOPEDIA';
+			}
+
 			$save_data = [
-				'tiktok_shop_id' => $this->input->post('tiktok_shop_id'),
-				'title'          => $this->input->post('title'),
-				'status'         => 'ACTIVATE',
-				'category_name'  => $this->input->post('category_name'),
-				'brand_name'     => $this->input->post('brand_name'),
-				'seller_sku'     => $this->input->post('seller_sku') ?: 'SKU-' . time(),
-				'price'          => max(1000, intval($this->input->post('price'))),
-				'total_stock'    => max(0, intval($this->input->post('total_stock'))),
-				'package_weight' => (string)$package_weight,
-				'description'    => $this->input->post('description'),
+				'tiktok_shop_id'    => $this->input->post('tiktok_shop_id'),
+				'title'             => $this->input->post('title'),
+				'status'            => 'ACTIVATE',
+				'listing_platforms' => $listing_platforms_input,
+				'category_name'     => $this->input->post('category_name'),
+				'brand_name'        => $this->input->post('brand_name'),
+				'seller_sku'        => $this->input->post('seller_sku') ?: 'SKU-' . time(),
+				'price'             => max(1000, intval($this->input->post('price'))),
+				'total_stock'       => max(0, intval($this->input->post('total_stock'))),
+				'package_weight'    => (string)$package_weight,
+				'description'       => $this->input->post('description'),
 			];
 
 			if (!is_dir(FCPATH . '/uploads/tiktok_products/')) {
@@ -496,12 +508,13 @@ class Tiktok_products extends Admin
 			}
 
 			$tiktok_payload = [
-				'save_mode' => 'LISTING',
-				'title' => $save_data['title'],
-				'description' => $save_data['description'],
-				'category_id' => $category_id,
-				'brand_id' => (string)$brand_id,
-				'main_images' => [['uri' => $image_uri]],
+				'save_mode'         => 'LISTING',
+				'title'             => $save_data['title'],
+				'description'       => $save_data['description'],
+				'category_id'       => $category_id,
+				'brand_id'          => (string)$brand_id,
+				'listing_platforms' => $listing_platforms_arr,
+				'main_images'       => [['uri' => $image_uri]],
 				'package_weight' => [
 					'value' => (string)$package_weight,
 					'unit' => 'KILOGRAM'
@@ -750,17 +763,25 @@ class Tiktok_products extends Admin
 			$raw_weight = floatval($this->input->post('package_weight'));
 			$package_weight = max(0.01, round($raw_weight, 2));
 
+			$listing_platforms_input = $this->input->post('listing_platforms') ?: (!empty($existing_product->listing_platforms) ? $existing_product->listing_platforms : 'TIKTOK_SHOP,TOKOPEDIA');
+			$listing_platforms_arr = array_values(array_filter(array_map('trim', explode(',', $listing_platforms_input))));
+			if (empty($listing_platforms_arr)) {
+				$listing_platforms_arr = ['TIKTOK_SHOP', 'TOKOPEDIA'];
+				$listing_platforms_input = 'TIKTOK_SHOP,TOKOPEDIA';
+			}
+
 			$save_data = [
-				'tiktok_shop_id' => $this->input->post('tiktok_shop_id'),
-				'title'          => $this->input->post('title'),
-				'status'         => 'ACTIVATE',
-				'category_name'  => $this->input->post('category_name'),
-				'brand_name'     => $this->input->post('brand_name'),
-				'seller_sku'     => $this->input->post('seller_sku') ?: $existing_product->seller_sku,
-				'price'          => max(1000, intval($this->input->post('price'))),
-				'total_stock'    => max(0, intval($this->input->post('total_stock'))),
-				'package_weight' => (string)$package_weight,
-				'description'    => $this->input->post('description'),
+				'tiktok_shop_id'    => $this->input->post('tiktok_shop_id'),
+				'title'             => $this->input->post('title'),
+				'status'            => 'ACTIVATE',
+				'listing_platforms' => $listing_platforms_input,
+				'category_name'     => $this->input->post('category_name'),
+				'brand_name'        => $this->input->post('brand_name'),
+				'seller_sku'        => $this->input->post('seller_sku') ?: $existing_product->seller_sku,
+				'price'             => max(1000, intval($this->input->post('price'))),
+				'total_stock'       => max(0, intval($this->input->post('total_stock'))),
+				'package_weight'    => (string)$package_weight,
+				'description'       => $this->input->post('description'),
 			];
 
 			if (!is_dir(FCPATH . '/uploads/tiktok_products/')) {
@@ -910,11 +931,12 @@ class Tiktok_products extends Admin
 				}
 
 				$edit_payload = [
-					'category_id' => $category_id,
-					'brand_id' => (string)$brand_id,
-					'title' => $save_data['title'],
-					'description' => $save_data['description'],
-					'package_weight' => [
+					'category_id'       => $category_id,
+					'brand_id'          => (string)$brand_id,
+					'listing_platforms' => $listing_platforms_arr,
+					'title'             => $save_data['title'],
+					'description'       => $save_data['description'],
+					'package_weight'    => [
 						'value' => (string)$package_weight,
 						'unit' => 'KILOGRAM'
 					],
@@ -1569,22 +1591,30 @@ class Tiktok_products extends Admin
 				$description = $detail['description'] ?? null;
 				$package_weight = isset($detail['package_weight']['value']) ? preg_replace('/[^0-9.]/', '', (string)$detail['package_weight']['value']) : null;
 
+				$listing_platforms = 'TIKTOK_SHOP,TOKOPEDIA';
+				if (!empty($detail['listing_platforms']) && is_array($detail['listing_platforms'])) {
+					$listing_platforms = implode(',', $detail['listing_platforms']);
+				} elseif (!empty($p['listing_platforms']) && is_array($p['listing_platforms'])) {
+					$listing_platforms = implode(',', $p['listing_platforms']);
+				}
+
 				$product_data = [
-					'tiktok_shop_id' => $shop->id,
-					'product_id'     => $product_id,
-					'title'          => $title,
-					'main_image'     => $main_image,
-					'status'         => $status,
-					'category_name'  => $category_name,
-					'brand_name'     => $brand_name,
-					'seller_sku'     => $seller_sku,
-					'price'          => $price,
-					'currency'       => 'IDR',
-					'total_stock'    => $total_stock,
-					'package_weight' => $package_weight,
-					'description'    => $description,
-					'raw_data'       => json_encode($detail, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-					'updated_at'     => date('Y-m-d H:i:s'),
+					'tiktok_shop_id'    => $shop->id,
+					'product_id'        => $product_id,
+					'title'             => $title,
+					'main_image'        => $main_image,
+					'status'            => $status,
+					'listing_platforms' => $listing_platforms,
+					'category_name'     => $category_name,
+					'brand_name'        => $brand_name,
+					'seller_sku'        => $seller_sku,
+					'price'             => $price,
+					'currency'          => 'IDR',
+					'total_stock'       => $total_stock,
+					'package_weight'    => $package_weight,
+					'description'       => $description,
+					'raw_data'          => json_encode($detail, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+					'updated_at'        => date('Y-m-d H:i:s'),
 				];
 
 				// Cek apakah produk sudah ada di database

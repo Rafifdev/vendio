@@ -1,1 +1,0 @@
-jangan rubah template bawaan cicool secara menyeluruh, kamu hanya fokus pada perubahan yang diperlukan pada file yang ada pada folder 

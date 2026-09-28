@@ -352,9 +352,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -560,6 +558,16 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <a class="btn btn-top-action btn_add_new" id="btn_sync" title="Tarik Data Retur dari TikTok Shop" href="<?= site_url('administrator/tiktok_returns/sync'); ?>">
                            <i class="fa fa-refresh"></i> Tarik Data Retur
                         </a>
@@ -568,16 +576,18 @@ jQuery(document).ready(domo);
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
                         </a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_returns_export', function () { ?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_returns/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
+                        
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Retur dari TikTok Shop" href="<?= site_url('administrator/tiktok_returns/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_returns" id="form_tiktok_returns" action="<?= base_url('administrator/tiktok_returns/index'); ?>">
+                  <form name="form_tiktok_returns" id="form_tiktok_returns" action="<?= base_url('administrator/tiktok_returns/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                   
                   <?php
                   if (!function_exists('format_tiktok_return_status')) {
@@ -776,45 +786,36 @@ jQuery(document).ready(domo);
                                     <?= $tiktok_returns->return_created_time ? date('d/m/Y H:i', strtotime($tiktok_returns->return_created_time)) : '-'; ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <?php 
-                                    $is_pending = ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING');
-                                    ?>
-                                    <?php if ($is_pending): ?>
-                                       <!-- > 1 actions: Render 3-dots Dropdown -->
-                                       <div class="dropdown action-dropdown">
-                                          <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                             <i class="fa fa-ellipsis-v"></i>
-                                          </button>
-                                          <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_returns/approve/' . $tiktok_returns->id); ?>" class="dropdown-item-action btn-approve-return" data-return-id="<?= $tiktok_returns->return_id; ?>" title="Setujui pengembalian">
-                                                   <i class="fa fa-check" style="color: #059669;"></i> Setujui Retur
-                                                </a>
-                                             </li>
-                                             <li>
-                                                <a href="javascript:void(0);" data-id="<?= $tiktok_returns->id; ?>" data-action="<?= site_url('administrator/tiktok_returns/reject/' . $tiktok_returns->id); ?>" data-return-id="<?= $tiktok_returns->return_id; ?>" class="dropdown-item-action item-danger btn-reject-modal" title="Tolak pengembalian">
-                                                   <i class="fa fa-times" style="color: #ef4444;"></i> Tolak Retur
-                                                </a>
-                                             </li>
-                                             <li class="divider"></li>
-                                             <?php is_allowed('tiktok_returns_view', function () use ($tiktok_returns) { ?>
-                                             <li>
-                                                <a href="<?= site_url('administrator/tiktok_returns/view/' . $tiktok_returns->id); ?>" class="dropdown-item-action" title="<?= cclang('view_button'); ?>">
-                                                   <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                                </a>
-                                             </li>
-                                             <?php }) ?>
-                                          </ul>
-                                       </div>
-                                    <?php else: ?>
-                                       <!-- 1 action: Clean Single Action Link -->
-                                       <?php is_allowed('tiktok_returns_view', function () use ($tiktok_returns) { ?>
-                                          <a href="<?= site_url('administrator/tiktok_returns/view/' . $tiktok_returns->id); ?>" class="action-link" title="<?= cclang('view_button'); ?>">
-                                             <i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                                          </a>
-                                       <?php }) ?>
-                                    <?php endif; ?>
-                                 </td>
+                                     <?= render_table_action([
+                                        [
+                                           'label' => 'Setujui Retur',
+                                           'url' => site_url('administrator/tiktok_returns/approve/' . $tiktok_returns->id),
+                                           'icon' => 'fa fa-check',
+                                           'icon_color' => '#059669',
+                                           'class' => 'btn-approve-return',
+                                           'attrs' => ['data-return-id' => $tiktok_returns->return_id],
+                                           'visible' => ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING'),
+                                        ],
+                                        [
+                                           'label' => 'Tolak Retur',
+                                           'url' => 'javascript:void(0);',
+                                           'icon' => 'fa fa-times',
+                                           'icon_color' => '#ef4444',
+                                           'class' => 'item-danger btn-reject-modal',
+                                           'attrs' => [
+                                              'data-id' => $tiktok_returns->id,
+                                              'data-action' => site_url('administrator/tiktok_returns/reject/' . $tiktok_returns->id),
+                                              'data-return-id' => $tiktok_returns->return_id
+                                           ],
+                                           'visible' => ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING'),
+                                        ],
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_returns/view/' . $tiktok_returns->id),
+                                           'divider' => ($tiktok_returns->return_status == 'RETURN_OR_REFUND_REQUEST_PENDING'),
+                                           'permission' => 'tiktok_returns_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_returns_counts == 0): ?>
@@ -1050,6 +1051,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_returns"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });

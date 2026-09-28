@@ -408,9 +408,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -622,20 +620,13 @@ jQuery(document).ready(domo);
                         <a class="btn btn-top-action btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_shops')]); ?> (Ctrl+a)" href="<?= site_url('administrator/tiktok_shops/add'); ?>">
                            <i class="fa fa-plus-square-o"></i> <?= cclang('add_new_button', [cclang('tiktok_shops')]); ?>
                         </a>
-                        <a class="btn btn-top-action" id="btn_connect_tiktok" target="_blank" title="Hubungkan Akun Toko (TikTok Shop)" href="<?= site_url('administrator/tiktok_shops/connect'); ?>">
-                           <i class="fa fa-plug"></i> Hubungkan Akun Toko
+                        <a class="btn btn-top-action" id="btn_connect_tiktok" href="javascript:void(0);" title="Salin Authorize Link (TikTok Shop)" data-auth-url="<?= $auth_url ?? site_url('administrator/tiktok_shops/connect'); ?>">
+                           <i class="fa fa-copy"></i> Salin Authorize Link
                         </a>
                         <?php }) ?>
-                        <?php is_allowed('tiktok_shops_export', function(){?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_shops/export'); ?>">
-                           <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Akun Toko dari TikTok Shop" href="<?= site_url('administrator/tiktok_shops/sync'); ?>">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_shops_export', function(){?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_shops/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
-                        </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
@@ -694,45 +685,34 @@ jQuery(document).ready(domo);
                                      <?php endif; ?>
                                   </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                      <div class="dropdown action-dropdown">
-                                         <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                            <i class="fa fa-ellipsis-v"></i>
-                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                           <?php is_allowed('tiktok_shops_view', function() use ($tiktok_shops){?>
-                                           <li>
-                                              <a href="<?= site_url('administrator/tiktok_shops/view/' . $tiktok_shops->id); ?>" class="dropdown-item-action">
-                                                 <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                              </a>
-                                           </li>
-                                           <?php }) ?>
-                                           <?php is_allowed('tiktok_shops_update', function() use ($tiktok_shops){?>
-                                           <li>
-                                              <a href="<?= site_url('administrator/tiktok_shops/edit/' . $tiktok_shops->id); ?>" class="dropdown-item-action">
-                                                 <i class="fa fa-pencil-square-o" style="color: #2563eb;"></i> <?= cclang('update_button'); ?>
-                                              </a>
-                                           </li>
-                                           <li>
-                                              <a href="<?= site_url('administrator/tiktok_shops/refresh_token/' . $tiktok_shops->id); ?>" class="dropdown-item-action">
-                                                 <i class="fa fa-refresh" style="color: #059669;"></i> Refresh Token
-                                              </a>
-                                           </li>
-                                           <li>
-                                              <a href="<?= site_url('administrator/tiktok_shops/sync_cipher/' . $tiktok_shops->id); ?>" class="dropdown-item-action">
-                                                 <i class="fa fa-exchange" style="color: #0284c7;"></i> Sync Cipher
-                                              </a>
-                                           </li>
-                                           <?php }) ?>
-                                           <?php is_allowed('tiktok_shops_delete', function() use ($tiktok_shops){?>
-                                           <li class="divider"></li>
-                                           <li>
-                                              <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_shops/delete/' . $tiktok_shops->id); ?>" class="dropdown-item-action item-danger remove-data">
-                                                 <i class="fa fa-trash-o" style="color: #ef4444;"></i> <?= cclang('remove_button'); ?>
-                                              </a>
-                                           </li>
-                                           <?php }) ?>
-                                        </ul>
-                                     </div>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_shops/view/' . $tiktok_shops->id),
+                                           'permission' => 'tiktok_shops_view',
+                                        ],
+                                        'edit' => [
+                                           'url' => site_url('administrator/tiktok_shops/edit/' . $tiktok_shops->id),
+                                           'permission' => 'tiktok_shops_update',
+                                        ],
+                                        [
+                                           'label' => 'Refresh Token',
+                                           'url' => site_url('administrator/tiktok_shops/refresh_token/' . $tiktok_shops->id),
+                                           'icon' => 'fa fa-refresh',
+                                           'icon_color' => '#059669',
+                                           'permission' => 'tiktok_shops_update',
+                                        ],
+                                        [
+                                           'label' => 'Sync Cipher',
+                                           'url' => site_url('administrator/tiktok_shops/sync_cipher/' . $tiktok_shops->id),
+                                           'icon' => 'fa fa-exchange',
+                                           'icon_color' => '#0284c7',
+                                           'permission' => 'tiktok_shops_update',
+                                        ],
+                                        'delete' => [
+                                           'data_href' => site_url('administrator/tiktok_shops/delete/' . $tiktok_shops->id),
+                                           'permission' => 'tiktok_shops_delete',
+                                        ]
+                                     ]); ?>
                                   </td>
                               </tr>
                               <?php endforeach; ?>
@@ -906,6 +886,65 @@ jQuery(document).ready(domo);
         }
         checkAll.iCheck('update');
     });
+    // Copy Authorize Link
+    $('#btn_connect_tiktok').on('click', function(e) {
+        e.preventDefault();
+        var authUrl = $(this).attr('data-auth-url') || '<?= site_url("administrator/tiktok_shops/connect"); ?>';
+        var btn = $(this);
+        var originalHtml = btn.html();
+
+        function copySuccess() {
+            btn.html('<i class="fa fa-check"></i> Link Tersalin!');
+            setTimeout(function() {
+                btn.html(originalHtml);
+            }, 2500);
+
+            if (typeof swal === 'function') {
+                swal({
+                    title: "Berhasil Disalin!",
+                    text: "Authorize link berhasil disalin ke clipboard.",
+                    type: "success",
+                    timer: 2000,
+                    showConfirmButton: true
+                });
+            } else if (typeof toastr !== 'undefined') {
+                toastr.success('Authorize link berhasil disalin!');
+            } else {
+                alert('Authorize link berhasil disalin!');
+            }
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(authUrl).then(function() {
+                copySuccess();
+            }).catch(function() {
+                fallbackCopy(authUrl);
+            });
+        } else {
+            fallbackCopy(authUrl);
+        }
+
+        function fallbackCopy(text) {
+            var tempInput = document.createElement("textarea");
+            tempInput.style.position = "fixed";
+            tempInput.style.left = "-9999px";
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    copySuccess();
+                } else {
+                    window.open(text, '_blank');
+                }
+            } catch (err) {
+                window.open(text, '_blank');
+            }
+            document.body.removeChild(tempInput);
+        }
+    });
+
 
   }); /*end doc ready*/
 </script>

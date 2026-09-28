@@ -463,19 +463,9 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync_categories" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik kategori resmi TikTok Shop">
-                           <i class="fa fa-refresh"></i> Tarik Data Kategori
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik Data Kategori dari TikTok Shop">
+                           <i class="fa fa-refresh"></i>
                         </a>
-                        <?php is_allowed('tiktok_categories_export', function(){?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_categories/export'); ?>">
-                           <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
-                        </a>
-                        <?php }) ?>
-                        <?php is_allowed('tiktok_categories_export', function(){?>
-                        <a class="btn btn-top-action" title="<?= cclang('export'); ?> PDF" href="<?= site_url('administrator/tiktok_categories/export_pdf'); ?>">
-                           <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
-                        </a>
-                        <?php }) ?>
                      </div>
                   </div>
 
@@ -513,15 +503,14 @@ jQuery(document).ready(domo);
                                  <td style="text-align: center; white-space: nowrap;">
                                      <?= strtoupper($tiktok_categories->permission_status) == "AVAILABLE" ? '<span class="label label-success">Tersedia</span>' : '<span class="label label-danger">Dibatasi</span>'; ?>
                                   </td>
-                                 <td style="text-align: right; padding-right: 20px; white-space: nowrap;">
-                                    <div class="action-buttons-wrap">
-                                       <?php is_allowed("tiktok_categories_view", function() use ($tiktok_categories){?>
-                                          <a href="<?= site_url("administrator/tiktok_categories/view/" . $tiktok_categories->id); ?>" class="action-link" title="<?= cclang("view_button"); ?>">
-                                             <i class="fa fa-newspaper-o"></i> <?= cclang("view_button"); ?>
-                                          </a>
-                                       <?php }) ?>
-                                    </div>
-                                 </td>
+                                 <td style="text-align: center; white-space: nowrap;">
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_categories/view/' . $tiktok_categories->id),
+                                           'permission' => 'tiktok_categories_view',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_categories_counts == 0) :?>

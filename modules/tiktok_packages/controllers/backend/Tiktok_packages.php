@@ -29,13 +29,17 @@ class Tiktok_packages extends Admin
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
+		$shop_id = $this->input->get('shop_id');
 
-		$this->data['tiktok_packagess'] = $this->model_tiktok_packages->get($filter, $field, $this->limit_page, $offset);
-		$this->data['tiktok_packages_counts'] = $this->model_tiktok_packages->count_all($filter, $field);
+		$this->data['tiktok_packagess'] = $this->model_tiktok_packages->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
+		$this->data['tiktok_packages_counts'] = $this->model_tiktok_packages->count_all($filter, $field, $shop_id);
+
+		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$this->data['selected_shop_id'] = $shop_id;
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_packages/index/',
-			'total_rows'   => $this->model_tiktok_packages->count_all($filter, $field),
+			'total_rows'   => $this->model_tiktok_packages->count_all($filter, $field, $shop_id),
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];
@@ -54,9 +58,14 @@ class Tiktok_packages extends Admin
 		$this->is_allowed('tiktok_packages_list');
 		$this->load->library('tiktok_api');
 
-		$shop = $this->db->get_where('tiktok_shops', ['is_active' => 1])->row();
-		if (!$shop) {
-			$shop = $this->db->get('tiktok_shops')->row();
+		$shop_id = $this->input->get('shop_id');
+		if (!empty($shop_id)) {
+			$shop = $this->db->get_where('tiktok_shops', ['id' => $shop_id])->row();
+		} else {
+			$shop = $this->db->get_where('tiktok_shops', ['is_active' => 1])->row();
+			if (!$shop) {
+				$shop = $this->db->get('tiktok_shops')->row();
+			}
 		}
 		if (!$shop) {
 			set_message('Toko TikTok belum aktif atau belum terhubung.', 'error');

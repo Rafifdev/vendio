@@ -317,9 +317,7 @@ jQuery(document).ready(domo);
    padding-left: 17px !important;
 }
 
-.action-dropdown-menu .dropdown-item-action:hover i {
-   transform: scale(1.15);
-}
+
 
 .action-dropdown-menu .divider {
    height: 1px !important;
@@ -525,11 +523,16 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <?php is_allowed('tiktok_orders_list', function () { ?>
-                        <a class="btn btn-top-action" id="btn_sync" title="Tarik Data Pesanan dari TikTok Shop" href="<?= site_url('administrator/tiktok_orders/sync'); ?>">
-                           <i class="fa fa-refresh"></i> Tarik Data Pesanan
-                        </a>
-                        <?php }) ?>
+                        <div style="width: 200px; text-align: left;">
+                           <select class="form-control chosen chosen-select" name="shop_id_filter" id="shop_id_filter">
+                              <option value="">Semua Toko</option>
+                              <?php foreach ($shops as $shop): ?>
+                                 <option <?= ($selected_shop_id == $shop->id) ? 'selected' : ''; ?> value="<?= $shop->id; ?>">
+                                    <?= _ent($shop->shop_name); ?>
+                                 </option>
+                              <?php endforeach; ?>
+                           </select>
+                        </div>
                         <?php is_allowed('tiktok_orders_export', function () { ?>
                         <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_orders/export'); ?>">
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS
@@ -540,11 +543,17 @@ jQuery(document).ready(domo);
                            <i class="fa fa-file-pdf-o"></i> <?= cclang('export'); ?> PDF
                         </a>
                         <?php }) ?>
+                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Pesanan dari TikTok Shop" href="<?= site_url('administrator/tiktok_orders/sync' . (!empty($selected_shop_id) ? '?shop_id=' . $selected_shop_id : '')); ?>">
+                           <i class="fa fa-refresh"></i>
+                        </a>
                      </div>
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>">
+                  <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>
+                     <?php if (!empty($selected_shop_id)): ?>
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>">
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -653,60 +662,63 @@ jQuery(document).ready(domo);
                                     Rp <?= number_format($tiktok_orders->total_amount, 0, ',', '.'); ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <div class="dropdown action-dropdown">
-                                       <button type="button" class="btn btn-action-dots dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi">
-                                          <i class="fa fa-ellipsis-v"></i>
-                                       </button>
-                                       <ul class="dropdown-menu dropdown-menu-right action-dropdown-menu">
-                                          <?php is_allowed('tiktok_orders_view', function () use ($tiktok_orders) { ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-newspaper-o" style="color: #64748b;"></i> <?= cclang('view_button'); ?>
-                                             </a>
-                                          </li>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/single_pdf/' . $tiktok_orders->id); ?>" class="dropdown-item-action">
-                                                <i class="fa fa-file-pdf-o" style="color: #0284c7;"></i> Cetak PDF
-                                             </a>
-                                          </li>
-                                          <li class="divider"></li>
-                                          <?php if ($tiktok_orders->order_status == 'AWAITING_SHIPMENT'): ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/ship/' . $tiktok_orders->id); ?>" class="dropdown-item-action" title="Atur Pengiriman (Drop-off ke gerai)">
-                                                <i class="fa fa-truck" style="color: #059669;"></i> Atur Pengiriman
-                                             </a>
-                                          </li>
-                                          <?php elseif (in_array($tiktok_orders->order_status, ['AWAITING_COLLECTION', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED'])): ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/print_label/' . $tiktok_orders->id); ?>" target="_blank" class="dropdown-item-action" title="Cetak Label Resi Pengiriman (AWB PDF)">
-                                                <i class="fa fa-barcode" style="color: #0d9488;"></i> Label Resi (AWB)
-                                             </a>
-                                          </li>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/print_packing_slip/' . $tiktok_orders->id); ?>" target="_blank" class="dropdown-item-action" title="Cetak Daftar Pengemasan (Packing List PDF)">
-                                                <i class="fa fa-archive" style="color: #6366f1;"></i> Daftar Pengemasan
-                                             </a>
-                                          </li>
-                                          <?php endif; ?>
-                                          <li>
-                                             <a href="<?= site_url('administrator/tiktok_orders/print_pick_list/' . $tiktok_orders->id); ?>" target="_blank" class="dropdown-item-action" title="Cetak Daftar Pengambilan Barang (Pick List)">
-                                                <i class="fa fa-clipboard" style="color: #8b5cf6;"></i> Pick List
-                                             </a>
-                                          </li>
-                                          <?php }) ?>
-                                          <?php is_allowed('tiktok_orders_delete', function () use ($tiktok_orders) { ?>
-                                             <?php if ($tiktok_orders->order_status != 'CANCELLED'): ?>
-                                             <li class="divider"></li>
-                                             <li>
-                                                <a href="javascript:void(0);" data-href="<?= site_url('administrator/tiktok_orders/cancel/' . $tiktok_orders->id); ?>" class="dropdown-item-action item-danger cancel-data" title="Batalkan Pesanan">
-                                                   <i class="fa fa-ban" style="color: #ef4444;"></i> Batalkan Pesanan
-                                                </a>
-                                             </li>
-                                             <?php endif; ?>
-                                          <?php }) ?>
-                                       </ul>
-                                    </div>
-                                 </td>
+                                     <?= render_table_action([
+                                        'view' => [
+                                           'url' => site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id),
+                                           'permission' => 'tiktok_orders_view',
+                                        ],
+                                        'pdf' => [
+                                           'url' => site_url('administrator/tiktok_orders/single_pdf/' . $tiktok_orders->id),
+                                           'permission' => 'tiktok_orders_view',
+                                        ],
+                                        [
+                                           'label' => 'Atur Pengiriman',
+                                           'url' => site_url('administrator/tiktok_orders/ship/' . $tiktok_orders->id),
+                                           'icon' => 'fa fa-truck',
+                                           'icon_color' => '#059669',
+                                           'visible' => ($tiktok_orders->order_status == 'AWAITING_SHIPMENT'),
+                                           'permission' => 'tiktok_orders_view',
+                                           'divider' => true,
+                                        ],
+                                        [
+                                           'label' => 'Label Resi (AWB)',
+                                           'url' => site_url('administrator/tiktok_orders/print_label/' . $tiktok_orders->id),
+                                           'icon' => 'fa fa-barcode',
+                                           'icon_color' => '#0d9488',
+                                           'attrs' => ['target' => '_blank'],
+                                           'visible' => in_array($tiktok_orders->order_status, ['AWAITING_COLLECTION', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED']),
+                                           'permission' => 'tiktok_orders_view',
+                                        ],
+                                        [
+                                           'label' => 'Daftar Pengemasan',
+                                           'url' => site_url('administrator/tiktok_orders/print_packing_slip/' . $tiktok_orders->id),
+                                           'icon' => 'fa fa-archive',
+                                           'icon_color' => '#6366f1',
+                                           'attrs' => ['target' => '_blank'],
+                                           'visible' => in_array($tiktok_orders->order_status, ['AWAITING_COLLECTION', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED']),
+                                           'permission' => 'tiktok_orders_view',
+                                        ],
+                                        [
+                                           'label' => 'Pick List',
+                                           'url' => site_url('administrator/tiktok_orders/print_pick_list/' . $tiktok_orders->id),
+                                           'icon' => 'fa fa-clipboard',
+                                           'icon_color' => '#8b5cf6',
+                                           'attrs' => ['target' => '_blank'],
+                                           'permission' => 'tiktok_orders_view',
+                                        ],
+                                        [
+                                           'label' => 'Batalkan Pesanan',
+                                           'url' => 'javascript:void(0);',
+                                           'icon' => 'fa fa-ban',
+                                           'icon_color' => '#ef4444',
+                                           'class' => 'item-danger cancel-data',
+                                           'data_href' => site_url('administrator/tiktok_orders/cancel/' . $tiktok_orders->id),
+                                           'divider' => true,
+                                           'visible' => ($tiktok_orders->order_status != 'CANCELLED'),
+                                           'permission' => 'tiktok_orders_delete',
+                                        ]
+                                     ]); ?>
+                                  </td>
                               </tr>
                               <?php endforeach; ?>
                               <?php if ($tiktok_orders_counts == 0): ?>
@@ -884,6 +896,25 @@ jQuery(document).ready(domo);
             checkAll.removeProp('checked');
          }
          checkAll.iCheck('update');
+      });
+      // Filter toko
+      $('#shop_id_filter').on('change', function () {
+         var shop_id = $(this).val();
+         var url = '<?= site_url("administrator/tiktok_orders"); ?>';
+         var params = [];
+         if (shop_id) {
+            params.push('shop_id=' + encodeURIComponent(shop_id));
+         }
+         <?php if ($this->input->get('q')): ?>
+            params.push('q=<?= urlencode($this->input->get('q')); ?>');
+         <?php endif; ?>
+         <?php if ($this->input->get('f')): ?>
+            params.push('f=<?= urlencode($this->input->get('f')); ?>');
+         <?php endif; ?>
+         if (params.length > 0) {
+            url += '?' + params.join('&');
+         }
+         window.location.href = url;
       });
 
    });
