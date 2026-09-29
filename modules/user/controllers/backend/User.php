@@ -186,11 +186,17 @@ class User extends Admin
 			if (!empty($user_avatar_name)) {
 				if (!empty($user_avatar_uuid)) {
 					$user_avatar_name_copy = date('YmdHis') . '-' . $user_avatar_name;
-		
-					rename(FCPATH . '/uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
-							FCPATH . '/uploads/user/' . $user_avatar_name_copy);
 
-					if (!is_file(FCPATH . '/uploads/user/' . $user_avatar_name_copy)) {
+					if (!is_dir(FCPATH . 'uploads/user')) {
+						mkdir(FCPATH . 'uploads/user', 0777, true);
+					}
+		
+					if (is_file(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name)) {
+						@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
+								FCPATH . 'uploads/user/' . $user_avatar_name_copy);
+					}
+
+					if (!is_file(FCPATH . 'uploads/user/' . $user_avatar_name_copy)) {
 						return $this->response([
 							'success' => false,
 							'message' => 'Error uploading avatar'
@@ -350,11 +356,17 @@ class User extends Admin
 			if (!empty($user_avatar_name)) {
 				if (!empty($user_avatar_uuid)) {
 					$user_avatar_name_copy = date('YmdHis') . '-' . $user_avatar_name;
-		
-					rename(FCPATH . '/uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
-							FCPATH . '/uploads/user/' . $user_avatar_name_copy);
 
-					if (!is_file(FCPATH . '/uploads/user/' . $user_avatar_name_copy)) {
+					if (!is_dir(FCPATH . 'uploads/user')) {
+						mkdir(FCPATH . 'uploads/user', 0777, true);
+					}
+		
+					if (is_file(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name)) {
+						@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
+								FCPATH . 'uploads/user/' . $user_avatar_name_copy);
+					}
+
+					if (!is_file(FCPATH . 'uploads/user/' . $user_avatar_name_copy)) {
 						return $this->response([
 							'success' => false,
 							'message' => 'Error uploading avatar'

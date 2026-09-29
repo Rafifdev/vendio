@@ -28,6 +28,10 @@ user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 uploads/*
 !uploads/blog/wellcome.jpg
+!uploads/user/
+uploads/user/*
+!uploads/user/.gitkeep
+!uploads/user/default.png
 
 captcha/*
 phploy
