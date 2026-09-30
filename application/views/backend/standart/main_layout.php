@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/toastr/build/toastr.css">
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/fancy-box/source/jquery.fancybox.css?v=2.1.5" media="screen" />
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/chosen/chosen.css">
-  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/css/custom.css?timestamp=201803311526">
+  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/css/custom.css?timestamp=<?= @filemtime(FCPATH . 'asset/css/custom.css') ?: '20260930'; ?>">
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>datetimepicker/jquery.datetimepicker.css"/>
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>js-scroll/style/jquery.jscrollpane.css" rel="stylesheet" media="all" />
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>flag-icon/css/flag-icon.css" rel="stylesheet" media="all" />

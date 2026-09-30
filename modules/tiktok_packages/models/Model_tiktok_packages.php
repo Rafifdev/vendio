@@ -18,28 +18,75 @@ class Model_tiktok_packages extends MY_Model {
         parent::__construct($config);
     }
 
-    public function count_all($q = null, $field = null, $shop_id = null)
+    private function _build_search_condition($q, $field)
     {
-        $iterasi = 1;
-        $num = count($this->field_search);
         $where = NULL;
         $q = $this->scurity($q);
         $field = $this->scurity($field);
 
+        // Map kata kunci pencarian status/handover bahasa Indonesia ke kode status internal
+        $status_keywords = [
+            'siap'       => ['READY_FOR_SHIPMENT'],
+            'perlu'      => ['AWAITING_SHIPMENT'],
+            'jemput'     => ['AWAITING_COLLECTION', 'PICKUP'],
+            'kurir'      => ['AWAITING_COLLECTION'],
+            'proses'     => ['FULFILLING'],
+            'jalan'      => ['IN_TRANSIT'],
+            'antar'      => ['DROP_OFF'],
+            'gerai'      => ['DROP_OFF'],
+            'terkirim'   => ['DELIVERED'],
+            'selesai'    => ['COMPLETED'],
+            'batal'      => ['CANCELLED'],
+            'hilang'     => ['LOST'],
+            'rusak'      => ['DAMAGED'],
+            'retur'      => ['RETURNED', 'RETURNING'],
+            'kembali'    => ['RETURNED', 'RETURNING'],
+            'tahan'      => ['ON_HOLD'],
+        ];
+
+        $matched_status_codes = [];
+        $q_lower = strtolower(trim((string)$q));
+        foreach ($status_keywords as $keyword => $codes) {
+            if (strpos($q_lower, $keyword) !== false) {
+                foreach ($codes as $code) {
+                    $matched_status_codes[$code] = true;
+                }
+            }
+        }
+
         if (empty($field)) {
-            foreach ($this->field_search as $field) {
+            $iterasi = 1;
+            foreach ($this->field_search as $f) {
                 if ($iterasi == 1) {
-                    $where .= "tiktok_packages.".$field . " LIKE '%" . $q . "%' ";
+                    $where .= "tiktok_packages." . $f . " LIKE '%" . $q . "%' ";
                 } else {
-                    $where .= "OR " . "tiktok_packages.".$field . " LIKE '%" . $q . "%' ";
+                    $where .= "OR tiktok_packages." . $f . " LIKE '%" . $q . "%' ";
                 }
                 $iterasi++;
             }
 
-            $where = '('.$where.')';
+            foreach (array_keys($matched_status_codes) as $st_code) {
+                $where .= "OR tiktok_packages.package_status LIKE '%" . $st_code . "%' ";
+                $where .= "OR tiktok_packages.handover_method LIKE '%" . $st_code . "%' ";
+            }
+
+            $where = '(' . $where . ')';
         } else {
-            $where .= "(" . "tiktok_packages.".$field . " LIKE '%" . $q . "%' )";
+            $where_sub = "tiktok_packages." . $field . " LIKE '%" . $q . "%' ";
+            if ($field === 'package_status' || $field === 'handover_method') {
+                foreach (array_keys($matched_status_codes) as $st_code) {
+                    $where_sub .= "OR tiktok_packages." . $field . " LIKE '%" . $st_code . "%' ";
+                }
+            }
+            $where = '(' . $where_sub . ')';
         }
+
+        return $where;
+    }
+
+    public function count_all($q = null, $field = null, $shop_id = null)
+    {
+        $where = $this->_build_search_condition($q, $field);
 
         if (!empty($shop_id)) {
             $this->db->where('tiktok_packages.tiktok_shop_id', $shop_id);
@@ -54,26 +101,7 @@ class Model_tiktok_packages extends MY_Model {
 
     public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [], $shop_id = null)
     {
-        $iterasi = 1;
-        $num = count($this->field_search);
-        $where = NULL;
-        $q = $this->scurity($q);
-        $field = $this->scurity($field);
-
-        if (empty($field)) {
-            foreach ($this->field_search as $field) {
-                if ($iterasi == 1) {
-                    $where .= "tiktok_packages.".$field . " LIKE '%" . $q . "%' ";
-                } else {
-                    $where .= "OR " . "tiktok_packages.".$field . " LIKE '%" . $q . "%' ";
-                }
-                $iterasi++;
-            }
-
-            $where = '('.$where.')';
-        } else {
-            $where .= "(" . "tiktok_packages.".$field . " LIKE '%" . $q . "%' )";
-        }
+        $where = $this->_build_search_condition($q, $field);
 
         if (is_array($select_field) AND count($select_field)) {
             $this->db->select($select_field);

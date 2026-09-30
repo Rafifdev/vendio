@@ -623,37 +623,11 @@ jQuery(document).ready(domo);
                                     <span style="font-family: monospace; font-size: 12.5px;"><?= _ent($tiktok_packages->tracking_number ?: '-'); ?></span>
                                  </td>
                                  <td style="text-align: center;">
-                                    <?php
-                                    $hm = strtoupper($tiktok_packages->handover_method);
-                                    if ($hm === 'PICKUP') {
-                                       echo '<span class="label label-info">Penjemputan</span>';
-                                    } elseif ($hm === 'DROP_OFF') {
-                                       echo '<span class="label label-warning">Antar ke Gerai</span>';
-                                    } else {
-                                       echo '<span class="label label-primary">' . _ent($tiktok_packages->handover_method ?: '-') . '</span>';
-                                    }
-                                    ?>
-                                 </td>
-                                 <td style="text-align: center;">
-                                    <?php
-                                    $st = strtoupper($tiktok_packages->package_status);
-                                    if ($st === 'COMPLETED' || $st === 'DELIVERED') {
-                                       echo '<span class="label label-success">Selesai</span>';
-                                    } elseif ($st === 'FULFILLING') {
-                                       echo '<span class="label label-warning">Sedang Diproses</span>';
-                                    } elseif ($st === 'AWAITING_SHIPMENT') {
-                                       echo '<span class="label label-warning">Perlu Dikirim</span>';
-                                    } elseif ($st === 'AWAITING_COLLECTION') {
-                                       echo '<span class="label label-info">Menunggu Penjemputan</span>';
-                                    } elseif ($st === 'IN_TRANSIT') {
-                                       echo '<span class="label label-info">Dalam Perjalanan</span>';
-                                    } elseif ($st === 'CANCELLED') {
-                                       echo '<span class="label label-danger">Dibatalkan</span>';
-                                    } else {
-                                       echo '<span class="label label-primary">' . _ent($st ?: '-') . '</span>';
-                                    }
-                                    ?>
-                                 </td>
+                                     <?= render_handover_method_badge($tiktok_packages->handover_method); ?>
+                                  </td>
+                                  <td style="text-align: center;">
+                                     <?= render_package_status_badge($tiktok_packages->package_status); ?>
+                                  </td>
                                  <td style="font-size: 12px; color: #64748b;">
                                     <?= _ent($tiktok_packages->package_create_time ?: '-'); ?>
                                  </td>
@@ -677,7 +651,7 @@ jQuery(document).ready(domo);
                                            'icon' => 'fa fa-truck',
                                            'icon_color' => '#059669',
                                            'onclick' => "return confirm('Konfirmasi serah terima pengiriman paket ini ke kurir?');",
-                                           'visible' => in_array(strtoupper($tiktok_packages->package_status), ['FULFILLING', 'AWAITING_SHIPMENT']),
+                                           'visible' => in_array(strtoupper($tiktok_packages->package_status), ['FULFILLING', 'AWAITING_SHIPMENT', 'READY_FOR_SHIPMENT']),
                                            'permission' => 'tiktok_packages_view',
                                         ],
                                         'delete' => [

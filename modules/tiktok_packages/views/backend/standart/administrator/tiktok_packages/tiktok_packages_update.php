@@ -298,10 +298,16 @@
                             </label>
                             <div class="col-sm-8">
                                 <select class="form-control chosen chosen-select" name="package_status" id="package_status" data-placeholder="Pilih Status Paket">
-                                    <option value="READY_FOR_SHIPMENT" <?= $tiktok_packages->package_status == 'READY_FOR_SHIPMENT' ? 'selected' : ''; ?>>Siap Dikirim (READY_FOR_SHIPMENT)</option>
-                                    <option value="SHIPPED" <?= $tiktok_packages->package_status == 'SHIPPED' ? 'selected' : ''; ?>>Sedang Dikirim (SHIPPED)</option>
-                                    <option value="DELIVERED" <?= $tiktok_packages->package_status == 'DELIVERED' ? 'selected' : ''; ?>>Terkirim (DELIVERED)</option>
-                                    <option value="CANCELLED" <?= $tiktok_packages->package_status == 'CANCELLED' ? 'selected' : ''; ?>>Dibatalkan (CANCELLED)</option>
+                                    <option value="READY_FOR_SHIPMENT" <?= $tiktok_packages->package_status == 'READY_FOR_SHIPMENT' ? 'selected' : ''; ?>>Siap Dikirim</option>
+                                    <option value="AWAITING_SHIPMENT" <?= $tiktok_packages->package_status == 'AWAITING_SHIPMENT' ? 'selected' : ''; ?>>Perlu Dikirim</option>
+                                    <option value="AWAITING_COLLECTION" <?= $tiktok_packages->package_status == 'AWAITING_COLLECTION' ? 'selected' : ''; ?>>Menunggu Penjemputan</option>
+                                    <option value="FULFILLING" <?= $tiktok_packages->package_status == 'FULFILLING' ? 'selected' : ''; ?>>Sedang Diproses</option>
+                                    <option value="IN_TRANSIT" <?= $tiktok_packages->package_status == 'IN_TRANSIT' ? 'selected' : ''; ?>>Dalam Perjalanan</option>
+                                    <option value="SHIPPED" <?= $tiktok_packages->package_status == 'SHIPPED' ? 'selected' : ''; ?>>Telah Dikirim</option>
+                                    <option value="DELIVERED" <?= $tiktok_packages->package_status == 'DELIVERED' ? 'selected' : ''; ?>>Terkirim</option>
+                                    <option value="COMPLETED" <?= $tiktok_packages->package_status == 'COMPLETED' ? 'selected' : ''; ?>>Selesai</option>
+                                    <option value="CANCELLED" <?= $tiktok_packages->package_status == 'CANCELLED' ? 'selected' : ''; ?>>Dibatalkan</option>
+                                    <option value="RETURNED" <?= $tiktok_packages->package_status == 'RETURNED' ? 'selected' : ''; ?>>Dikembalikan</option>
                                 </select>
                                 <small class="info help-block">Status operasional pengiriman paket saat ini.</small>
                             </div>

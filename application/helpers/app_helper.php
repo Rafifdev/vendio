@@ -1373,3 +1373,287 @@ if (!function_exists('render_action_dropdown')) {
 	}
 }
 
+if (!function_exists('get_package_status_info')) {
+	/**
+	 * Dapatkan detail status paket dalam teks bahasa Indonesia yang jelas
+	 *
+	 * @param string $status
+	 * @return array
+	 */
+	function get_package_status_info($status)
+	{
+		$st = strtoupper(trim((string)$status));
+
+		if (empty($st) || $st === '-') {
+			return [
+				'code'  => '',
+				'text'  => '-',
+				'class' => 'label-default',
+				'style' => 'background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;'
+			];
+		}
+
+		$statuses = [
+			'READY_FOR_SHIPMENT'   => [
+				'text'  => 'Siap Dikirim',
+				'class' => 'label-primary',
+				'style' => 'background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;'
+			],
+			'AWAITING_SHIPMENT'    => [
+				'text'  => 'Perlu Dikirim',
+				'class' => 'label-warning',
+				'style' => 'background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;'
+			],
+			'AWAITING_COLLECTION'  => [
+				'text'  => 'Menunggu Penjemputan',
+				'class' => 'label-info',
+				'style' => 'background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;'
+			],
+			'FULFILLING'           => [
+				'text'  => 'Sedang Diproses',
+				'class' => 'label-warning',
+				'style' => 'background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'
+			],
+			'IN_TRANSIT'           => [
+				'text'  => 'Dalam Perjalanan',
+				'class' => 'label-info',
+				'style' => 'background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;'
+			],
+			'SHIPPED'              => [
+				'text'  => 'Telah Dikirim',
+				'class' => 'label-info',
+				'style' => 'background-color: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4;'
+			],
+			'DELIVERED'            => [
+				'text'  => 'Terkirim',
+				'class' => 'label-success',
+				'style' => 'background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;'
+			],
+			'COMPLETED'            => [
+				'text'  => 'Selesai',
+				'class' => 'label-success',
+				'style' => 'background-color: #15803d; color: #ffffff; border: 1px solid #166534;'
+			],
+			'CANCELLED'            => [
+				'text'  => 'Dibatalkan',
+				'class' => 'label-danger',
+				'style' => 'background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;'
+			],
+			'LOST'                 => [
+				'text'  => 'Paket Hilang',
+				'class' => 'label-danger',
+				'style' => 'background-color: #450a0a; color: #fecaca; border: 1px solid #7f1d1d;'
+			],
+			'DAMAGED'              => [
+				'text'  => 'Paket Rusak',
+				'class' => 'label-danger',
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+			],
+			'RETURNED'             => [
+				'text'  => 'Dikembalikan',
+				'class' => 'label-danger',
+				'style' => 'background-color: #fae8ff; color: #86198f; border: 1px solid #f5d0fe;'
+			],
+			'RETURNING'            => [
+				'text'  => 'Proses Retur',
+				'class' => 'label-warning',
+				'style' => 'background-color: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6;'
+			],
+			'PARTIALLY_DELIVERED'  => [
+				'text'  => 'Sebagian Terkirim',
+				'class' => 'label-info',
+				'style' => 'background-color: #ecfccb; color: #4d7c0f; border: 1px solid #d9f99d;'
+			],
+			'UNDELIVERED'          => [
+				'text'  => 'Gagal Terkirim',
+				'class' => 'label-danger',
+				'style' => 'background-color: #fef2f2; color: #991b1b; border: 1px solid #fca5a5;'
+			],
+			'EXCEPTION'            => [
+				'text'  => 'Kendala Pengiriman',
+				'class' => 'label-warning',
+				'style' => 'background-color: #fef08a; color: #854d0e; border: 1px solid #fde047;'
+			],
+			'ON_HOLD'              => [
+				'text'  => 'Ditahan',
+				'class' => 'label-default',
+				'style' => 'background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;'
+			],
+		];
+
+		if (isset($statuses[$st])) {
+			$res = $statuses[$st];
+			$res['code'] = $st;
+			return $res;
+		}
+
+		// Fallback otomatis mengubah snake_case menjadi Title Case yang mudah dibaca
+		$clean_text = ucwords(str_replace('_', ' ', strtolower($st)));
+		return [
+			'code'  => $st,
+			'text'  => $clean_text,
+			'class' => 'label-primary',
+			'style' => 'background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;'
+		];
+	}
+}
+
+if (!function_exists('render_package_status_badge')) {
+	/**
+	 * Render HTML badge status paket dengan warna & tampilan yang berbeda dan jelas (tanpa icon)
+	 *
+	 * @param string $status
+	 * @return string
+	 */
+	function render_package_status_badge($status)
+	{
+		$info = get_package_status_info($status);
+		if ($info['text'] === '-') {
+			return '<span class="text-muted">-</span>';
+		}
+
+		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
+	}
+}
+
+if (!function_exists('render_handover_method_badge')) {
+	/**
+	 * Render HTML badge metode serah terima (tanpa icon)
+	 *
+	 * @param string $method
+	 * @return string
+	 */
+	function render_handover_method_badge($method)
+	{
+		$hm = strtoupper(trim((string)$method));
+		if ($hm === 'PICKUP') {
+			return '<span class="label label-info" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">Penjemputan</span>';
+		} elseif ($hm === 'DROP_OFF') {
+			return '<span class="label label-warning" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Antar ke Gerai</span>';
+		} elseif (empty($hm) || $hm === '-') {
+			return '<span class="text-muted">-</span>';
+		} else {
+			$clean = ucwords(str_replace('_', ' ', strtolower($hm)));
+			return '<span class="label label-primary" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;">' . htmlspecialchars($clean) . '</span>';
+		}
+	}
+}
+
+if (!function_exists('get_order_status_info')) {
+	/**
+	 * Mengambil metadata status pesanan TikTok Shop (Label ID, Class Bootstrap, dan Styling Modern)
+	 *
+	 * @param string $status
+	 * @return array
+	 */
+	function get_order_status_info($status)
+	{
+		$st = strtoupper(trim((string)$status));
+		$statuses = [
+			'UNPAID' => [
+				'text'  => 'Belum Bayar',
+				'class' => 'label-warning',
+				'style' => 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;'
+			],
+			'ON_HOLD' => [
+				'text'  => 'Ditahan',
+				'class' => 'label-warning',
+				'style' => 'background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'
+			],
+			'AWAITING_SHIPMENT' => [
+				'text'  => 'Perlu Dikirim',
+				'class' => 'label-warning',
+				'style' => 'background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a;'
+			],
+			'AWAITING_COLLECTION' => [
+				'text'  => 'Menunggu Kurir',
+				'class' => 'label-info',
+				'style' => 'background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;'
+			],
+			'PARTIALLY_SHIPPING' => [
+				'text'  => 'Sebagian Dikirim',
+				'class' => 'label-info',
+				'style' => 'background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;'
+			],
+			'IN_TRANSIT' => [
+				'text'  => 'Sedang Dikirim',
+				'class' => 'label-info',
+				'style' => 'background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;'
+			],
+			'DELIVERED' => [
+				'text'  => 'Terkirim',
+				'class' => 'label-primary',
+				'style' => 'background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;'
+			],
+			'COMPLETED' => [
+				'text'  => 'Selesai',
+				'class' => 'label-success',
+				'style' => 'background-color: #ecfdf5; color: #047857; border: 1px solid #6ee7b7;'
+			],
+			'CANCELLED' => [
+				'text'  => 'Dibatalkan',
+				'class' => 'label-danger',
+				'style' => 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;'
+			],
+			'DELIVERY_FAILED' => [
+				'text'  => 'Pengantaran Gagal',
+				'class' => 'label-danger',
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+			],
+			'UNDELIVERED' => [
+				'text'  => 'Pengantaran Gagal',
+				'class' => 'label-danger',
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+			],
+			'FAILED' => [
+				'text'  => 'Pengantaran Gagal',
+				'class' => 'label-danger',
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+			],
+		];
+
+		if (isset($statuses[$st])) {
+			$res = $statuses[$st];
+			$res['code'] = $st;
+			return $res;
+		}
+
+		if (empty($st) || $st === '-') {
+			return [
+				'code'  => '',
+				'text'  => '-',
+				'class' => 'label-default',
+				'style' => 'background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;'
+			];
+		}
+
+		$clean_text = ucwords(str_replace('_', ' ', strtolower($st)));
+		return [
+			'code'  => $st,
+			'text'  => $clean_text,
+			'class' => 'label-primary',
+			'style' => 'background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;'
+		];
+	}
+}
+
+if (!function_exists('render_order_status_badge')) {
+	/**
+	 * Render HTML badge status pesanan TikTok Shop (standar ukuran baru, tanpa icon)
+	 *
+	 * @param string $status
+	 * @return string
+	 */
+	function render_order_status_badge($status)
+	{
+		$info = get_order_status_info($status);
+		if ($info['text'] === '-') {
+			return '<span class="text-muted">-</span>';
+		}
+
+		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
+	}
+}
+
+
+

@@ -30,11 +30,9 @@ i.required, span.required {
     background: none !important;
 }
 .label-default {
-    padding: 0 1px 0 1px;
-    background: #fff !important;
-}
-.label-default .fa {
-    color: #1089CE
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
 }
 .widget-user-header {
     margin-left: 0px !important;
@@ -926,7 +924,7 @@ i.required, span.required {
 .sidebar-menu li.header, .sidebar-menu, .sidebar {
     margin-top: 0px !important;
 }
-.page-content, {
+.page-content {
     -webkit-transition: right 1s ease-in-out;
     -o-transition: right 1s ease-in-out;
     transition: right 1s ease-in-out;
@@ -1208,7 +1206,7 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
     padding: 15px 10px;
     background: #FFFFFF;
     color: #5C5A5A !important;
-    margin-bottom: : 10px;
+    margin-bottom: 10px;
     cursor: pointer;
     border: 1px solid #ECECEC;
     width: 90%;
@@ -1219,7 +1217,7 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
     padding: 15px 10px;
     background: #FFFFFF;
     color: rgb(255, 152, 0) !important;
-    margin-bottom: : 10px;
+    margin-bottom: 10px;
     border: 1px solid #ECECEC;
     width: 10%;
     float: left;
@@ -1522,4 +1520,80 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
 .action-link.remove-data:hover i,
 .action-link.item-danger:hover i {
     color: #dc2626 !important;
+}
+
+/* ==========================================================================
+   Standar Baru Ukuran Badge Status & Chip ID (Seragam di Seluruh Modul)
+   ========================================================================== */
+
+/* 1. Standar Badge Status (.label) */
+.label {
+    display: inline-block !important;
+    padding: 4px 9px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.15px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Pertahankan counter bulat (misal badge jumlah data pada widget header & navbar) */
+.widget-user-desc .label,
+.box-header .label,
+.badge-count,
+.navbar-nav .label,
+.sidebar-menu .label {
+    border-radius: 10px !important;
+    padding: 2px 7px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+
+/* 2. Standar Chip ID (Kode ID Paket, ID Pesanan, ID Produk, dsb.) */
+.chip-id {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+    background-color: #f1f5f9 !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+    vertical-align: middle;
+    border: 1px solid #e2e8f0;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.chip-id:hover {
+    background-color: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+/* Standar Chip Link (ID yang berupa link klikable) */
+.chip-link,
+a.chip-id {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace !important;
+    font-size: 12px !important;
+    color: #0284c7 !important;
+    background-color: #f0f9ff !important;
+    border: 1px solid #bae6fd !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+a.chip-id:hover,
+.chip-link:hover {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #7dd3fc !important;
 }

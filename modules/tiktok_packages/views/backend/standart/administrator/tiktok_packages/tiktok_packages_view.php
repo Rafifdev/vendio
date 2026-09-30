@@ -245,7 +245,7 @@ jQuery(document).ready(domo);
                             <?php 
                             $order_row = !empty($tiktok_packages->order_id) ? $this->db->get_where('tiktok_orders', ['order_id' => $tiktok_packages->order_id])->row() : null;
                             if ($order_row): ?>
-                               <a href="<?= site_url('administrator/tiktok_orders/view/' . $order_row->id); ?>" class="chip-id" style="color: #0284c7; text-decoration: none;"><i class="fa fa-external-link"></i> <?= _ent($tiktok_packages->order_id); ?></a>
+                               <a href="<?= site_url('administrator/tiktok_orders/view/' . $order_row->id); ?>" class="chip-link"><?= _ent($tiktok_packages->order_id); ?></a>
                             <?php else: ?>
                                <span class="chip-id"><?= _ent($tiktok_packages->order_id ?: '-'); ?></span>
                             <?php endif; ?>
@@ -253,30 +253,14 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="form-group">
-                         <label for="content" class="control-label">Status Paket</label>
-                         <div class="col-sm-8">
-                            <?php
-                            $st = strtoupper($tiktok_packages->package_status);
-                            if ($st === 'COMPLETED') {
-                               echo '<span class="label label-success">Selesai</span>';
-                            } elseif ($st === 'DELIVERED') {
-                               echo '<span class="label label-success">Terkirim</span>';
-                            } elseif ($st === 'FULFILLING') {
-                               echo '<span class="label label-warning">Sedang Diproses</span>';
-                            } elseif ($st === 'AWAITING_SHIPMENT') {
-                               echo '<span class="label label-warning">Perlu Dikirim</span>';
-                            } elseif ($st === 'AWAITING_COLLECTION') {
-                               echo '<span class="label label-info">Menunggu Penjemputan</span>';
-                            } elseif ($st === 'IN_TRANSIT') {
-                               echo '<span class="label label-info">Dalam Perjalanan</span>';
-                            } elseif ($st === 'CANCELLED') {
-                               echo '<span class="label label-danger">Dibatalkan</span>';
-                            } else {
-                               echo '<span class="label label-primary">' . _ent($st ?: '-') . '</span>';
-                            }
-                            ?>
-                         </div>
-                     </div>
+                          <label for="content" class="control-label">Status Paket</label>
+                          <div class="col-sm-8">
+                             <?= render_package_status_badge($tiktok_packages->package_status); ?>
+                             <?php if (!empty($tiktok_packages->package_sub_status)): ?>
+                                <span class="text-muted" style="margin-left: 8px; font-size: 12px;">(Sub-status: <?= _ent($tiktok_packages->package_sub_status); ?>)</span>
+                             <?php endif; ?>
+                          </div>
+                      </div>
 
                      <div class="form-group">
                          <label for="content" class="control-label">Kurir Logistik</label>
@@ -300,20 +284,11 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="form-group">
-                         <label for="content" class="control-label">Metode Serah Terima</label>
-                         <div class="col-sm-8">
-                            <?php
-                            $hm = strtoupper($tiktok_packages->handover_method);
-                            if ($hm === 'PICKUP') {
-                               echo '<span class="label label-info">Penjemputan</span>';
-                            } elseif ($hm === 'DROP_OFF') {
-                               echo '<span class="label label-warning">Antar ke Gerai</span>';
-                            } else {
-                               echo '<span class="label label-primary">' . _ent($tiktok_packages->handover_method ?: '-') . '</span>';
-                            }
-                            ?>
-                         </div>
-                     </div>
+                          <label for="content" class="control-label">Metode Serah Terima</label>
+                          <div class="col-sm-8">
+                             <?= render_handover_method_badge($tiktok_packages->handover_method); ?>
+                          </div>
+                      </div>
 
                      <div class="form-group">
                          <label for="content" class="control-label">Dimensi Paket</label>
@@ -444,7 +419,7 @@ jQuery(document).ready(domo);
 
                      <div class="view-nav">
                          <a class="btn btn-flat btn-info" target="_blank" href="<?= site_url('administrator/tiktok_packages/print_label/' . $tiktok_packages->id); ?>"><i class="fa fa-print"></i> Cetak Label Resi</a>
-                         <?php if (strtoupper($tiktok_packages->package_status) === 'FULFILLING' || strtoupper($tiktok_packages->package_status) === 'AWAITING_SHIPMENT'): ?>
+                         <?php if (in_array(strtoupper($tiktok_packages->package_status), ['FULFILLING', 'AWAITING_SHIPMENT', 'READY_FOR_SHIPMENT'])): ?>
                              <a class="btn btn-flat btn-success" href="<?= site_url('administrator/tiktok_packages/ship/' . $tiktok_packages->id); ?>" onclick="return confirm('Konfirmasi serah terima pengiriman paket ini ke kurir?');"><i class="fa fa-truck"></i> Konfirmasi Kirim Paket</a>
                          <?php endif; ?>
                          <a class="btn btn-flat btn-default btn_action" id="btn_back" title="Kembali (Ctrl+x)" href="<?= site_url('administrator/tiktok_packages'); ?>"><i class="fa fa-undo"></i> Kembali ke Daftar</a>

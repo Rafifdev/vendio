@@ -549,19 +549,50 @@ jQuery(document).ready(domo);
                      </div>
                   </div>
 
-                  <!-- Horizontal Status Navigation Tabs -->
+                  <!-- Horizontal Status Navigation Tabs (Sesuai Seller Center) -->
                   <div class="order-status-tabs" style="padding: 12px 25px 0 25px; background: #ffffff; border-bottom: 1px solid #edf2f7; display: flex; gap: 8px; overflow-x: auto;">
                      <?php
                      $tabs = [
-                        '' => ['label' => 'Semua Pesanan', 'count' => $status_counters['all'] ?? 0],
-                        'UNPAID' => ['label' => 'Belum Bayar', 'count' => $status_counters['UNPAID'] ?? 0],
-                        'AWAITING_SHIPMENT' => ['label' => 'Perlu Dikirim', 'count' => $status_counters['AWAITING_SHIPMENT'] ?? 0],
-                        'IN_TRANSIT' => ['label' => 'Dalam Pengiriman', 'count' => $status_counters['IN_TRANSIT'] ?? 0],
-                        'COMPLETED' => ['label' => 'Selesai', 'count' => $status_counters['COMPLETED'] ?? 0],
-                        'CANCELLED' => ['label' => 'Dibatalkan', 'count' => $status_counters['CANCELLED'] ?? 0],
+                        '' => [
+                           'label' => 'Semua',
+                           'count' => $status_counters['ALL'] ?? 0,
+                           'match' => ['', 'ALL'],
+                        ],
+                        'AWAITING_SHIPMENT' => [
+                           'label' => 'Perlu dikirim',
+                           'count' => $status_counters['AWAITING_SHIPMENT'] ?? 0,
+                           'match' => ['AWAITING_SHIPMENT', 'TO_SHIP', 'AWAITING_COLLECTION'],
+                        ],
+                        'IN_TRANSIT' => [
+                           'label' => 'Dikirim',
+                           'count' => $status_counters['IN_TRANSIT'] ?? 0,
+                           'match' => ['IN_TRANSIT', 'SHIPPED', 'PARTIALLY_SHIPPING'],
+                        ],
+                        'COMPLETED' => [
+                           'label' => 'Selesai',
+                           'count' => $status_counters['COMPLETED'] ?? 0,
+                           'match' => ['COMPLETED', 'DELIVERED'],
+                        ],
+                        'IN_PROCESS' => [
+                           'label' => 'Dalam Proses',
+                           'count' => $status_counters['IN_PROCESS'] ?? 0,
+                           'match' => ['IN_PROCESS', 'PROCESSING', 'UNPAID', 'ON_HOLD'],
+                        ],
+                        'CANCELLED' => [
+                           'label' => 'Dibatalkan',
+                           'count' => $status_counters['CANCELLED'] ?? 0,
+                           'match' => ['CANCELLED'],
+                        ],
+                        'DELIVERY_FAILED' => [
+                           'label' => 'Pengantaran Gagal',
+                           'count' => $status_counters['DELIVERY_FAILED'] ?? 0,
+                           'match' => ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'],
+                        ],
                      ];
+
+                     $curr_status = strtoupper(trim((string)$selected_status));
                      foreach ($tabs as $st_key => $tab_data):
-                        $is_active = ($selected_status === $st_key || (empty($selected_status) && $st_key === ''));
+                        $is_active = in_array($curr_status, $tab_data['match'], true);
                         $tab_url = site_url('administrator/tiktok_orders') . ($st_key !== '' ? '?status=' . $st_key : '') . (!empty($selected_shop_id) ? ($st_key !== '' ? '&' : '?') . 'shop_id=' . $selected_shop_id : '');
                      ?>
                         <a href="<?= $tab_url; ?>" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px; font-weight: <?= $is_active ? '700' : '500'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; border-bottom: 2.5px solid <?= $is_active ? '#00a65a' : 'transparent'; ?>; text-decoration: none !important; white-space: nowrap; transition: all 0.15s ease;">
@@ -574,10 +605,13 @@ jQuery(document).ready(domo);
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>
+                  <form name="form_tiktok_orders" id="form_tiktok_orders" action="<?= base_url('administrator/tiktok_orders/index'); ?>">
                      <?php if (!empty($selected_shop_id)): ?>
                         <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
-                     <?php endif; ?>">
+                     <?php endif; ?>
+                     <?php if (!empty($selected_status)): ?>
+                        <input type="hidden" name="status" value="<?= $selected_status; ?>">
+                     <?php endif; ?>
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>
@@ -645,40 +679,7 @@ jQuery(document).ready(domo);
                                     <?php endif; ?>
                                  </td>
                                  <td style="text-align: center; white-space: nowrap;">
-                                    <?php
-                                    $st = strtoupper($tiktok_orders->order_status);
-                                    switch ($st) {
-                                       case "UNPAID":
-                                          echo '<span class="label label-info">Belum Bayar</span>';
-                                          break;
-                                       case "ON_HOLD":
-                                          echo '<span class="label label-warning">Ditahan</span>';
-                                          break;
-                                       case "AWAITING_SHIPMENT":
-                                          echo '<span class="label label-warning">Perlu Dikirim</span>';
-                                          break;
-                                       case "AWAITING_COLLECTION":
-                                          echo '<span class="label label-info">Menunggu Kurir</span>';
-                                          break;
-                                       case "PARTIALLY_SHIPPING":
-                                          echo '<span class="label label-info">Sebagian Dikirim</span>';
-                                          break;
-                                       case "IN_TRANSIT":
-                                          echo '<span class="label label-info">Sedang Dikirim</span>';
-                                          break;
-                                       case "DELIVERED":
-                                          echo '<span class="label label-primary">Terkirim</span>';
-                                          break;
-                                       case "COMPLETED":
-                                          echo '<span class="label label-success">Selesai</span>';
-                                          break;
-                                       case "CANCELLED":
-                                          echo '<span class="label label-danger">Dibatalkan</span>';
-                                          break;
-                                       default:
-                                          echo '<span class="label label-info">' . _ent($tiktok_orders->order_status) . '</span>';
-                                    }
-                                    ?>
+                                    <?= render_order_status_badge($tiktok_orders->order_status); ?>
                                  </td>
                                  <td>
                                     <div style="font-weight: 500; color: #334155; font-size: 12px;"><?= _ent($tiktok_orders->shipping_type ?: '-'); ?></div>

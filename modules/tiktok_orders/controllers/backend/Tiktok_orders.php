@@ -45,20 +45,38 @@ class Tiktok_orders extends Admin
 		$this->data['selected_shop_id'] = $shop_id;
 		$this->data['selected_status'] = $order_status;
 
-		// Hitung counter status untuk navigasi tab horizontal
+		// Hitung counter status untuk navigasi tab horizontal sesuai TikTok Shop Seller Center
 		$counts_builder = $this->db->select('order_status, COUNT(*) as total')->from('tiktok_orders');
 		if (!empty($shop_id)) {
 			$counts_builder->where('tiktok_shop_id', $shop_id);
 		}
 		$raw_counts = $counts_builder->group_by('order_status')->get()->result();
-		$status_counters = ['all' => 0, 'UNPAID' => 0, 'AWAITING_SHIPMENT' => 0, 'IN_TRANSIT' => 0, 'COMPLETED' => 0, 'CANCELLED' => 0];
+		$status_counters = [
+			'ALL'               => 0,
+			'AWAITING_SHIPMENT' => 0,
+			'IN_TRANSIT'        => 0,
+			'COMPLETED'         => 0,
+			'IN_PROCESS'        => 0,
+			'CANCELLED'         => 0,
+			'DELIVERY_FAILED'   => 0,
+		];
 		foreach ($raw_counts as $rc) {
-			$st = strtoupper($rc->order_status);
-			$status_counters['all'] += (int)$rc->total;
-			if (isset($status_counters[$st])) {
-				$status_counters[$st] += (int)$rc->total;
-			} elseif ($st === 'DELIVERED') {
-				$status_counters['COMPLETED'] += (int)$rc->total;
+			$st = strtoupper(trim((string)$rc->order_status));
+			$cnt = (int)$rc->total;
+			$status_counters['ALL'] += $cnt;
+
+			if (in_array($st, ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION'])) {
+				$status_counters['AWAITING_SHIPMENT'] += $cnt;
+			} elseif (in_array($st, ['IN_TRANSIT', 'PARTIALLY_SHIPPING', 'SHIPPED'])) {
+				$status_counters['IN_TRANSIT'] += $cnt;
+			} elseif (in_array($st, ['COMPLETED', 'DELIVERED'])) {
+				$status_counters['COMPLETED'] += $cnt;
+			} elseif (in_array($st, ['UNPAID', 'ON_HOLD', 'PROCESSING', 'IN_PROCESS'])) {
+				$status_counters['IN_PROCESS'] += $cnt;
+			} elseif ($st === 'CANCELLED') {
+				$status_counters['CANCELLED'] += $cnt;
+			} elseif (in_array($st, ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'])) {
+				$status_counters['DELIVERY_FAILED'] += $cnt;
 			}
 		}
 		$this->data['status_counters'] = $status_counters;

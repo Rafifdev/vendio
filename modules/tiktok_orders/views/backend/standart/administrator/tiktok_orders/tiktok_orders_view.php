@@ -264,39 +264,7 @@ jQuery(document).ready(domo);
                      <div class="form-group">
                         <label for="content" class="col-sm-2 control-label">Status Pesanan</label>
                         <div class="col-sm-8">
-                           <?php 
-                           switch ($tiktok_orders->order_status) {
-                              case "UNPAID":
-                                 echo '<span class="label label-info">Belum Bayar</span>';
-                                 break;
-                              case "ON_HOLD":
-                                 echo '<span class="label label-warning">Ditahan</span>';
-                                 break;
-                              case "AWAITING_SHIPMENT":
-                                 echo '<span class="label label-warning">Perlu Dikirim</span>';
-                                 break;
-                              case "AWAITING_COLLECTION":
-                                 echo '<span class="label label-info">Menunggu Kurir</span>';
-                                 break;
-                              case "PARTIALLY_SHIPPING":
-                                 echo '<span class="label label-info">Sebagian Dikirim</span>';
-                                 break;
-                              case "IN_TRANSIT":
-                                 echo '<span class="label label-info">Sedang Dikirim</span>';
-                                 break;
-                              case "DELIVERED":
-                                 echo '<span class="label label-primary">Terkirim</span>';
-                                 break;
-                              case "COMPLETED":
-                                 echo '<span class="label label-success">Selesai</span>';
-                                 break;
-                              case "CANCELLED":
-                                 echo '<span class="label label-danger">Dibatalkan</span>';
-                                 break;
-                              default:
-                                 echo '<span class="label label-info">' . _ent($tiktok_orders->order_status) . '</span>';
-                           }
-                           ?>
+                           <?= render_order_status_badge($tiktok_orders->order_status); ?>
                         </div>
                      </div>
                                          
@@ -590,30 +558,13 @@ jQuery(document).ready(domo);
                                  </thead>
                                  <tbody>
                                     <?php if (!empty($status_logs)): ?>
-                                       <?php 
-                                       function render_log_status_badge($st) {
-                                          $s = strtoupper(trim((string)$st));
-                                          switch ($s) {
-                                             case "UNPAID": return '<span class="label label-info">Belum Bayar</span>';
-                                             case "ON_HOLD": return '<span class="label label-warning">Ditahan</span>';
-                                             case "AWAITING_SHIPMENT": return '<span class="label label-warning">Perlu Dikirim</span>';
-                                             case "AWAITING_COLLECTION": return '<span class="label label-info">Menunggu Kurir</span>';
-                                             case "PARTIALLY_SHIPPING": return '<span class="label label-info">Sebagian Dikirim</span>';
-                                             case "IN_TRANSIT": return '<span class="label label-info">Sedang Dikirim</span>';
-                                             case "DELIVERED": return '<span class="label label-primary">Terkirim</span>';
-                                             case "COMPLETED": return '<span class="label label-success">Selesai</span>';
-                                             case "CANCELLED": return '<span class="label label-danger">Dibatalkan</span>';
-                                             default: return $s ? '<span class="label label-info">' . _ent($s) . '</span>' : '<span class="text-muted">-</span>';
-                                          }
-                                       }
-                                       ?>
                                        <?php foreach ($status_logs as $log): ?>
                                        <tr>
                                           <td style="color: #64748b; font-size: 12.5px; white-space: nowrap; vertical-align: middle;">
                                              <?= date('d/m/Y H:i:s', strtotime($log->created_at)); ?>
                                           </td>
-                                          <td style="vertical-align: middle;"><?= render_log_status_badge($log->previous_status); ?></td>
-                                          <td style="vertical-align: middle;"><?= render_log_status_badge($log->new_status); ?></td>
+                                          <td style="vertical-align: middle;"><?= render_order_status_badge($log->previous_status); ?></td>
+                                          <td style="vertical-align: middle;"><?= render_order_status_badge($log->new_status); ?></td>
                                           <td style="vertical-align: middle; color: #475569;"><?= _ent($log->reason ?: '-'); ?></td>
                                        </tr>
                                        <?php endforeach; ?>
