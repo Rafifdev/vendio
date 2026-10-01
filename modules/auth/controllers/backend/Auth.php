@@ -39,7 +39,7 @@ class Auth extends Admin
                 if ($ref) {
 					redirect($ref,'refresh');
                 } else {
-					redirect('/administrator/user/profile','refresh');
+					redirect('administrator/user/profile','refresh');
                 }
 
 			} else {
@@ -125,7 +125,7 @@ class Auth extends Admin
 	public function logout()
 	{
 		$this->aauth->logout();
-		redirect('/');
+		redirect('administrator/login', 'refresh');
 	}
 }
 

@@ -20,7 +20,7 @@ class Dashboard extends Admin
 	public function index()
 	{
 		if (!$this->aauth->is_allowed('dashboard')) {
-			redirect('/', 'refresh');
+			redirect('administrator/user/profile', 'refresh');
 		}
 		$data = [];
 		$this->render('backend/standart/dashboard', $data);
@@ -29,7 +29,7 @@ class Dashboard extends Admin
 	public function chart()
 	{
 		if (!$this->aauth->is_allowed('dashboard')) {
-			redirect('/','refresh');
+			redirect('administrator/user/profile', 'refresh');
 		}
 
 		$data = [];

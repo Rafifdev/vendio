@@ -1,6 +1,5 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
     # Prioritaskan index.php agar tidak membuka index.html default bawaan cPanel/IDWebhost
     DirectoryIndex index.php index.html index.htm
