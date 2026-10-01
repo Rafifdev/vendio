@@ -32,18 +32,39 @@ class Tiktok_orders extends Admin
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');
 		$shop_id = $this->input->get('shop_id');
-		$order_status = $this->input->get('status');
+		$tab_param = $this->input->get('tab');
+		$status_param = $this->input->get('status');
 
-		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset, [], $shop_id, $order_status);
+		// Menentukan tab aktif:
+		// Jika parameter tab atau status ada, gunakan nilainya.
+		// Jika tidak ada parameter (default saat pertama buka halaman), default ke 'AWAITING_SHIPMENT' (Perlu dikirim)
+		if ($tab_param !== null && $tab_param !== '') {
+			$tab = strtoupper(trim($tab_param));
+		} elseif ($status_param !== null && $status_param !== '') {
+			$tab = strtoupper(trim($status_param));
+			if (in_array($tab, ['ON_HOLD', 'IN_PROCESS', 'PROCESSING', 'UNPAID'])) {
+				$tab = 'IN_PROCESS';
+			} elseif (in_array($tab, ['AWAITING_COLLECTION', 'AWAITING_SHIPMENT'])) {
+				$tab = 'AWAITING_SHIPMENT';
+			} elseif (in_array($tab, ['DELIVERED', 'IN_TRANSIT', 'SHIPPED'])) {
+				$tab = 'IN_TRANSIT';
+			}
+		} else {
+			// Default tab yang terbuka adalah Perlu dikirim
+			$tab = 'AWAITING_SHIPMENT';
+		}
+
+		$orders = $this->model_tiktok_orders->get($filter, $field, $this->limit_page, $offset, [], $shop_id, $status_param, $tab);
 		foreach ($orders as $order) {
 			$order->items = $this->db->get_where('tiktok_order_items', ['tiktok_order_id' => $order->id])->result();
 		}
 		$this->data['tiktok_orderss'] = $orders;
-		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $order_status);
+		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $status_param, $tab);
 
 		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
-		$this->data['selected_status'] = $order_status;
+		$this->data['selected_tab'] = $tab;
+		$this->data['selected_status'] = $tab;
 
 		// Hitung counter status untuk navigasi tab horizontal sesuai TikTok Shop Seller Center
 		$counts_builder = $this->db->select('order_status, COUNT(*) as total')->from('tiktok_orders');
@@ -51,39 +72,33 @@ class Tiktok_orders extends Admin
 			$counts_builder->where('tiktok_shop_id', $shop_id);
 		}
 		$raw_counts = $counts_builder->group_by('order_status')->get()->result();
-		$status_counters = [
-			'ALL'               => 0,
-			'AWAITING_SHIPMENT' => 0,
-			'IN_TRANSIT'        => 0,
-			'COMPLETED'         => 0,
-			'IN_PROCESS'        => 0,
-			'CANCELLED'         => 0,
-			'DELIVERY_FAILED'   => 0,
-		];
+
+		$raw_status_map = [];
+		$total_all = 0;
 		foreach ($raw_counts as $rc) {
 			$st = strtoupper(trim((string)$rc->order_status));
 			$cnt = (int)$rc->total;
-			$status_counters['ALL'] += $cnt;
-
-			if (in_array($st, ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION'])) {
-				$status_counters['AWAITING_SHIPMENT'] += $cnt;
-			} elseif (in_array($st, ['IN_TRANSIT', 'PARTIALLY_SHIPPING', 'SHIPPED'])) {
-				$status_counters['IN_TRANSIT'] += $cnt;
-			} elseif (in_array($st, ['COMPLETED', 'DELIVERED'])) {
-				$status_counters['COMPLETED'] += $cnt;
-			} elseif (in_array($st, ['UNPAID', 'ON_HOLD', 'PROCESSING', 'IN_PROCESS'])) {
-				$status_counters['IN_PROCESS'] += $cnt;
-			} elseif ($st === 'CANCELLED') {
-				$status_counters['CANCELLED'] += $cnt;
-			} elseif (in_array($st, ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'])) {
-				$status_counters['DELIVERY_FAILED'] += $cnt;
-			}
+			$raw_status_map[$st] = ($raw_status_map[$st] ?? 0) + $cnt;
+			$total_all += $cnt;
 		}
+
+		// 7 Main Tabs counters matching Seller Center:
+		// Semua, Perlu dikirim, Dikirim, Selesai, Dalam proses, Dibatalkan, Pengantaran gagal
+		$status_counters = [
+			'ALL'               => $total_all,
+			'AWAITING_SHIPMENT' => ($raw_status_map['AWAITING_SHIPMENT'] ?? 0) + ($raw_status_map['AWAITING_COLLECTION'] ?? 0),
+			'IN_TRANSIT'        => ($raw_status_map['IN_TRANSIT'] ?? 0) + ($raw_status_map['SHIPPED'] ?? 0) + ($raw_status_map['PARTIALLY_SHIPPING'] ?? 0) + ($raw_status_map['DELIVERED'] ?? 0),
+			'COMPLETED'         => ($raw_status_map['COMPLETED'] ?? 0),
+			'IN_PROCESS'        => ($raw_status_map['ON_HOLD'] ?? 0) + ($raw_status_map['UNPAID'] ?? 0) + ($raw_status_map['PROCESSING'] ?? 0),
+			'CANCELLED'         => ($raw_status_map['CANCELLED'] ?? 0),
+			'DELIVERY_FAILED'   => ($raw_status_map['DELIVERY_FAILED'] ?? 0) + ($raw_status_map['UNDELIVERED'] ?? 0) + ($raw_status_map['FAILED'] ?? 0),
+		];
+
 		$this->data['status_counters'] = $status_counters;
 
 		$config = [
 			'base_url'     => 'administrator/tiktok_orders/index/',
-			'total_rows'   => $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $order_status),
+			'total_rows'   => $this->data['tiktok_orders_counts'],
 			'per_page'     => $this->limit_page,
 			'uri_segment'  => 4,
 		];
@@ -516,15 +531,20 @@ class Tiktok_orders extends Admin
 							'sku_image'       => $item['sku_image'] ?? null,
 						];
 
-						// Cek keberadaan item
-						$where_item = ['tiktok_order_id' => $local_order_id];
+						// Cek keberadaan item (berdasarkan order_line_id atau fallback ke sku_id dalam pesanan yang sama)
+						$existing_item = null;
 						if (!empty($line_id)) {
-							$where_item['order_line_id'] = $line_id;
-						} elseif (!empty($sku_id)) {
-							$where_item['sku_id'] = $sku_id;
+							$existing_item = $this->db->get_where('tiktok_order_items', [
+								'tiktok_order_id' => $local_order_id,
+								'order_line_id'   => $line_id,
+							])->row();
 						}
-
-						$existing_item = $this->db->get_where('tiktok_order_items', $where_item)->row();
+						if (!$existing_item && !empty($sku_id)) {
+							$existing_item = $this->db->get_where('tiktok_order_items', [
+								'tiktok_order_id' => $local_order_id,
+								'sku_id'          => $sku_id,
+							])->row();
+						}
 						if ($existing_item) {
 							$this->db->where('id', $existing_item->id)->update('tiktok_order_items', $item_data);
 						} else {

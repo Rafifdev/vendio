@@ -452,7 +452,7 @@ if (count($fine_upload) > 0 OR count($fine_upload_multiple) > 0 ): ?>
                             <a class="btn btn-flat btn-default btn_action" id="btn_cancel" title="{php_open_tag_echo} cclang('cancel_button'); {php_close_tag} (Ctrl+x)">
                             <i class="fa fa-undo" ></i> {php_open_tag_echo} cclang('cancel_button'); {php_close_tag}
                             </a>
-                            <span class="loading loading-hide">
+                            <span class="loading loading-hide" style="display: none;">
                             <img src="{php_open_tag_echo} BASE_ASSET; {php_close_tag}/img/loading-spin-primary.svg"> 
                             <i>{php_open_tag_echo} cclang('loading_saving_data'); {php_close_tag}</i>
                             </span>

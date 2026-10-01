@@ -553,10 +553,10 @@ jQuery(document).ready(domo);
                   <div class="order-status-tabs" style="padding: 12px 25px 0 25px; background: #ffffff; border-bottom: 1px solid #edf2f7; display: flex; gap: 8px; overflow-x: auto;">
                      <?php
                      $tabs = [
-                        '' => [
+                        'ALL' => [
                            'label' => 'Semua',
                            'count' => $status_counters['ALL'] ?? 0,
-                           'match' => ['', 'ALL'],
+                           'match' => ['ALL'],
                         ],
                         'AWAITING_SHIPMENT' => [
                            'label' => 'Perlu dikirim',
@@ -566,15 +566,15 @@ jQuery(document).ready(domo);
                         'IN_TRANSIT' => [
                            'label' => 'Dikirim',
                            'count' => $status_counters['IN_TRANSIT'] ?? 0,
-                           'match' => ['IN_TRANSIT', 'SHIPPED', 'PARTIALLY_SHIPPING'],
+                           'match' => ['IN_TRANSIT', 'SHIPPED', 'PARTIALLY_SHIPPING', 'DELIVERED'],
                         ],
                         'COMPLETED' => [
                            'label' => 'Selesai',
                            'count' => $status_counters['COMPLETED'] ?? 0,
-                           'match' => ['COMPLETED', 'DELIVERED'],
+                           'match' => ['COMPLETED'],
                         ],
                         'IN_PROCESS' => [
-                           'label' => 'Dalam Proses',
+                           'label' => 'Dalam proses',
                            'count' => $status_counters['IN_PROCESS'] ?? 0,
                            'match' => ['IN_PROCESS', 'PROCESSING', 'UNPAID', 'ON_HOLD'],
                         ],
@@ -584,22 +584,19 @@ jQuery(document).ready(domo);
                            'match' => ['CANCELLED'],
                         ],
                         'DELIVERY_FAILED' => [
-                           'label' => 'Pengantaran Gagal',
+                           'label' => 'Pengantaran gagal',
                            'count' => $status_counters['DELIVERY_FAILED'] ?? 0,
                            'match' => ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'],
                         ],
                      ];
 
-                     $curr_status = strtoupper(trim((string)$selected_status));
+                     $curr_status = strtoupper(trim((string)($selected_status ?? 'AWAITING_SHIPMENT')));
                      foreach ($tabs as $st_key => $tab_data):
                         $is_active = in_array($curr_status, $tab_data['match'], true);
-                        $tab_url = site_url('administrator/tiktok_orders') . ($st_key !== '' ? '?status=' . $st_key : '') . (!empty($selected_shop_id) ? ($st_key !== '' ? '&' : '?') . 'shop_id=' . $selected_shop_id : '');
+                        $tab_url = site_url('administrator/tiktok_orders') . ($st_key !== 'ALL' ? '?status=' . $st_key : '?status=ALL') . (!empty($selected_shop_id) ? '&shop_id=' . $selected_shop_id : '');
                      ?>
-                        <a href="<?= $tab_url; ?>" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px; font-weight: <?= $is_active ? '700' : '500'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; border-bottom: 2.5px solid <?= $is_active ? '#00a65a' : 'transparent'; ?>; text-decoration: none !important; white-space: nowrap; transition: all 0.15s ease;">
-                           <?= $tab_data['label']; ?>
-                           <span class="badge" style="background: <?= $is_active ? '#e6f4ea' : '#f1f5f9'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px;">
-                              <?= $tab_data['count']; ?>
-                           </span>
+                        <a href="<?= $tab_url; ?>" style="display: inline-flex; align-items: center; gap: 4px; padding: 10px 16px; font-size: 13px; font-weight: <?= $is_active ? '700' : '500'; ?>; color: <?= $is_active ? '#00a65a' : '#64748b'; ?>; border-bottom: 2.5px solid <?= $is_active ? '#00a65a' : 'transparent'; ?>; text-decoration: none !important; white-space: nowrap; transition: all 0.15s ease;">
+                           <?= $tab_data['label']; ?> (<?= $tab_data['count']; ?>)
                         </a>
                      <?php endforeach; ?>
                   </div>
@@ -946,6 +943,9 @@ jQuery(document).ready(domo);
          if (shop_id) {
             params.push('shop_id=' + encodeURIComponent(shop_id));
          }
+         <?php if (!empty($selected_status)): ?>
+            params.push('status=<?= urlencode($selected_status); ?>');
+         <?php endif; ?>
          <?php if ($this->input->get('q')): ?>
             params.push('q=<?= urlencode($this->input->get('q')); ?>');
          <?php endif; ?>

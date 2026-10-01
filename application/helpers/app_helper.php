@@ -1551,22 +1551,22 @@ if (!function_exists('get_order_status_info')) {
 		$st = strtoupper(trim((string)$status));
 		$statuses = [
 			'UNPAID' => [
-				'text'  => 'Belum Bayar',
+				'text'  => 'Belum Dibayar',
 				'class' => 'label-warning',
 				'style' => 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;'
 			],
 			'ON_HOLD' => [
-				'text'  => 'Ditahan',
+				'text'  => 'Dalam proses',
 				'class' => 'label-warning',
 				'style' => 'background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'
 			],
 			'AWAITING_SHIPMENT' => [
-				'text'  => 'Perlu Dikirim',
+				'text'  => 'Menunggu Pengiriman',
 				'class' => 'label-warning',
 				'style' => 'background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a;'
 			],
 			'AWAITING_COLLECTION' => [
-				'text'  => 'Menunggu Kurir',
+				'text'  => 'Menunggu Pengambilan',
 				'class' => 'label-info',
 				'style' => 'background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;'
 			],
@@ -1576,9 +1576,14 @@ if (!function_exists('get_order_status_info')) {
 				'style' => 'background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;'
 			],
 			'IN_TRANSIT' => [
-				'text'  => 'Sedang Dikirim',
+				'text'  => 'Sedang transit',
 				'class' => 'label-info',
 				'style' => 'background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;'
+			],
+			'SHIPPED' => [
+				'text'  => 'Telah Dikirim',
+				'class' => 'label-info',
+				'style' => 'background-color: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4;'
 			],
 			'DELIVERED' => [
 				'text'  => 'Terkirim',
@@ -1596,17 +1601,17 @@ if (!function_exists('get_order_status_info')) {
 				'style' => 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;'
 			],
 			'DELIVERY_FAILED' => [
-				'text'  => 'Pengantaran Gagal',
+				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
 				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
 			],
 			'UNDELIVERED' => [
-				'text'  => 'Pengantaran Gagal',
+				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
 				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
 			],
 			'FAILED' => [
-				'text'  => 'Pengantaran Gagal',
+				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
 				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
 			],

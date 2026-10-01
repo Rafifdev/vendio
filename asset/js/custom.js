@@ -118,6 +118,9 @@ jQuery.expr[':'].regex = function(elem, index, match) {
           $('form input')[1].focus();
       }
 
+      /* Sembunyikan indikator loading form saat halaman pertama kali dimuat */
+      $('.loading, .loading-hide').hide();
+
       /*show loading*/
       $.fn.loader = function(opsi) {
           $(this).html('<span class="loading loading-hide pull-right padding-10"><img src="' + BASE_URL + 'asset/img/loading-spin-primary.svg"> <i>Loading, Submitting Data</i></span>');

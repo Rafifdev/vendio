@@ -427,7 +427,7 @@
                             <a class="btn btn-flat btn-default btn_action" id="btn_cancel" title="<?= cclang('cancel_button'); ?> (Ctrl+x)">
                             <i class="fa fa-undo" ></i> <?= cclang('cancel_button'); ?>
                             </a>
-                            <span class="loading loading-hide">
+                            <span class="loading loading-hide" style="display: none;">
                             <img src="<?= BASE_ASSET; ?>/img/loading-spin-primary.svg"> 
                             <i><?= cclang('loading_saving_data'); ?></i>
                             </span>

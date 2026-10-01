@@ -30,21 +30,30 @@ class Model_tiktok_orders extends MY_Model {
 
         // Map kata kunci pencarian status bahasa Indonesia ke kode status internal
         $status_keywords = [
-            'perlu'      => ['AWAITING_SHIPMENT'],
-            'belum'      => ['UNPAID'],
-            'bayar'      => ['UNPAID'],
-            'tahan'      => ['ON_HOLD'],
-            'ditahan'    => ['ON_HOLD'],
-            'jemput'     => ['AWAITING_COLLECTION'],
-            'kurir'      => ['AWAITING_COLLECTION'],
-            'kirim'      => ['AWAITING_SHIPMENT', 'IN_TRANSIT', 'PARTIALLY_SHIPPING'],
-            'dikirim'    => ['IN_TRANSIT'],
-            'terkirim'   => ['DELIVERED'],
-            'sampai'     => ['DELIVERED'],
-            'selesai'    => ['COMPLETED', 'DELIVERED'],
-            'batal'      => ['CANCELLED'],
-            'gagal'      => ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'],
-            'proses'     => ['ON_HOLD', 'UNPAID', 'PROCESSING'],
+            'perlu'        => ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION'],
+            'menunggu'     => ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION'],
+            'pengiriman'   => ['AWAITING_SHIPMENT', 'IN_TRANSIT'],
+            'belum'        => ['UNPAID'],
+            'bayar'        => ['UNPAID'],
+            'dibayar'      => ['UNPAID'],
+            'tahan'        => ['ON_HOLD'],
+            'ditahan'      => ['ON_HOLD'],
+            'jemput'       => ['AWAITING_COLLECTION'],
+            'ambil'        => ['AWAITING_COLLECTION'],
+            'pengambilan'  => ['AWAITING_COLLECTION'],
+            'kurir'        => ['AWAITING_COLLECTION'],
+            'kirim'        => ['AWAITING_SHIPMENT', 'IN_TRANSIT', 'PARTIALLY_SHIPPING', 'SHIPPED', 'DELIVERED'],
+            'dikirim'      => ['IN_TRANSIT', 'SHIPPED', 'PARTIALLY_SHIPPING'],
+            'transit'      => ['IN_TRANSIT'],
+            'sedang transit' => ['IN_TRANSIT'],
+            'terkirim'     => ['DELIVERED'],
+            'sampai'       => ['DELIVERED'],
+            'selesai'      => ['COMPLETED'],
+            'batal'        => ['CANCELLED'],
+            'dibatalkan'   => ['CANCELLED'],
+            'gagal'        => ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED'],
+            'proses'       => ['ON_HOLD', 'UNPAID', 'PROCESSING'],
+            'dalam proses' => ['ON_HOLD', 'PROCESSING'],
         ];
 
         $matched_status_codes = [];
@@ -85,34 +94,91 @@ class Model_tiktok_orders extends MY_Model {
         return $where;
     }
 
-    public function apply_status_filter($status = null)
+    public function apply_status_filter($tab = null, $substatus = null, $order_status = null)
     {
-        if ($status === null) {
-            $status = $this->input->get('status');
+        if ($tab === null) {
+            $tab = $this->input->get('tab');
+        }
+        if ($substatus === null) {
+            $substatus = $this->input->get('substatus');
+        }
+        if ($order_status === null) {
+            $order_status = $this->input->get('status');
         }
 
-        if (empty($status) || strtoupper($status) === 'ALL') {
+        // Resolving fallback jika tab belum terisi tapi status lama ada
+        if (empty($tab) && !empty($order_status)) {
+            $st_fallback = strtoupper(trim((string)$order_status));
+            if ($st_fallback === 'AWAITING_COLLECTION') {
+                $tab = 'AWAITING_SHIPMENT';
+                $substatus = 'AWAITING_COLLECTION';
+            } elseif ($st_fallback === 'DELIVERED') {
+                $tab = 'IN_TRANSIT';
+                $substatus = 'DELIVERED';
+            } elseif ($st_fallback === 'ON_HOLD') {
+                $tab = 'IN_PROCESS';
+                $substatus = 'ON_HOLD';
+            } elseif (in_array($st_fallback, ['IN_PROCESS', 'PROCESSING', 'UNPAID'])) {
+                $tab = 'IN_PROCESS';
+            } else {
+                $tab = $st_fallback;
+            }
+        }
+
+        $tab = strtoupper(trim((string)$tab));
+        $sub = strtoupper(trim((string)$substatus));
+
+        // 1. Jika ada substatus spesifik yang dipilih dan bukan 'ALL'
+        if (!empty($sub) && $sub !== 'ALL') {
+            switch ($sub) {
+                case 'AWAITING_SHIPMENT':
+                    $this->db->where('tiktok_orders.order_status', 'AWAITING_SHIPMENT');
+                    return $this;
+                case 'AWAITING_COLLECTION':
+                    $this->db->where('tiktok_orders.order_status', 'AWAITING_COLLECTION');
+                    return $this;
+                case 'IN_TRANSIT':
+                    $this->db->where_in('tiktok_orders.order_status', ['IN_TRANSIT', 'SHIPPED', 'PARTIALLY_SHIPPING']);
+                    return $this;
+                case 'DELIVERED':
+                    $this->db->where('tiktok_orders.order_status', 'DELIVERED');
+                    return $this;
+                case 'UNPAID':
+                    $this->db->where('tiktok_orders.order_status', 'UNPAID');
+                    return $this;
+                case 'ON_HOLD':
+                case 'IN_PROCESS':
+                    $this->db->where_in('tiktok_orders.order_status', ['ON_HOLD', 'PROCESSING']);
+                    return $this;
+                default:
+                    $this->db->where('tiktok_orders.order_status', $sub);
+                    return $this;
+            }
+        }
+
+        // 2. Jika tidak ada substatus spesifik, gunakan filter kategori Tab utama Seller Center
+        if (empty($tab) || $tab === 'ALL') {
             return $this;
         }
 
-        $st = strtoupper(trim((string)$status));
-        switch ($st) {
+        switch ($tab) {
+            case 'IN_PROCESS':
+            case 'PROCESSING':
+            case 'ON_HOLD':
+            case 'UNPAID':
+                $this->db->where_in('tiktok_orders.order_status', ['ON_HOLD', 'UNPAID', 'PROCESSING']);
+                break;
             case 'AWAITING_SHIPMENT':
             case 'TO_SHIP':
                 $this->db->where_in('tiktok_orders.order_status', ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION']);
                 break;
             case 'IN_TRANSIT':
             case 'SHIPPED':
-                $this->db->where_in('tiktok_orders.order_status', ['IN_TRANSIT', 'PARTIALLY_SHIPPING']);
+                // Di Seller Center, tab "Dikirim" mencakup status Dalam Pengiriman & Terkirim
+                $this->db->where_in('tiktok_orders.order_status', ['IN_TRANSIT', 'PARTIALLY_SHIPPING', 'SHIPPED', 'DELIVERED']);
                 break;
             case 'COMPLETED':
-                $this->db->where_in('tiktok_orders.order_status', ['COMPLETED', 'DELIVERED']);
-                break;
-            case 'IN_PROCESS':
-            case 'PROCESSING':
-            case 'UNPAID':
-            case 'ON_HOLD':
-                $this->db->where_in('tiktok_orders.order_status', ['UNPAID', 'ON_HOLD', 'PROCESSING']);
+                $this->db->where('tiktok_orders.order_status', 'COMPLETED');
                 break;
             case 'CANCELLED':
                 $this->db->where('tiktok_orders.order_status', 'CANCELLED');
@@ -123,18 +189,18 @@ class Model_tiktok_orders extends MY_Model {
                 $this->db->where_in('tiktok_orders.order_status', ['DELIVERY_FAILED', 'UNDELIVERED', 'FAILED']);
                 break;
             default:
-                $this->db->where('tiktok_orders.order_status', $st);
+                $this->db->where('tiktok_orders.order_status', $tab);
                 break;
         }
 
         return $this;
     }
 
-    public function count_all($q = null, $field = null, $shop_id = null, $order_status = null)
+    public function count_all($q = null, $field = null, $shop_id = null, $order_status = null, $tab = null, $substatus = null)
     {
         $where = $this->_build_search_condition($q, $field);
 
-        $this->join_avaiable()->filter_avaiable($shop_id, $order_status);
+        $this->join_avaiable()->filter_avaiable($shop_id, $order_status, $tab, $substatus);
         if ($where) {
             $this->db->where($where);
         }
@@ -143,7 +209,7 @@ class Model_tiktok_orders extends MY_Model {
         return $query->num_rows();
     }
 
-    public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [], $shop_id = null, $order_status = null)
+    public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [], $shop_id = null, $order_status = null, $tab = null, $substatus = null)
     {
         $where = $this->_build_search_condition($q, $field);
 
@@ -151,7 +217,7 @@ class Model_tiktok_orders extends MY_Model {
             $this->db->select($select_field);
         }
 
-        $this->join_avaiable()->filter_avaiable($shop_id, $order_status);
+        $this->join_avaiable()->filter_avaiable($shop_id, $order_status, $tab, $substatus);
         if ($where) {
             $this->db->where($where);
         }
@@ -169,14 +235,20 @@ class Model_tiktok_orders extends MY_Model {
         return $this;
     }
 
-    public function filter_avaiable($shop_id = null, $order_status = null) {
+    public function filter_avaiable($shop_id = null, $order_status = null, $tab = null, $substatus = null) {
         if (!$this->aauth->is_admin()) {
         }
 
+        if ($tab === null) {
+            $tab = $this->input->get('tab');
+        }
+        if ($substatus === null) {
+            $substatus = $this->input->get('substatus');
+        }
         if ($order_status === null) {
             $order_status = $this->input->get('status');
         }
-        $this->apply_status_filter($order_status);
+        $this->apply_status_filter($tab, $substatus, $order_status);
 
         if ($shop_id === null) {
             $shop_id = $this->input->get('shop_id');

@@ -289,13 +289,15 @@
                             </label>
                             <div class="col-sm-8">
                                 <select class="form-control chosen chosen-select" name="order_status" id="order_status" data-placeholder="Pilih Status Pesanan">
-                                    <option value="UNPAID" <?= set_value('order_status') == 'UNPAID' ? 'selected' : ''; ?>>Belum Bayar (UNPAID)</option>
-                                    <option value="AWAITING_SHIPMENT" <?= set_value('order_status') == 'AWAITING_SHIPMENT' || !set_value('order_status') ? 'selected' : ''; ?>>Perlu Dikirim (AWAITING_SHIPMENT)</option>
-                                    <option value="AWAITING_COLLECTION" <?= set_value('order_status') == 'AWAITING_COLLECTION' ? 'selected' : ''; ?>>Menunggu Pickup Kurir (AWAITING_COLLECTION)</option>
-                                    <option value="IN_TRANSIT" <?= set_value('order_status') == 'IN_TRANSIT' ? 'selected' : ''; ?>>Dalam Pengiriman (IN_TRANSIT)</option>
-                                    <option value="DELIVERED" <?= set_value('order_status') == 'DELIVERED' ? 'selected' : ''; ?>>Pesanan Sampai (DELIVERED)</option>
+                                    <option value="UNPAID" <?= set_value('order_status') == 'UNPAID' ? 'selected' : ''; ?>>Belum Dibayar (UNPAID)</option>
+                                    <option value="ON_HOLD" <?= set_value('order_status') == 'ON_HOLD' ? 'selected' : ''; ?>>Dalam proses (ON_HOLD)</option>
+                                    <option value="AWAITING_SHIPMENT" <?= set_value('order_status') == 'AWAITING_SHIPMENT' || !set_value('order_status') ? 'selected' : ''; ?>>Menunggu Pengiriman (AWAITING_SHIPMENT)</option>
+                                    <option value="AWAITING_COLLECTION" <?= set_value('order_status') == 'AWAITING_COLLECTION' ? 'selected' : ''; ?>>Menunggu Pengambilan (AWAITING_COLLECTION)</option>
+                                    <option value="IN_TRANSIT" <?= set_value('order_status') == 'IN_TRANSIT' ? 'selected' : ''; ?>>Sedang transit (IN_TRANSIT)</option>
+                                    <option value="DELIVERED" <?= set_value('order_status') == 'DELIVERED' ? 'selected' : ''; ?>>Terkirim (DELIVERED)</option>
                                     <option value="COMPLETED" <?= set_value('order_status') == 'COMPLETED' ? 'selected' : ''; ?>>Selesai (COMPLETED)</option>
                                     <option value="CANCELLED" <?= set_value('order_status') == 'CANCELLED' ? 'selected' : ''; ?>>Dibatalkan (CANCELLED)</option>
+                                    <option value="DELIVERY_FAILED" <?= set_value('order_status') == 'DELIVERY_FAILED' ? 'selected' : ''; ?>>Pengiriman Gagal (DELIVERY_FAILED)</option>
                                 </select>
                                 <small class="info help-block">Status terkini transaksi pesanan.</small>
                             </div>

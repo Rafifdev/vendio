@@ -24,9 +24,15 @@
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/admin-lte/plugins/iCheck/all.css">
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/sweet-alert/sweetalert.css">
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>/toastr/build/toastr.css">
-  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/fancy-box/source/jquery.fancybox.css?v=2.1.5" media="screen" />
-  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/chosen/chosen.css">
-  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/css/custom.css?timestamp=<?= @filemtime(FCPATH . 'asset/css/custom.css') ?: '20260930'; ?>">
+  <link rel="stylesheet" href="<?= rtrim(BASE_ASSET, '/'); ?>/fancy-box/source/jquery.fancybox.css?v=2.1.5" media="screen" />
+  <link rel="stylesheet" href="<?= rtrim(BASE_ASSET, '/'); ?>/chosen/chosen.css">
+  <link rel="stylesheet" href="<?= rtrim(BASE_ASSET, '/'); ?>/css/custom.css?timestamp=<?= @filemtime(FCPATH . 'asset/css/custom.css') ?: '20260930'; ?>">
+  <style>
+    .loading-hide, span.loading.loading-hide {
+      display: none;
+      margin-left: 10px;
+    }
+  </style>
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>datetimepicker/jquery.datetimepicker.css"/>
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>js-scroll/style/jquery.jscrollpane.css" rel="stylesheet" media="all" />
   <link rel="stylesheet" href="<?= BASE_ASSET; ?>flag-icon/css/flag-icon.css" rel="stylesheet" media="all" />
@@ -105,6 +111,9 @@
         checkboxClass: 'icheckbox_minimal-red',
         radioClass: 'iradio_minimal-red'
       });
+
+      // Pastikan indikator loading di form add/edit disembunyikan saat halaman pertama kali dibuka
+      $('.loading, .loading-hide').hide();
     });
   </script>
   <?= $this->cc_html->getScriptFileTop(); ?>

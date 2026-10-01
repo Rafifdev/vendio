@@ -292,12 +292,15 @@
                             <div class="col-sm-8">
                                 <select  class="form-control chosen chosen-select" name="order_status" id="order_status" data-placeholder="Pilih Status Pesanan" >
                                     <option value=""></option>
-                                    <option <?= $tiktok_orders->order_status == "AWAITING_COLLECTION" ? 'selected' :''; ?> value="AWAITING_COLLECTION">Menunggu Pickup</option>
-                                    <option <?= $tiktok_orders->order_status == "AWAITING_SHIPMENT" ? 'selected' :''; ?> value="AWAITING_SHIPMENT">Perlu Dikirim</option>
                                     <option <?= $tiktok_orders->order_status == "UNPAID" ? 'selected' :''; ?> value="UNPAID">Belum Dibayar</option>
-                                    <option <?= $tiktok_orders->order_status == "IN_TRANSIT" ? 'selected' :''; ?> value="IN_TRANSIT">Sedang Dikirim</option>
-                                    <option <?= $tiktok_orders->order_status == "DELIVERED" ? 'selected' :''; ?> value="DELIVERED">Pesanan Sampai</option>
+                                    <option <?= $tiktok_orders->order_status == "ON_HOLD" ? 'selected' :''; ?> value="ON_HOLD">Dalam proses</option>
+                                    <option <?= $tiktok_orders->order_status == "AWAITING_SHIPMENT" ? 'selected' :''; ?> value="AWAITING_SHIPMENT">Menunggu Pengiriman</option>
+                                    <option <?= $tiktok_orders->order_status == "AWAITING_COLLECTION" ? 'selected' :''; ?> value="AWAITING_COLLECTION">Menunggu Pengambilan</option>
+                                    <option <?= $tiktok_orders->order_status == "IN_TRANSIT" ? 'selected' :''; ?> value="IN_TRANSIT">Sedang transit</option>
+                                    <option <?= $tiktok_orders->order_status == "DELIVERED" ? 'selected' :''; ?> value="DELIVERED">Terkirim</option>
                                     <option <?= $tiktok_orders->order_status == "COMPLETED" ? 'selected' :''; ?> value="COMPLETED">Selesai</option>
+                                    <option <?= $tiktok_orders->order_status == "CANCELLED" ? 'selected' :''; ?> value="CANCELLED">Dibatalkan</option>
+                                    <option <?= $tiktok_orders->order_status == "DELIVERY_FAILED" ? 'selected' :''; ?> value="DELIVERY_FAILED">Pengiriman Gagal</option>
                                     </select>
                                 <small class="info help-block">
                                 </small>
