@@ -54,12 +54,20 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
-// $allowedIp = '111.68.29.32';
-// if ($_SERVER['REMOTE_ADDR'] == $allowedIp) {
-// } else {
-//     define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'production');
-// }
+if (!defined('ENVIRONMENT')) {
+    if (isset($_SERVER['CI_ENV'])) {
+        define('ENVIRONMENT', $_SERVER['CI_ENV']);
+    } else {
+        $is_local = (
+            (isset($_SERVER['HTTP_HOST']) && (
+                in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1']) ||
+                strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0 ||
+                strpos($_SERVER['HTTP_HOST'], '127.0.0.1:') === 0
+            ))
+        );
+        define('ENVIRONMENT', $is_local ? 'development' : 'production');
+    }
+}
 
 /*
  *---------------------------------------------------------------

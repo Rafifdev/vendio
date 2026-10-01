@@ -22,7 +22,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['codeigniter_info']     = TRUE;
 $config['exceptions']           = TRUE;
 $config['messages']             = TRUE;
-$config['php_info']             = TRUE;
+$config['php_info']             = FALSE;
 $config['included_files']       = TRUE;
 
 /*

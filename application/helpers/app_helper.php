@@ -697,7 +697,7 @@ if(!function_exists('site_name')) {
 
 if(!function_exists('installation_complete')) {
 	function installation_complete() {
-		return is_file(FCPATH . '/application/config/site.php');
+		return true; // Proyek sudah terinstall, cegah redirect ke halaman installer / cek php
 	}
 }
 

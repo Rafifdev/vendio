@@ -86,16 +86,30 @@ defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest auto
 
 
 
-//CUSTOM
-$http = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://';
-$fo = str_replace("index.php","", $_SERVER['SCRIPT_NAME']);
-$base = $base = "$http" . $_SERVER['SERVER_NAME'] . ":" . $_SERVER['SERVER_PORT'] . "" . $fo;
+// CUSTOM BASE_URL (Dynamic & HTTPS-friendly for localhost and cPanel)
+$is_https = (
+    (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
+    (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') ||
+    (!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') ||
+    (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+);
+$http = $is_https ? 'https://' : 'http://';
 
-defined('BASE_URL') 			OR define('BASE_URL'			, $base);
-defined('BASE_ASSET') 			OR define('BASE_ASSET'			, BASE_URL . 'asset/');
+if (!empty($_SERVER['HTTP_HOST'])) {
+    $host = $_SERVER['HTTP_HOST'];
+} elseif (!empty($_SERVER['SERVER_NAME'])) {
+    $port = (isset($_SERVER['SERVER_PORT']) && !in_array($_SERVER['SERVER_PORT'], [80, 443])) ? ':' . $_SERVER['SERVER_PORT'] : '';
+    $host = $_SERVER['SERVER_NAME'] . $port;
+} else {
+    $host = 'localhost';
+}
 
-defined('BASE_ASSET')           OR define('BASE_ASSET', base_url('asset/')); // highest automatically-assigned error code
-defined('VERSION')              OR define('VERSION', '3.0.0'); // highest automatically-assigned error code
-defined('EXTENSION_PATH')      	OR define('EXTENSION_PATH', FCPATH . 'cc-content/extensions/'); 
-defined('ADMIN_NAMESPACE_URL')  OR define('ADMIN_NAMESPACE_URL', 'administrator'); 
+$fo = isset($_SERVER['SCRIPT_NAME']) ? str_replace("index.php", "", $_SERVER['SCRIPT_NAME']) : '/';
+$base = rtrim($http . $host . $fo, '/') . '/';
+
+defined('BASE_URL')             OR define('BASE_URL', $base);
+defined('BASE_ASSET')           OR define('BASE_ASSET', BASE_URL . 'asset/');
+defined('VERSION')              OR define('VERSION', '3.0.0');
+defined('EXTENSION_PATH')       OR define('EXTENSION_PATH', FCPATH . 'cc-content/extensions/'); 
+defined('ADMIN_NAMESPACE_URL')  OR define('ADMIN_NAMESPACE_URL', 'administrator');
 
