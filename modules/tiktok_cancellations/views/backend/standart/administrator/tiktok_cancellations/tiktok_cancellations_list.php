@@ -593,9 +593,6 @@ jQuery(document).ready(domo);
                               <?php endforeach; ?>
                            </select>
                         </div>
-                        <a class="btn btn-top-action btn_add_new" id="btn_sync" title="Tarik Data Pembatalan dari TikTok Shop" href="<?= site_url('administrator/tiktok_cancellations/sync'); ?>">
-                           <i class="fa fa-refresh"></i> Tarik Data Pembatalan
-                        </a>
                         <?php is_allowed('tiktok_cancellations_export', function () { ?>
                         <a class="btn btn-top-action" title="<?= cclang('export'); ?> XLS" href="<?= site_url('administrator/tiktok_cancellations/export'); ?>">
                            <i class="fa fa-file-excel-o"></i> <?= cclang('export'); ?> XLS

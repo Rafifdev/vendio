@@ -286,9 +286,13 @@
         </div>
 
         <div class="btn-action-wrap">
-          <button type="button" class="btn btn-vendio btn-vendio-success" onclick="window.close();">
+          <button type="button" class="btn btn-vendio btn-vendio-success" onclick="handleClosePage(this);">
             <i class="fa fa-check"></i> Selesai & Tutup Halaman
           </button>
+          <div class="close-hint-box" style="display: none; margin-top: 14px; padding: 12px 14px; background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #475569; line-height: 1.5; text-align: center;">
+            <i class="fa fa-info-circle text-primary" style="margin-right: 4px;"></i>
+            Keamanan browser membatasi penutupan tab otomatis. Anda dapat langsung menutup tab ini secara manual melalui tanda silang (<b>&times;</b>) di browser Anda.
+          </div>
         </div>
       </div>
 
@@ -320,9 +324,13 @@
         </p>
 
         <div class="btn-action-wrap">
-          <button type="button" class="btn btn-vendio" onclick="window.close();">
+          <button type="button" class="btn btn-vendio" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
+          <div class="close-hint-box" style="display: none; margin-top: 14px; padding: 12px 14px; background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #475569; line-height: 1.5; text-align: center;">
+            <i class="fa fa-info-circle text-primary" style="margin-right: 4px;"></i>
+            Keamanan browser membatasi penutupan tab otomatis. Anda dapat langsung menutup tab ini secara manual melalui tanda silang (<b>&times;</b>) di browser Anda.
+          </div>
         </div>
       </div>
 
@@ -350,9 +358,13 @@
         </p>
 
         <div class="btn-action-wrap">
-          <button type="button" class="btn btn-vendio" onclick="window.close();">
+          <button type="button" class="btn btn-vendio" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
+          <div class="close-hint-box" style="display: none; margin-top: 14px; padding: 12px 14px; background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #475569; line-height: 1.5; text-align: center;">
+            <i class="fa fa-info-circle text-primary" style="margin-right: 4px;"></i>
+            Keamanan browser membatasi penutupan tab otomatis. Anda dapat langsung menutup tab ini secara manual melalui tanda silang (<b>&times;</b>) di browser Anda.
+          </div>
         </div>
       </div>
 
@@ -380,9 +392,13 @@
         </p>
 
         <div class="btn-action-wrap">
-          <button type="button" class="btn btn-vendio" onclick="window.close();">
+          <button type="button" class="btn btn-vendio" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
+          <div class="close-hint-box" style="display: none; margin-top: 14px; padding: 12px 14px; background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 6px; font-size: 12.5px; color: #475569; line-height: 1.5; text-align: center;">
+            <i class="fa fa-info-circle text-primary" style="margin-right: 4px;"></i>
+            Keamanan browser membatasi penutupan tab otomatis. Anda dapat langsung menutup tab ini secara manual melalui tanda silang (<b>&times;</b>) di browser Anda.
+          </div>
         </div>
       </div>
     <?php endif; ?>
@@ -394,5 +410,25 @@
 
   </div>
 
+  <script>
+    function handleClosePage(btn) {
+      try {
+        window.open('', '_self', '');
+        window.close();
+      } catch (e) {}
+
+      setTimeout(function() {
+        var hints = document.querySelectorAll('.close-hint-box');
+        hints.forEach(function(el) {
+          el.style.display = 'block';
+        });
+        if (btn) {
+          btn.innerHTML = '<i class="fa fa-check"></i> Selesai (Silakan Tutup Tab)';
+          btn.style.opacity = '0.75';
+          btn.style.cursor = 'default';
+        }
+      }, 150);
+    }
+  </script>
 </body>
 </html>
