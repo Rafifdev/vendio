@@ -191,14 +191,23 @@ class Cc_App
 	{
 		$options = json_decode(get_cookie('options'));
 		if (!$options) {
-			$options = $this->ci->db->get('cc_options')->result();
-			set_cookie('options', json_encode($options), 3600*24*1);
+			if ($this->ci->db) {
+				$query = $this->ci->db->get('cc_options');
+				$options = $query ? $query->result() : [];
+				set_cookie('options', json_encode($options), 3600*24*1);
+			} else {
+				$options = [];
+			}
 		}
 
 		$option = [];
 
-		foreach ($options as $row) {
-			$option[$row->option_name] = $row;
+		if (is_array($options) || is_object($options)) {
+			foreach ($options as $row) {
+				if (isset($row->option_name)) {
+					$option[$row->option_name] = $row;
+				}
+			}
 		}
 		if (isset($option[$option_name])) {
 			return $option[$option_name]->option_value;
