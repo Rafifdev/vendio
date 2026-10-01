@@ -94825,3 +94825,24 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `tiktok_oauth_states`
+--
+
+CREATE TABLE IF NOT EXISTS `tiktok_oauth_states` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `state` VARCHAR(128) NOT NULL,
+  `client_name` VARCHAR(150) DEFAULT NULL,
+  `created_by` INT UNSIGNED DEFAULT NULL,
+  `is_used` TINYINT(1) DEFAULT 0,
+  `shop_id` INT UNSIGNED DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL,
+  `used_at` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_state` (`state`),
+  KEY `idx_expires` (`expires_at`, `is_used`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

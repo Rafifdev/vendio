@@ -432,19 +432,149 @@ class Tiktok_shops extends Admin
 	}
 
 	/**
+	 * Memastikan tabel tiktok_oauth_states tersedia di database
+	 */
+	private function _ensure_oauth_table()
+	{
+		$this->db->query("CREATE TABLE IF NOT EXISTS `tiktok_oauth_states` (
+		  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+		  `state` VARCHAR(128) NOT NULL,
+		  `client_name` VARCHAR(150) DEFAULT NULL,
+		  `created_by` INT UNSIGNED DEFAULT NULL,
+		  `is_used` TINYINT(1) DEFAULT 0,
+		  `shop_id` INT UNSIGNED DEFAULT NULL,
+		  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+		  `expires_at` DATETIME NOT NULL,
+		  `used_at` DATETIME DEFAULT NULL,
+		  PRIMARY KEY (`id`),
+		  UNIQUE KEY `idx_state` (`state`),
+		  KEY `idx_expires` (`expires_at`, `is_used`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+	}
+
+	/**
+	 * Halaman status publik hasil otorisasi OAuth TikTok Shop
+	 * (Dapat diakses publik tanpa login)
+	 */
+	public function auth_status()
+	{
+		$this->output->enable_profiler(FALSE);
+		$status = $this->input->get('status') ?: 'success';
+		$shop_name = $this->input->get('shop') ?: '';
+		$error_message = $this->input->get('msg') ?: '';
+
+		$data = [
+			'page_title'    => 'Status Otorisasi TikTok Shop - Vendio',
+			'status'        => $status,
+			'shop_name'     => $shop_name,
+			'error_message' => $error_message,
+		];
+
+		$this->load->view('public/auth_status', $data);
+	}
+
+	/**
+	 * Generate One-Time Authorization Link (Token Sekali Pakai)
+	 */
+	public function generate_auth_link()
+	{
+		$this->is_allowed('tiktok_shops_add');
+		$this->_ensure_oauth_table();
+		$this->load->library('tiktok_api');
+
+		$client_name = trim((string)$this->input->post('client_name') ?: (string)$this->input->get('client_name'));
+		$duration = intval($this->input->post('duration') ?: $this->input->get('duration')) ?: 60; // default 60 menit
+		if ($duration < 5) $duration = 5;
+		if ($duration > 43200) $duration = 43200; // max 30 hari
+
+		$state = bin2hex(random_bytes(16));
+		$expires_at = date('Y-m-d H:i:s', time() + ($duration * 60));
+
+		$this->db->insert('tiktok_oauth_states', [
+			'state'       => $state,
+			'client_name' => !empty($client_name) ? $client_name : null,
+			'created_by'  => get_user_data('id') ?: null,
+			'is_used'     => 0,
+			'expires_at'  => $expires_at,
+			'created_at'  => date('Y-m-d H:i:s'),
+		]);
+
+		$auth_url = $this->tiktok_api->get_auth_url(null, $state);
+
+		$response = [
+			'status'      => true,
+			'auth_url'    => $auth_url,
+			'state'       => $state,
+			'client_name' => $client_name,
+			'expires_at'  => date('d M Y, H:i', strtotime($expires_at)) . ' WIB',
+			'message'     => 'Link otorisasi sekali pakai berhasil dibuat!'
+		];
+
+		if ($this->input->is_ajax_request() || $this->input->get('json')) {
+			echo json_encode($response);
+			return;
+		}
+
+		set_message('Link otorisasi sekali pakai berhasil dibuat!', 'success');
+		redirect('administrator/tiktok_shops');
+	}
+
+	/**
 	 * Redirect ke halaman otorisasi TikTok Partner OAuth
 	 */
 	public function connect()
 	{
-		$this->is_allowed('tiktok_shops_add');
+		$this->_ensure_oauth_table();
 		$this->load->library('tiktok_api');
 
-		$auth_url = $this->tiktok_api->get_auth_url();
-		if ($this->input->is_ajax_request() || $this->input->get('json')) {
-			echo json_encode(['success' => true, 'auth_url' => $auth_url]);
+		$state = $this->input->get('state');
+
+		// Jika state diberikan (misal dari tautan klien)
+		if (!empty($state)) {
+			$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
+			if (!$state_row) {
+				redirect('administrator/tiktok_shops/auth_status?status=invalid');
+				return;
+			}
+			if ($state_row->is_used == 1) {
+				redirect('administrator/tiktok_shops/auth_status?status=already_used');
+				return;
+			}
+			if (strtotime($state_row->expires_at) < time()) {
+				redirect('administrator/tiktok_shops/auth_status?status=expired');
+				return;
+			}
+
+			$auth_url = $this->tiktok_api->get_auth_url(null, $state);
+			redirect($auth_url);
 			return;
 		}
-		redirect($auth_url);
+
+		// Jika diakses langsung tanpa state oleh Admin Vendio yang login
+		if ($this->aauth->is_loggedin()) {
+			$this->is_allowed('tiktok_shops_add');
+			$state = bin2hex(random_bytes(16));
+			$expires_at = date('Y-m-d H:i:s', time() + 3600);
+			$this->db->insert('tiktok_oauth_states', [
+				'state'       => $state,
+				'client_name' => 'Admin Direct Connect',
+				'created_by'  => get_user_data('id') ?: null,
+				'is_used'     => 0,
+				'expires_at'  => $expires_at,
+				'created_at'  => date('Y-m-d H:i:s'),
+			]);
+			$auth_url = $this->tiktok_api->get_auth_url(null, $state);
+
+			if ($this->input->is_ajax_request() || $this->input->get('json')) {
+				echo json_encode(['success' => true, 'auth_url' => $auth_url]);
+				return;
+			}
+			redirect($auth_url);
+			return;
+		}
+
+		// Jika bukan admin dan tanpa state
+		redirect('administrator/tiktok_shops/auth_status?status=invalid');
 	}
 
 	/**
@@ -452,30 +582,84 @@ class Tiktok_shops extends Admin
 	 */
 	public function callback()
 	{
+		$this->_ensure_oauth_table();
 		$this->load->library('tiktok_api');
 		$cfg = $this->config->item('tiktok');
 
 		$auth_code = $this->input->get('auth_code') ?: $this->input->get('code');
+		$state     = $this->input->get('state');
 		$app_key   = !empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : $this->config->item('tiktok_app_key');
 		$app_secret = !empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : $this->config->item('tiktok_app_secret');
 
+		// 1. Validasi keberadaan kode otorisasi
 		if (empty($auth_code)) {
-			set_message('Gagal menghubungkan toko: Parameter auth_code/code tidak ditemukan di URL.', 'error');
-			redirect('administrator/tiktok_shops');
+			if ($this->aauth->is_loggedin()) {
+				set_message('Gagal menghubungkan toko: Parameter auth_code/code tidak ditemukan di URL.', 'error');
+				redirect('administrator/tiktok_shops');
+			} else {
+				redirect('administrator/tiktok_shops/auth_status?status=error&msg=' . urlencode('Parameter auth_code tidak ditemukan dari TikTok.'));
+			}
 			return;
 		}
 
+		// 2. Validasi Parameter State (One-Time Link Protection)
+		if (!empty($state)) {
+			$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
+
+			// Jika state tidak ada di database kita
+			if (!$state_row) {
+				redirect('administrator/tiktok_shops/auth_status?status=invalid');
+				return;
+			}
+
+			// Jika state SUDAH PERNAH DIGUNAKAN (Anti-Reuse: mencegah link disebar ke teman klien)
+			if ($state_row->is_used == 1) {
+				redirect('administrator/tiktok_shops/auth_status?status=already_used');
+				return;
+			}
+
+			// Jika state SUDAH KEDALUWARSA (Expired)
+			if (strtotime($state_row->expires_at) < time()) {
+				redirect('administrator/tiktok_shops/auth_status?status=expired');
+				return;
+			}
+
+			// Kunci state seketika (Atomic burn) agar tidak bisa dipakai oleh request lain bersamaan
+			$this->db->where('id', $state_row->id)->update('tiktok_oauth_states', [
+				'is_used' => 1,
+				'used_at' => date('Y-m-d H:i:s'),
+			]);
+		}
+
+		// 3. Tukar auth_code ke TikTok API untuk mendapatkan access_token & refresh_token
 		$res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);
 
 		if ($res['success'] && !empty($res['data']['access_token'])) {
-			$this->tiktok_api->save_token_response($res['data'], $app_key, $app_secret, $auth_code);
-			set_message('Berhasil menghubungkan Akun Toko TikTok Shop!', 'success');
-		} else {
-			$err = $res['message'] ?? 'Terjadi kesalahan saat memproses token.';
-			set_message('Gagal menukarkan token dari TikTok: ' . $err, 'error');
-		}
+			$saved_shop_id = $this->tiktok_api->save_token_response($res['data'], $app_key, $app_secret, $auth_code);
+			$shop_name = $res['data']['seller_name'] ?? 'TikTok Shop';
 
-		redirect('administrator/tiktok_shops');
+			// Update id toko yang berhasil dihubungkan ke record state
+			if (!empty($state) && !empty($state_row)) {
+				$this->db->where('id', $state_row->id)->update('tiktok_oauth_states', [
+					'shop_id' => $saved_shop_id
+				]);
+			}
+
+			if ($this->aauth->is_loggedin()) {
+				set_message('Berhasil menghubungkan Akun Toko TikTok Shop: ' . $shop_name, 'success');
+				redirect('administrator/tiktok_shops');
+			} else {
+				redirect('administrator/tiktok_shops/auth_status?status=success&shop=' . urlencode($shop_name));
+			}
+		} else {
+			$err = $res['message'] ?? 'Terjadi kesalahan saat menukarkan token dengan TikTok.';
+			if ($this->aauth->is_loggedin()) {
+				set_message('Gagal menukarkan token dari TikTok: ' . $err, 'error');
+				redirect('administrator/tiktok_shops');
+			} else {
+				redirect('administrator/tiktok_shops/auth_status?status=error&msg=' . urlencode($err));
+			}
+		}
 	}
 
 	/**
