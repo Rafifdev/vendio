@@ -5,135 +5,234 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title><?= htmlspecialchars($page_title ?? 'Status Otorisasi TikTok Shop - Vendio'); ?></title>
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Vendio & AdminLTE Stylesheets -->
+  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/admin-lte/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/admin-lte/dist/css/AdminLTE.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  <link rel="stylesheet" href="<?= BASE_ASSET; ?>/css/custom.css">
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0f172a;
+      font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #334155;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      color: #334155;
+      padding: 30px 15px;
+      margin: 0;
     }
-    .auth-card {
-      background: #ffffff;
+
+    .auth-status-container {
       width: 100%;
       max-width: 480px;
-      border-radius: 16px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .auth-logo-header {
       text-align: center;
-      padding: 40px 32px 32px 32px;
-      position: relative;
+      margin-bottom: 22px;
     }
-    .logo-container {
-      margin-bottom: 24px;
-    }
-    .logo-container img {
-      max-height: 38px;
+
+    .auth-logo-header img {
+      max-height: 40px;
       object-fit: contain;
     }
-    .icon-wrapper {
-      width: 72px;
-      height: 72px;
+
+    .auth-logo-header .auth-app-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Box Card matching .box-tiktok-shops & Vendio modules */
+    .box-auth-status {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e5e9f0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      text-align: center;
+      padding: 36px 30px 28px 30px;
+      position: relative;
+    }
+
+    /* Accent top borders matching AdminLTE / Vendio */
+    .border-top-success {
+      border-top: 4px solid #00a65a !important;
+    }
+    .border-top-warning {
+      border-top: 4px solid #f39c12 !important;
+    }
+    .border-top-danger {
+      border-top: 4px solid #dd4b39 !important;
+    }
+
+    /* Circular Status Icon Wrapper */
+    .status-icon-wrapper {
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px auto;
-      font-size: 32px;
+      margin: 0 auto 18px auto;
+      font-size: 26px;
     }
-    .icon-success {
+
+    .icon-success-wrap {
       background: #dcfce7;
-      color: #16a34a;
+      color: #00a65a;
+      border: 1px solid #bbf7d0;
     }
-    .icon-warning {
+
+    .icon-warning-wrap {
       background: #fef3c7;
       color: #d97706;
+      border: 1px solid #fde68a;
     }
-    .icon-danger {
+
+    .icon-danger-wrap {
       background: #fee2e2;
       color: #dc2626;
+      border: 1px solid #fecaca;
     }
-    h2.auth-title {
-      font-size: 22px;
+
+    /* Text & Headings */
+    .auth-title {
+      font-size: 20px;
       font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 12px;
-      line-height: 1.3;
+      color: #1e293b;
+      margin-top: 0;
+      margin-bottom: 8px;
+      line-height: 1.25;
     }
-    p.auth-desc {
-      font-size: 14px;
+
+    .auth-desc {
+      font-size: 13.5px;
       color: #64748b;
       line-height: 1.6;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
-    .info-box {
+
+    /* Info Table / Summary Box matching Vendio module chips */
+    .summary-card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 24px;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
       text-align: left;
-      font-size: 13px;
     }
-    .info-row {
+
+    .summary-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 0;
+      padding: 7px 0;
+      font-size: 13px;
     }
-    .info-row:not(:last-child) {
+
+    .summary-row:not(:last-child) {
       border-bottom: 1px dashed #e2e8f0;
     }
-    .info-label {
+
+    .summary-label {
       color: #64748b;
       font-weight: 500;
+      font-size: 12.5px;
     }
-    .info-value {
-      color: #0f172a;
+
+    .summary-value {
+      color: #1e293b;
       font-weight: 600;
+      font-size: 13px;
     }
-    .badge-status {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
+
+    .chip-code {
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 12px;
-      font-weight: 600;
-    }
-    .badge-success { background: #dcfce7; color: #15803d; }
-    .badge-warning { background: #fef3c7; color: #b45309; }
-    .badge-danger { background: #fee2e2; color: #b91c1c; }
-    
-    .btn-action {
+      color: #475569;
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
       display: inline-block;
-      width: 100%;
-      background: #0f172a;
-      color: #ffffff;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 14px;
+    }
+
+    /* Badges matching Vendio .label */
+    .label-badge {
+      font-size: 11px !important;
+      padding: 3px 9px !important;
+      border-radius: 12px !important;
+      font-weight: 600 !important;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Buttons matching Vendio modules */
+    .btn-action-wrap {
+      margin-top: 6px;
+    }
+
+    .btn-vendio {
+      height: 36px;
+      padding: 0 18px;
+      font-size: 13px;
       font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s ease;
+      border-radius: 4px !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.15s ease;
       cursor: pointer;
-      border: none;
-    }
-    .btn-action:hover {
-      background: #1e293b;
-      color: #ffffff;
+      width: 100%;
+      border: 1px solid #d2d6de;
+      background-color: #ffffff;
+      color: #334155;
       text-decoration: none;
     }
-    .footer-note {
-      margin-top: 24px;
+
+    .btn-vendio:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      text-decoration: none;
+    }
+
+    .btn-vendio-success {
+      background-color: #00a65a;
+      border-color: #008d4c;
+      color: #ffffff;
+    }
+
+    .btn-vendio-success:hover {
+      background-color: #008d4c;
+      border-color: #00733e;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 166, 90, 0.25);
+    }
+
+    .notice-note {
+      font-size: 12.5px;
+      color: #64748b;
+      margin-top: -6px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .footer-auth {
+      text-align: center;
+      margin-top: 20px;
       font-size: 12px;
       color: #94a3b8;
     }
@@ -141,119 +240,158 @@
 </head>
 <body>
 
-  <div class="auth-card">
-    <div class="logo-container">
+  <div class="auth-status-container">
+
+    <!-- Top Logo Branding -->
+    <div class="auth-logo-header">
       <?php 
         $logo = get_option('logo');
         $logo_url = ($logo && is_file(FCPATH . 'uploads/setting/' . $logo)) 
                     ? base_url('uploads/setting/' . $logo) 
                     : base_url('asset/img/icon-wide.png');
       ?>
-      <img src="<?= $logo_url; ?>" alt="Vendio Logo">
+      <img src="<?= $logo_url; ?>" alt="Vendio">
+      <br>
+      <span class="auth-app-badge"><i class="fa fa-shopping-bag text-primary"></i> TikTok Shop Integration</span>
     </div>
 
+    <!-- Main Card Body -->
     <?php if ($status == 'success'): ?>
-      <div class="icon-wrapper icon-success">
-        <i class="fa fa-check"></i>
-      </div>
-      <h2 class="auth-title">Otorisasi Berhasil!</h2>
-      <p class="auth-desc">
-        Toko TikTok Shop Anda telah berhasil terhubung dengan platform Vendio. Sistem kini siap melakukan sinkronisasi produk, pesanan, dan katalog toko.
-      </p>
-      
-      <div class="info-box">
-        <?php if (!empty($shop_name)): ?>
-        <div class="info-row">
-          <span class="info-label">Nama Toko</span>
-          <span class="info-value"><?= htmlspecialchars($shop_name); ?></span>
+      <div class="box-auth-status border-top-success">
+        <div class="status-icon-wrapper icon-success-wrap">
+          <i class="fa fa-check"></i>
         </div>
-        <?php endif; ?>
-        <div class="info-row">
-          <span class="info-label">Status Koneksi</span>
-          <span class="info-value"><span class="badge-status badge-success">Terhubung Aktif</span></span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Waktu Otorisasi</span>
-          <span class="info-value"><?= date('d M Y, H:i'); ?> WIB</span>
-        </div>
-      </div>
+        <h2 class="auth-title">Otorisasi Berhasil!</h2>
+        <p class="auth-desc">
+          Toko TikTok Shop Anda telah berhasil terhubung dengan platform Vendio. Integrasi sekarang aktif dan siap melakukan sinkronisasi data.
+        </p>
 
-      <button type="button" class="btn-action" onclick="window.close();">Tutup Halaman Ini</button>
+        <div class="summary-card">
+          <?php if (!empty($shop_name)): ?>
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-shopping-bag" style="color: #64748b; margin-right: 6px;"></i>Nama Toko</span>
+            <span class="summary-value"><?= htmlspecialchars($shop_name); ?></span>
+          </div>
+          <?php endif; ?>
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-shield" style="color: #64748b; margin-right: 6px;"></i>Status Otorisasi</span>
+            <span class="summary-value">
+              <span class="label label-success label-badge">Terhubung Aktif</span>
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-calendar" style="color: #64748b; margin-right: 6px;"></i>Waktu Otorisasi</span>
+            <span class="summary-value"><?= date('d M Y, H:i'); ?> WIB</span>
+          </div>
+        </div>
+
+        <div class="btn-action-wrap">
+          <button type="button" class="btn btn-vendio btn-vendio-success" onclick="window.close();">
+            <i class="fa fa-check"></i> Selesai & Tutup Halaman
+          </button>
+        </div>
+      </div>
 
     <?php elseif ($status == 'already_used'): ?>
-      <div class="icon-wrapper icon-warning">
-        <i class="fa fa-lock"></i>
-      </div>
-      <h2 class="auth-title">Tautan Sudah Digunakan</h2>
-      <p class="auth-desc">
-        Tautan otorisasi ini bersifat <strong>sekali pakai (one-time link)</strong> dan sudah pernah digunakan sebelumnya untuk menghubungkan toko.
-      </p>
-
-      <div class="info-box">
-        <div class="info-row">
-          <span class="info-label">Status Tautan</span>
-          <span class="info-value"><span class="badge-status badge-warning">Sudah Digunakan</span></span>
+      <div class="box-auth-status border-top-warning">
+        <div class="status-icon-wrapper icon-warning-wrap">
+          <i class="fa fa-lock"></i>
         </div>
-        <div class="info-row">
-          <span class="info-label">Proteksi Keamanan</span>
-          <span class="info-value">1 Tautan = 1 Toko</span>
+        <h2 class="auth-title">Tautan Sudah Digunakan</h2>
+        <p class="auth-desc">
+          Tautan otorisasi ini bersifat <strong>sekali pakai (one-time link)</strong> dan sudah pernah digunakan sebelumnya untuk menghubungkan toko.
+        </p>
+
+        <div class="summary-card">
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-info-circle" style="color: #64748b; margin-right: 6px;"></i>Status Tautan</span>
+            <span class="summary-value">
+              <span class="label label-warning label-badge">Sudah Digunakan</span>
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-shield" style="color: #64748b; margin-right: 6px;"></i>Proteksi Sistem</span>
+            <span class="summary-value"><span class="chip-code">1 Tautan = 1 Toko</span></span>
+          </div>
+        </div>
+
+        <p class="notice-note">
+          Jika Anda adalah pemilik toko lain yang ingin menghubungkan toko ke Vendio, silakan hubungi administrator untuk meminta tautan baru.
+        </p>
+
+        <div class="btn-action-wrap">
+          <button type="button" class="btn btn-vendio" onclick="window.close();">
+            <i class="fa fa-times"></i> Tutup Halaman Ini
+          </button>
         </div>
       </div>
-
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
-        Jika Anda adalah pemilik toko lain yang ingin menghubungkan toko ke Vendio, silakan hubungi tim administrator kami untuk mendapatkan tautan baru.
-      </p>
-
-      <button type="button" class="btn-action" onclick="window.close();">Tutup Halaman Ini</button>
 
     <?php elseif ($status == 'expired'): ?>
-      <div class="icon-wrapper icon-danger">
-        <i class="fa fa-clock-o"></i>
-      </div>
-      <h2 class="auth-title">Tautan Kedaluwarsa</h2>
-      <p class="auth-desc">
-        Masa berlaku tautan otorisasi ini telah berakhir. Demi keamanan data toko Anda, tautan hanya dapat diakses dalam jangka waktu tertentu setelah dibuat.
-      </p>
+      <div class="box-auth-status border-top-danger">
+        <div class="status-icon-wrapper icon-danger-wrap">
+          <i class="fa fa-clock-o"></i>
+        </div>
+        <h2 class="auth-title">Tautan Kedaluwarsa</h2>
+        <p class="auth-desc">
+          Masa berlaku tautan otorisasi ini telah berakhir. Demi keamanan akun, setiap tautan hanya dapat diakses dalam jangka waktu tertentu.
+        </p>
 
-      <div class="info-box">
-        <div class="info-row">
-          <span class="info-label">Status Tautan</span>
-          <span class="info-value"><span class="badge-status badge-danger">Kedaluwarsa (Expired)</span></span>
+        <div class="summary-card">
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-exclamation-circle" style="color: #64748b; margin-right: 6px;"></i>Status Tautan</span>
+            <span class="summary-value">
+              <span class="label label-danger label-badge">Kedaluwarsa (Expired)</span>
+            </span>
+          </div>
+        </div>
+
+        <p class="notice-note">
+          Silakan hubungi administrator Vendio untuk membuatkan tautan otorisasi baru.
+        </p>
+
+        <div class="btn-action-wrap">
+          <button type="button" class="btn btn-vendio" onclick="window.close();">
+            <i class="fa fa-times"></i> Tutup Halaman Ini
+          </button>
         </div>
       </div>
-
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
-        Silakan hubungi administrator Vendio untuk membuatkan tautan otorisasi yang baru.
-      </p>
-
-      <button type="button" class="btn-action" onclick="window.close();">Tutup Halaman Ini</button>
 
     <?php else: ?>
-      <div class="icon-wrapper icon-danger">
-        <i class="fa fa-times"></i>
-      </div>
-      <h2 class="auth-title">Otorisasi Gagal</h2>
-      <p class="auth-desc">
-        <?= !empty($error_message) ? htmlspecialchars($error_message) : 'Tautan otorisasi tidak valid atau parameter keamanan tidak sesuai.'; ?>
-      </p>
+      <div class="box-auth-status border-top-danger">
+        <div class="status-icon-wrapper icon-danger-wrap">
+          <i class="fa fa-times-circle"></i>
+        </div>
+        <h2 class="auth-title">Otorisasi Gagal</h2>
+        <p class="auth-desc">
+          <?= !empty($error_message) ? htmlspecialchars($error_message) : 'Tautan otorisasi tidak valid atau parameter keamanan tidak sesuai.'; ?>
+        </p>
 
-      <div class="info-box">
-        <div class="info-row">
-          <span class="info-label">Status</span>
-          <span class="info-value"><span class="badge-status badge-danger">Gagal Validasi</span></span>
+        <div class="summary-card">
+          <div class="summary-row">
+            <span class="summary-label"><i class="fa fa-warning" style="color: #64748b; margin-right: 6px;"></i>Status</span>
+            <span class="summary-value">
+              <span class="label label-danger label-badge">Gagal Validasi</span>
+            </span>
+          </div>
+        </div>
+
+        <p class="notice-note">
+          Pastikan Anda menggunakan tautan resmi yang diberikan langsung oleh administrator Vendio.
+        </p>
+
+        <div class="btn-action-wrap">
+          <button type="button" class="btn btn-vendio" onclick="window.close();">
+            <i class="fa fa-times"></i> Tutup Halaman Ini
+          </button>
         </div>
       </div>
-
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">
-        Silakan pastikan Anda menggunakan tautan resmi yang diberikan langsung oleh administrator Vendio.
-      </p>
-
-      <button type="button" class="btn-action" onclick="window.close();">Tutup Halaman Ini</button>
     <?php endif; ?>
 
-    <div class="footer-note">
-      &copy; <?= date('Y'); ?> Vendio &bull; TikTok Shop Partner App
+    <!-- Footer Copyright -->
+    <div class="footer-auth">
+      &copy; <?= date('Y'); ?> <?= get_option('site_name', 'Vendio'); ?> &bull; TikTok Shop Partner
     </div>
+
   </div>
 
 </body>
