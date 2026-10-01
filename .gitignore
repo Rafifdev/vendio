@@ -3,6 +3,8 @@
 application/cache/*
 !application/cache/index.html
 !application/cache/.htaccess
+!application/cache/junk/
+!application/cache/junk/.gitkeep
 
 application/logs/*
 !application/logs/index.html

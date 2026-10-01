@@ -64,11 +64,41 @@
         "positionClass": "toast-top-center",
       }
 
-      var f_message = '<?= $this->session->flashdata('f_message'); ?>';
-      var f_type = '<?= $this->session->flashdata('f_type'); ?>';
+      <?php
+      $f_message = $this->session->flashdata('f_message');
+      $f_type = $this->session->flashdata('f_type') ?: 'info';
+      // Hapus langsung dari session agar tidak pernah muncul berulang saat pindah halaman atau reload
+      if (!empty($f_message)) {
+          $this->session->unset_userdata('f_message');
+          $this->session->unset_userdata('f_type');
+          if (isset($_SESSION['__ci_vars']['f_message'])) {
+              unset($_SESSION['__ci_vars']['f_message']);
+          }
+          if (isset($_SESSION['__ci_vars']['f_type'])) {
+              unset($_SESSION['__ci_vars']['f_type']);
+          }
+      }
+      ?>
+      var isPageReload = false;
+      try {
+        var perfEntries = window.performance.getEntriesByType('navigation');
+        if (perfEntries && perfEntries.length > 0) {
+          isPageReload = (perfEntries[0].type === 'reload');
+        } else if (window.performance && window.performance.navigation) {
+          isPageReload = (window.performance.navigation.type === 1);
+        }
+      } catch (e) {}
 
-      if (f_message.length > 0) {
-        toastr[f_type](f_message);
+      var f_message = <?= json_encode((string)$f_message); ?>;
+      var f_type = <?= json_encode((string)$f_type); ?>;
+
+      // Hanya tampilkan alert jika bukan reload halaman (F5) dan benar-benar ada action message
+      if (!isPageReload && f_message && f_message.length > 0) {
+        if (typeof toastr[f_type] === 'function') {
+          toastr[f_type](f_message);
+        } else {
+          toastr.info(f_message);
+        }
       }
 
       $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({

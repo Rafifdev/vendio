@@ -370,7 +370,15 @@ $config['encryption_key'] = 'd879@*1^f*146ae18b44b9a&bb#dc17$866d%efa5';
 $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = '__ssk4gssgso8kgsog4k404g88g0c0gwogwskcsko01';
 $config['sess_expiration'] = 86400;
-$config['sess_save_path'] = APPPATH . '/cache/junk';
+
+$sess_save_dir = APPPATH . 'cache/junk';
+if (!is_dir($sess_save_dir)) {
+    @mkdir($sess_save_dir, 0777, true);
+}
+if (!is_writable($sess_save_dir)) {
+    $sess_save_dir = sys_get_temp_dir();
+}
+$config['sess_save_path'] = $sess_save_dir;
 $config['sess_match_ip'] = FALSE;
 $config['sess_time_to_update'] = 900;
 $config['sess_regenerate_destroy'] = FALSE;
