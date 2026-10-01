@@ -74,6 +74,20 @@ class Tiktok_brands extends Admin
 		}
 
 		$brands = $response['data']['brands'] ?? [];
+		if (empty($brands)) {
+			set_message('Tidak ada data brand ditemukan dari TikTok Shop.', 'warning');
+			redirect('administrator/tiktok_brands');
+			return;
+		}
+
+		// Optimasi Database: Pre-fetch seluruh ID brand yang sudah ada dalam 1 query
+		$existing_brands = array_column(
+			$this->db->select('id, tiktok_brand_id')->get('tiktok_brands')->result(),
+			'id',
+			'tiktok_brand_id'
+		);
+
+		$this->db->trans_start();
 		$synced_count = 0;
 
 		foreach ($brands as $b) {
@@ -87,18 +101,18 @@ class Tiktok_brands extends Admin
 				'synced_at'       => date('Y-m-d H:i:s'),
 			];
 
-			$existing = $this->db->get_where('tiktok_brands', [
-				'tiktok_brand_id' => $brand_id
-			])->row();
+			$existing_id = $existing_brands[$brand_id] ?? null;
 
-			if ($existing) {
-				$this->db->where('id', $existing->id)->update('tiktok_brands', $data_brand);
+			if ($existing_id) {
+				$this->db->where('id', $existing_id)->update('tiktok_brands', $data_brand);
 			} else {
 				$this->db->insert('tiktok_brands', $data_brand);
 			}
 
 			$synced_count++;
 		}
+
+		$this->db->trans_complete();
 
 		set_message("Berhasil menarik {$synced_count} brand resmi dari TikTok Shop.", 'success');
 		redirect('administrator/tiktok_brands');

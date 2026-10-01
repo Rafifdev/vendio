@@ -507,10 +507,10 @@
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_warehouses" id="form_tiktok_warehouses" action="<?= base_url('administrator/tiktok_warehouses/index'); ?>
+                  <form name="form_tiktok_warehouses" id="form_tiktok_warehouses" action="<?= base_url('administrator/tiktok_warehouses/index'); ?>">
                      <?php if (!empty($selected_shop_id)): ?>
-                        <input type=" hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
-                     <?php endif; ?>">
+                        <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
+                     <?php endif; ?>
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>

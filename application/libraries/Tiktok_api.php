@@ -324,7 +324,9 @@ class Tiktok_api
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_CUSTOMREQUEST => strtoupper($method),
-            CURLOPT_ENCODING => '',
+            CURLOPT_ENCODING => 'gzip,deflate',
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_TCP_KEEPALIVE => 1,
             CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         ];
 
@@ -380,17 +382,199 @@ class Tiktok_api
     }
 
     /**
+     * Eksekusi request API TikTok secara paralel (Non-blocking cURL Multi)
+     * Menghemat waktu tunggu hingga 90% saat sinkronisasi banyak data
+     *
+     * @param array $requests Array item: [ key => [ 'path' => ..., 'method' => 'GET'/'POST', 'params' => [...], 'body' => [...] ] ]
+     * @param mixed $shop_identifier ID Toko
+     * @param int $concurrency Batas maksimal koneksi simultan (default 10)
+     * @return array [ key => decoded_response_array ]
+     */
+    public function multi_request(array $requests, $shop_identifier = null, $concurrency = 10)
+    {
+        if (empty($requests)) {
+            return [];
+        }
+
+        $shop = $this->get_shop($shop_identifier);
+        if (!$shop) {
+            return [];
+        }
+
+        $app_key = $shop->app_key ?: $this->default_app_key;
+        $app_secret = $shop->app_secret ?: $this->default_app_secret;
+
+        // Auto-refresh token jika perlu
+        if ($shop->access_token_expire_in && ($shop->access_token_expire_in - 300) < time()) {
+            if (!empty($shop->refresh_token)) {
+                $refresh_result = $this->refresh_access_token($shop->refresh_token, $app_key, $app_secret);
+                if (isset($refresh_result['code']) && $refresh_result['code'] === 0 && !empty($refresh_result['data']['access_token'])) {
+                    $new_data = $refresh_result['data'];
+                    $this->CI->db->where('id', $shop->id)->update('tiktok_shops', [
+                        'access_token' => $new_data['access_token'],
+                        'access_token_expire_in' => $new_data['access_token_expire_in'],
+                        'refresh_token' => $new_data['refresh_token'],
+                        'refresh_token_expire_in' => $new_data['refresh_token_expire_in'],
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $shop->access_token = $new_data['access_token'];
+                }
+            }
+        }
+
+        $results = [];
+        $mh = curl_multi_init();
+        $handles = [];
+        $queue = array_keys($requests);
+        $running = 0;
+
+        $api_base = rtrim($this->api_base_url, '/');
+        $headers = [
+            'Content-Type: application/json',
+            'x-tts-access-token: ' . $shop->access_token,
+        ];
+
+        $add_handle = function ($key) use (&$handles, $requests, $shop, $app_key, $app_secret, $api_base, $headers, $mh) {
+            $req = $requests[$key];
+            $path = $req['path'];
+            $method = strtoupper($req['method'] ?? 'GET');
+            $params = $req['params'] ?? [];
+            $body = $req['body'] ?? null;
+
+            $params['app_key'] = $app_key;
+            $params['timestamp'] = time();
+            if (!empty($shop->shop_cipher) && !isset($params['shop_cipher'])) {
+                $params['shop_cipher'] = $shop->shop_cipher;
+            }
+
+            $body_string = null;
+            if ($body !== null) {
+                $body_string = is_array($body) ? json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string) $body;
+            }
+
+            $params['sign'] = $this->generate_signature($path, $params, $body_string, $app_secret);
+            $url = $api_base . $path . '?' . http_build_query($params);
+
+            $ch = curl_init();
+            $options = [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 20,
+                CURLOPT_CONNECTTIMEOUT => 7,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_CUSTOMREQUEST => $method,
+                CURLOPT_ENCODING => 'gzip,deflate',
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                CURLOPT_TCP_KEEPALIVE => 1,
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            ];
+
+            if (!empty($body_string)) {
+                $options[CURLOPT_POSTFIELDS] = $body_string;
+            }
+
+            curl_setopt_array($ch, $options);
+            curl_multi_add_handle($mh, $ch);
+            $handles[(int)$ch] = ['key' => $key, 'ch' => $ch];
+        };
+
+        // Mulai koneksi awal sesuai limit $concurrency
+        $initial_count = min($concurrency, count($queue));
+        for ($i = 0; $i < $initial_count; $i++) {
+            $key = array_shift($queue);
+            $add_handle($key);
+        }
+
+        // Loop multi exec
+        do {
+            $mrc = curl_multi_exec($mh, $running);
+            if ($mrc !== CURLM_OK) {
+                break;
+            }
+
+            while ($info = curl_multi_info_read($mh)) {
+                $ch = $info['handle'];
+                $handle_info = $handles[(int)$ch] ?? null;
+                if ($handle_info) {
+                    $key = $handle_info['key'];
+                    $content = curl_multi_getcontent($ch);
+                    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    $curl_err = curl_error($ch);
+
+                    if ($curl_err) {
+                        $results[$key] = [
+                            'success' => false,
+                            'code' => -1,
+                            'message' => 'cURL Error: ' . $curl_err,
+                            'data' => null,
+                            'raw' => null,
+                        ];
+                    } else {
+                        $decoded = json_decode($content, true);
+                        if (json_last_error() === JSON_ERROR_NONE) {
+                            $results[$key] = [
+                                'success' => (isset($decoded['code']) && $decoded['code'] === 0),
+                                'code' => $decoded['code'] ?? $http_code,
+                                'http_status' => $http_code,
+                                'message' => $decoded['message'] ?? 'OK',
+                                'data' => $decoded['data'] ?? null,
+                                'request_id' => $decoded['request_id'] ?? null,
+                                'raw' => $content,
+                            ];
+                        } else {
+                            $results[$key] = [
+                                'success' => false,
+                                'code' => $http_code,
+                                'message' => 'Invalid JSON',
+                                'data' => null,
+                                'raw' => $content,
+                            ];
+                        }
+                    }
+
+                    curl_multi_remove_handle($mh, $ch);
+                    curl_close($ch);
+                    unset($handles[(int)$ch]);
+
+                    if (!empty($queue)) {
+                        $next_key = array_shift($queue);
+                        $add_handle($next_key);
+                    }
+                }
+            }
+
+            if ($running > 0) {
+                curl_multi_select($mh, 0.05);
+            }
+        } while ($running > 0 || !empty($handles));
+
+        curl_multi_close($mh);
+        return $results;
+    }
+
+    /**
      * Catat audit log API call ke tabel tiktok_api_logs sesuai PRD Bab 7.1
      */
     protected function log_api_call($shop_id, $endpoint, $method, $request_payload, $response_payload, $http_status, $is_success, $duration_ms)
     {
         try {
+            $req = is_string($request_payload) ? $request_payload : json_encode($request_payload);
+            $resp = is_string($response_payload) ? $response_payload : json_encode($response_payload);
+            // Truncate jika terlalu besar agar database I/O tetap ringan dan cepat
+            if (strlen($req) > 10000) {
+                $req = substr($req, 0, 10000) . '... [TRUNCATED]';
+            }
+            if (strlen($resp) > 20000) {
+                $resp = substr($resp, 0, 20000) . '... [TRUNCATED]';
+            }
             $this->CI->db->insert('tiktok_api_logs', [
                 'shop_id' => $shop_id,
                 'endpoint' => $endpoint,
                 'method' => strtoupper($method),
-                'request_payload' => is_string($request_payload) ? $request_payload : json_encode($request_payload),
-                'response_payload' => is_string($response_payload) ? $response_payload : json_encode($response_payload),
+                'request_payload' => $req,
+                'response_payload' => $resp,
                 'http_status' => (int) $http_status,
                 'is_success' => $is_success ? 1 : 0,
                 'execution_time_ms' => (int) $duration_ms,
@@ -424,6 +608,34 @@ class Tiktok_api
     public function get_product_detail($product_id, array $params = [], $shop_identifier = null)
     {
         return $this->request('/product/202309/products/' . $product_id, 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil rincian banyak produk secara paralel via cURL Multi (Super Cepat)
+     *
+     * @param array $product_ids
+     * @param array $params
+     * @param mixed $shop_identifier
+     * @param int $concurrency
+     * @return array [ product_id => response_array ]
+     */
+    public function get_products_details_parallel(array $product_ids, array $params = [], $shop_identifier = null, $concurrency = 10)
+    {
+        $product_ids = array_values(array_unique(array_filter($product_ids)));
+        if (empty($product_ids)) {
+            return [];
+        }
+
+        $requests = [];
+        foreach ($product_ids as $pid) {
+            $requests[$pid] = [
+                'path' => '/product/202309/products/' . $pid,
+                'method' => 'GET',
+                'params' => $params,
+            ];
+        }
+
+        return $this->multi_request($requests, $shop_identifier, $concurrency);
     }
 
     /**
@@ -620,6 +832,64 @@ class Tiktok_api
     }
 
     /**
+     * Ambil detail banyak pesanan sekaligus (Batch Order Details) dari TikTok Shop
+     * TikTok Partner API mendukung hingga 50 order IDs dipisahkan koma dalam 1 request: GET /order/202309/orders?ids=id1,id2,id3...
+     *
+     * @param array $order_ids Array of order IDs
+     * @param array $params Query params tambahan
+     * @param mixed $shop_identifier ID Toko
+     * @return array Associative array [ order_id => order_detail ]
+     */
+    public function get_order_details_batch(array $order_ids, array $params = [], $shop_identifier = null)
+    {
+        $order_ids = array_values(array_unique(array_filter($order_ids)));
+        if (empty($order_ids)) {
+            return [];
+        }
+
+        $results = [];
+        // Chunk per 50 sesuai batas maksimum endpoint TikTok API
+        $chunks = array_chunk($order_ids, 50);
+
+        if (count($chunks) === 1) {
+            $id_str = implode(',', $chunks[0]);
+            $params['ids'] = $id_str;
+            $res = $this->request('/order/202309/orders', 'GET', $params, null, $shop_identifier);
+            if (!empty($res['data']['orders']) && is_array($res['data']['orders'])) {
+                foreach ($res['data']['orders'] as $ord) {
+                    if (!empty($ord['id'])) {
+                        $results[$ord['id']] = $ord;
+                    }
+                }
+            }
+            return $results;
+        }
+
+        // Jika lebih dari 50 pesanan, jalankan chunk secara paralel via multi_request
+        $requests = [];
+        foreach ($chunks as $idx => $chunk) {
+            $requests[$idx] = [
+                'path' => '/order/202309/orders',
+                'method' => 'GET',
+                'params' => array_merge($params, ['ids' => implode(',', $chunk)]),
+            ];
+        }
+
+        $multi_res = $this->multi_request($requests, $shop_identifier);
+        foreach ($multi_res as $res) {
+            if (!empty($res['data']['orders']) && is_array($res['data']['orders'])) {
+                foreach ($res['data']['orders'] as $ord) {
+                    if (!empty($ord['id'])) {
+                        $results[$ord['id']] = $ord;
+                    }
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Ambil / cari daftar paket dari TikTok Shop
      * POST /fulfillment/202309/packages/search
      */
@@ -636,6 +906,34 @@ class Tiktok_api
     public function get_package_detail($package_id, array $params = [], $shop_identifier = null)
     {
         return $this->request('/fulfillment/202309/packages/' . $package_id, 'GET', $params, null, $shop_identifier);
+    }
+
+    /**
+     * Ambil rincian banyak paket secara paralel via cURL Multi (Super Cepat)
+     *
+     * @param array $package_ids
+     * @param array $params
+     * @param mixed $shop_identifier
+     * @param int $concurrency
+     * @return array [ package_id => response_array ]
+     */
+    public function get_packages_details_parallel(array $package_ids, array $params = [], $shop_identifier = null, $concurrency = 10)
+    {
+        $package_ids = array_values(array_unique(array_filter($package_ids)));
+        if (empty($package_ids)) {
+            return [];
+        }
+
+        $requests = [];
+        foreach ($package_ids as $pkg_id) {
+            $requests[$pkg_id] = [
+                'path' => '/fulfillment/202309/packages/' . $pkg_id,
+                'method' => 'GET',
+                'params' => $params,
+            ];
+        }
+
+        return $this->multi_request($requests, $shop_identifier, $concurrency);
     }
 
     /**

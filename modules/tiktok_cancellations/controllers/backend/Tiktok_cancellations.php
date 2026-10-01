@@ -108,6 +108,28 @@ class Tiktok_cancellations extends Admin
 			}
 
 			$cancellations = $res['data']['cancellations'] ?? ($res['data']['cancel_orders'] ?? []);
+			if (empty($cancellations)) {
+				continue;
+			}
+
+			// Optimasi: Pre-fetch cancel_id yang sudah ada di database
+			$cancel_ids = [];
+			foreach ($cancellations as $co) {
+				$cid = $co['cancel_id'] ?? ($co['id'] ?? null);
+				if (!empty($cid)) {
+					$cancel_ids[] = $cid;
+				}
+			}
+
+			$existing_cancels = [];
+			if (!empty($cancel_ids)) {
+				$ex_rows = $this->db->select('id, cancel_id')->where_in('cancel_id', $cancel_ids)->get('tiktok_cancellations')->result();
+				foreach ($ex_rows as $er) {
+					$existing_cancels[$er->cancel_id] = $er->id;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($cancellations as $co) {
 				$cancel_id = $co['cancel_id'] ?? ($co['id'] ?? null);
@@ -144,9 +166,9 @@ class Tiktok_cancellations extends Admin
 					'updated_at'         => date('Y-m-d H:i:s'),
 				];
 
-				$existing = $this->db->get_where('tiktok_cancellations', ['cancel_id' => $cancel_id])->row();
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_cancellations', $save_data);
+				$existing_id = $existing_cancels[$cancel_id] ?? null;
+				if ($existing_id) {
+					$this->db->where('id', $existing_id)->update('tiktok_cancellations', $save_data);
 				} else {
 					$save_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_cancellations', $save_data);
@@ -163,6 +185,8 @@ class Tiktok_cancellations extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

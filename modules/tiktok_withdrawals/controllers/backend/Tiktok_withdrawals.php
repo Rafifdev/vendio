@@ -87,6 +87,28 @@ class Tiktok_withdrawals extends Admin
 			}
 
 			$withdrawals = $res['data']['withdrawals'] ?? ($res['data']['withdrawal_list'] ?? []);
+			if (empty($withdrawals)) {
+				continue;
+			}
+
+			// Optimasi: Pre-fetch withdrawal_id yang sudah tersimpan
+			$w_ids = [];
+			foreach ($withdrawals as $w) {
+				$wid = $w['id'] ?? ($w['withdrawal_id'] ?? null);
+				if (!empty($wid)) {
+					$w_ids[] = $wid;
+				}
+			}
+
+			$existing_withdrawals = [];
+			if (!empty($w_ids)) {
+				$ex_rows = $this->db->select('id, withdrawal_id')->where_in('withdrawal_id', $w_ids)->get('tiktok_withdrawals')->result();
+				foreach ($ex_rows as $er) {
+					$existing_withdrawals[$er->withdrawal_id] = $er->id;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($withdrawals as $w) {
 				$withdrawal_id = $w['id'] ?? ($w['withdrawal_id'] ?? null);
@@ -122,9 +144,9 @@ class Tiktok_withdrawals extends Admin
 					'updated_at'     => date('Y-m-d H:i:s')
 				];
 
-				$existing = $this->db->get_where('tiktok_withdrawals', ['withdrawal_id' => $withdrawal_id])->row();
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_withdrawals', $save_data);
+				$existing_id = $existing_withdrawals[$withdrawal_id] ?? null;
+				if ($existing_id) {
+					$this->db->where('id', $existing_id)->update('tiktok_withdrawals', $save_data);
 				} else {
 					$save_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_withdrawals', $save_data);
@@ -132,6 +154,8 @@ class Tiktok_withdrawals extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

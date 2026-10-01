@@ -93,8 +93,6 @@ class Cron extends MY_Controller
         // 2. Tarik Pesanan Terbaru
         $this->pull_orders();
 
-        // 3. Tarik Paket Pengiriman & Resi AWB
-        $this->pull_packages();
 
         // 4. Tarik Pengajuan Retur & Pembatalan Pesanan (SLA 48 Jam)
         $this->pull_returns_cancellations();
@@ -221,108 +219,7 @@ class Cron extends MY_Controller
      */
     public function pull_packages()
     {
-        $this->_log(">>> [JOB: PAKET & RESI] Memulai sinkronisasi Paket Pengiriman...");
-        $shops = $this->_get_active_shops();
-        $total_pkgs = 0;
-
-        foreach ($shops as $shop) {
-            $this->_log("    -> Toko: {$shop->shop_name} (ID: {$shop->id})");
-            $res = $this->tiktok_api->search_packages([], ['page_size' => 50], $shop->id);
-
-            if (empty($res['success']) && (!isset($res['code']) || $res['code'] !== 0)) {
-                $this->_log("       [ERROR] Gagal search_packages: " . ($res['message'] ?? 'Unknown error'));
-                continue;
-            }
-
-            $packages = $res['data']['packages'] ?? [];
-            foreach ($packages as $pkg) {
-                $pkg_id = $pkg['id'] ?? '';
-                if (empty($pkg_id)) continue;
-
-                $detail_res = $this->tiktok_api->get_package_detail($pkg_id, [], $shop->id);
-                $pkg_detail = $detail_res['data'] ?? [];
-
-                $first_order = $pkg['orders'][0] ?? ($pkg_detail['orders'][0] ?? []);
-                $order_id = $first_order['id'] ?? '';
-
-                $sender_addr = $pkg_detail['sender_address']['full_address'] ?? ($pkg_detail['sender_address']['address_detail'] ?? '');
-                $recipient_addr = $pkg_detail['recipient_address']['full_address'] ?? ($pkg_detail['recipient_address']['address_detail'] ?? '');
-
-                $create_time = !empty($pkg['create_time']) ? date('Y-m-d H:i:s', $pkg['create_time']) : (!empty($pkg_detail['create_time']) ? date('Y-m-d H:i:s', $pkg_detail['create_time']) : date('Y-m-d H:i:s'));
-                $update_time = !empty($pkg['update_time']) ? date('Y-m-d H:i:s', $pkg['update_time']) : (!empty($pkg_detail['update_time']) ? date('Y-m-d H:i:s', $pkg_detail['update_time']) : date('Y-m-d H:i:s'));
-
-                $pkg_data = [
-                    'tiktok_shop_id'         => $shop->id,
-                    'package_id'             => $pkg_id,
-                    'order_id'               => $order_id,
-                    'package_status'         => $pkg['status'] ?? ($pkg_detail['package_status'] ?? 'FULFILLING'),
-                    'package_sub_status'     => $pkg_detail['package_sub_status'] ?? '',
-                    'shipping_provider_id'   => $pkg['shipping_provider_id'] ?? ($pkg_detail['shipping_provider_id'] ?? ''),
-                    'shipping_provider_name' => $pkg['shipping_provider_name'] ?? ($pkg_detail['shipping_provider_name'] ?? ''),
-                    'shipping_type'          => $pkg_detail['shipping_type'] ?? 'TIKTOK',
-                    'delivery_option_id'     => $pkg_detail['delivery_option_id'] ?? '',
-                    'delivery_option_name'   => $pkg_detail['delivery_option_name'] ?? '',
-                    'tracking_number'        => $pkg['tracking_number'] ?? ($pkg_detail['tracking_number'] ?? ''),
-                    'handover_method'        => $pkg_detail['handover_method'] ?? 'PICKUP',
-                    'dimension_length'       => (float)($pkg_detail['dimension']['length'] ?? 0),
-                    'dimension_width'        => (float)($pkg_detail['dimension']['width'] ?? 0),
-                    'dimension_height'       => (float)($pkg_detail['dimension']['height'] ?? 0),
-                    'dimension_unit'         => $pkg_detail['dimension']['unit'] ?? 'CM',
-                    'weight_val'             => (float)($pkg_detail['weight']['value'] ?? 0),
-                    'weight_unit'            => $pkg_detail['weight']['unit'] ?? 'GRAM',
-                    'sender_name'            => $pkg_detail['sender_address']['name'] ?? '',
-                    'sender_phone'           => $pkg_detail['sender_address']['phone_number'] ?? '',
-                    'sender_address'         => $sender_addr,
-                    'recipient_name'         => $pkg_detail['recipient_address']['name'] ?? '',
-                    'recipient_phone'        => $pkg_detail['recipient_address']['phone_number'] ?? '',
-                    'recipient_address'      => $recipient_addr,
-                    'package_create_time'    => $create_time,
-                    'package_update_time'    => $update_time,
-                    'updated_at'             => date('Y-m-d H:i:s'),
-                ];
-
-                $exist = $this->db->get_where('tiktok_packages', ['package_id' => $pkg_id])->row();
-                if ($exist) {
-                    $this->db->where('id', $exist->id)->update('tiktok_packages', $pkg_data);
-                } else {
-                    $pkg_data['created_at'] = date('Y-m-d H:i:s');
-                    $this->db->insert('tiktok_packages', $pkg_data);
-                }
-
-                if (!empty($order_id)) {
-                    $this->db->where('order_id', $order_id)->update('tiktok_orders', [
-                        'package_id'             => $pkg_id,
-                        'tracking_number'        => $pkg_data['tracking_number'],
-                        'shipping_provider'      => $pkg_data['shipping_provider_name'],
-                        'delivery_option_name'   => $pkg_data['delivery_option_name'],
-                    ]);
-                }
-
-                $orders_array = !empty($pkg['orders']) ? $pkg['orders'] : ($pkg_detail['orders'] ?? []);
-                $this->db->where('package_id', $pkg_id)->delete('tiktok_package_items');
-
-                foreach ($orders_array as $o) {
-                    $o_id = $o['id'] ?? $order_id;
-                    $skus = $o['skus'] ?? [];
-                    foreach ($skus as $sku) {
-                        $this->db->insert('tiktok_package_items', [
-                            'package_id'          => $pkg_id,
-                            'order_id'            => $o_id,
-                            'order_line_item_id'  => $pkg['order_line_item_ids'][0] ?? '',
-                            'sku_id'              => $sku['id'] ?? '',
-                            'sku_name'            => $sku['name'] ?? '',
-                            'quantity'            => (int)($sku['quantity'] ?? 1),
-                            'sku_image'           => $sku['image_url'] ?? '',
-                            'created_at'          => date('Y-m-d H:i:s'),
-                        ]);
-                    }
-                }
-
-                $total_pkgs++;
-            }
-        }
-
-        $this->_log("    [OK] Selesai sinkronisasi {$total_pkgs} paket pengiriman.");
+        $this->_log(">>> [JOB: PAKET] Modul pengiriman paket dinonaktifkan. Data pengiriman dan resi sudah terintegrasi di Pesanan.");
     }
     public function sync_packages() { $this->pull_packages(); }
 

@@ -77,6 +77,14 @@ class Tiktok_unsettled_transactions extends Admin
 		$total_synced = 0;
 		$error_messages = [];
 
+		$existing_rows = $this->db->select('id, order_id')->get('tiktok_unsettled_transactions')->result();
+		$existing_map = [];
+		foreach ($existing_rows as $er) {
+			$existing_map[$er->order_id] = $er->id;
+		}
+
+		$this->db->trans_start();
+
 		foreach ($shops as $shop) {
 			$res = $this->tiktok_api->get_unsettled_transactions(['page_size' => 50], $shop->id);
 
@@ -117,16 +125,18 @@ class Tiktok_unsettled_transactions extends Admin
 					'synced_at'                   => date('Y-m-d H:i:s')
 				];
 
-				$existing = $this->db->get_where('tiktok_unsettled_transactions', ['order_id' => $order_id])->row();
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_unsettled_transactions', $save_data);
+				if (isset($existing_map[$order_id])) {
+					$this->db->where('id', $existing_map[$order_id])->update('tiktok_unsettled_transactions', $save_data);
 				} else {
 					$this->db->insert('tiktok_unsettled_transactions', $save_data);
+					$existing_map[$order_id] = $this->db->insert_id();
 				}
 
 				$total_synced++;
 			}
 		}
+
+		$this->db->trans_complete();
 
 		if (!empty($error_messages)) {
 			set_message('Sinkronisasi selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data tersinkron: ' . $total_synced, 'warning');

@@ -426,6 +426,21 @@ class Tiktok_finance extends Admin
 			}
 
 			$statements = $res['data']['statements'] ?? [];
+			if (empty($statements)) {
+				continue;
+			}
+
+			// Optimasi: Pre-fetch data statement_id yang sudah tersimpan
+			$st_ids = array_filter(array_column($statements, 'id'));
+			$existing_statements = [];
+			if (!empty($st_ids)) {
+				$ex_rows = $this->db->select('id, statement_id')->where_in('statement_id', $st_ids)->get('tiktok_finance')->result();
+				foreach ($ex_rows as $er) {
+					$existing_statements[$er->statement_id] = $er->id;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($statements as $st) {
 				$statement_id = $st['id'] ?? null;
@@ -466,9 +481,9 @@ class Tiktok_finance extends Admin
 					'updated_at'          => date('Y-m-d H:i:s')
 				];
 
-				$existing = $this->db->get_where('tiktok_finance', ['statement_id' => $statement_id])->row();
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_finance', $save_data);
+				$existing_id = $existing_statements[$statement_id] ?? null;
+				if ($existing_id) {
+					$this->db->where('id', $existing_id)->update('tiktok_finance', $save_data);
 				} else {
 					$save_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_finance', $save_data);
@@ -476,6 +491,8 @@ class Tiktok_finance extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

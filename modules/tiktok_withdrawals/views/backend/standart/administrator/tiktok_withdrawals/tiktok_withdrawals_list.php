@@ -425,10 +425,10 @@ jQuery(document).ready(domo);
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_withdrawals" id="form_tiktok_withdrawals" action="<?= base_url('administrator/tiktok_withdrawals/index'); ?>
+                  <form name="form_tiktok_withdrawals" id="form_tiktok_withdrawals" action="<?= base_url('administrator/tiktok_withdrawals/index'); ?>">
                      <?php if (!empty($selected_shop_id)): ?>
                         <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
-                     <?php endif; ?>">
+                     <?php endif; ?>
                      <div class="table-responsive">
                         <table class="table table-minimal">
                            <thead>

@@ -88,6 +88,8 @@ class Tiktok_warehouses extends Admin
 
 			$warehouses = $response['data']['warehouses'] ?? [];
 
+			$this->db->trans_start();
+
 			foreach ($warehouses as $wh) {
 				$wh_id = $wh['id'] ?? '';
 				if (empty($wh_id)) continue;
@@ -190,6 +192,8 @@ class Tiktok_warehouses extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		$redirect_url = 'administrator/tiktok_warehouses' . (!empty($shop_id) ? '?shop_id=' . $shop_id : '');

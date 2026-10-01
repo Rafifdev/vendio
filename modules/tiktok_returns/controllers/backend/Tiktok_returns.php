@@ -382,6 +382,21 @@ class Tiktok_returns extends Admin
 			}
 
 			$return_orders = $res['data']['return_orders'] ?? [];
+			if (empty($return_orders)) {
+				continue;
+			}
+
+			// Optimasi: Pre-fetch data return_id yang sudah tersimpan
+			$return_ids = array_filter(array_column($return_orders, 'return_id'));
+			$existing_returns = [];
+			if (!empty($return_ids)) {
+				$ex_rows = $this->db->select('id, return_id')->where_in('return_id', $return_ids)->get('tiktok_returns')->result();
+				foreach ($ex_rows as $er) {
+					$existing_returns[$er->return_id] = $er->id;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($return_orders as $ro) {
 				$return_id = $ro['return_id'] ?? null;
@@ -419,9 +434,9 @@ class Tiktok_returns extends Admin
 					'updated_at'          => date('Y-m-d H:i:s')
 				];
 
-				$existing = $this->db->get_where('tiktok_returns', ['return_id' => $return_id])->row();
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_returns', $save_data);
+				$existing_id = $existing_returns[$return_id] ?? null;
+				if ($existing_id) {
+					$this->db->where('id', $existing_id)->update('tiktok_returns', $save_data);
 				} else {
 					$save_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_returns', $save_data);
@@ -429,6 +444,8 @@ class Tiktok_returns extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

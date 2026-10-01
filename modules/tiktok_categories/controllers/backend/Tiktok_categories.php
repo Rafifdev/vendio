@@ -74,6 +74,20 @@ class Tiktok_categories extends Admin
 		}
 
 		$categories = $response['data']['categories'] ?? [];
+		if (empty($categories)) {
+			set_message('Tidak ada data kategori ditemukan dari TikTok Shop.', 'warning');
+			redirect('administrator/tiktok_categories');
+			return;
+		}
+
+		// Optimasi Database: Pre-fetch seluruh ID kategori yang sudah tersimpan dalam 1 query
+		$existing_cats = array_column(
+			$this->db->select('id, tiktok_category_id')->get('tiktok_categories')->result(),
+			'id',
+			'tiktok_category_id'
+		);
+
+		$this->db->trans_start();
 		$synced_count = 0;
 
 		foreach ($categories as $cat) {
@@ -91,18 +105,18 @@ class Tiktok_categories extends Admin
 				'synced_at'          => date('Y-m-d H:i:s'),
 			];
 
-			$existing = $this->db->get_where('tiktok_categories', [
-				'tiktok_category_id' => $cat_id
-			])->row();
+			$existing_id = $existing_cats[$cat_id] ?? null;
 
-			if ($existing) {
-				$this->db->where('id', $existing->id)->update('tiktok_categories', $data_cat);
+			if ($existing_id) {
+				$this->db->where('id', $existing_id)->update('tiktok_categories', $data_cat);
 			} else {
 				$this->db->insert('tiktok_categories', $data_cat);
 			}
 
 			$synced_count++;
 		}
+
+		$this->db->trans_complete();
 
 		set_message("Berhasil menarik {$synced_count} kategori resmi TikTok Shop.", 'success');
 		redirect('administrator/tiktok_categories');

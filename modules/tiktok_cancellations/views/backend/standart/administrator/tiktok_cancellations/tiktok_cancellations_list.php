@@ -606,10 +606,10 @@ jQuery(document).ready(domo);
                   </div>
 
                   <!-- Form & Table -->
-                  <form name="form_tiktok_cancellations" id="form_tiktok_cancellations" action="<?= base_url('administrator/tiktok_cancellations/index'); ?>
+                  <form name="form_tiktok_cancellations" id="form_tiktok_cancellations" action="<?= base_url('administrator/tiktok_cancellations/index'); ?>">
                      <?php if (!empty($selected_shop_id)): ?>
                         <input type="hidden" name="shop_id" value="<?= $selected_shop_id; ?>">
-                     <?php endif; ?>">
+                     <?php endif; ?>
 
                   <?php
                   if (!function_exists('format_tiktok_cancel_status')) {

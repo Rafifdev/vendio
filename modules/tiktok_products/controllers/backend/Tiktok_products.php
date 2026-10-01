@@ -1540,6 +1540,31 @@ class Tiktok_products extends Admin
 			}
 
 			$products = $search_res['data']['products'] ?? [];
+			if (empty($products)) {
+				continue;
+			}
+
+			// Optimasi: Kumpulkan semua product ID
+			$pids = [];
+			foreach ($products as $p) {
+				if (!empty($p['id'])) {
+					$pids[] = $p['id'];
+				}
+			}
+
+			// Ambil detail seluruh produk secara paralel via cURL Multi (Sangat Cepat!)
+			$parallel_details = $this->tiktok_api->get_products_details_parallel($pids, [], $shop->id, 10);
+
+			// Pre-fetch data produk lokal dalam 1 query
+			$existing_products = [];
+			if (!empty($pids)) {
+				$ex_rows = $this->db->select('id, product_id')->where_in('product_id', $pids)->get('tiktok_products')->result();
+				foreach ($ex_rows as $er) {
+					$existing_products[$er->product_id] = $er->id;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($products as $p) {
 				$product_id = $p['id'];
@@ -1571,9 +1596,8 @@ class Tiktok_products extends Admin
 					$seller_sku = $first_sku['seller_sku'] ?? null;
 				}
 
-				// Ambil detail lengkap produk
-				$detail_res = $this->tiktok_api->get_product_detail($product_id, [], $shop->id);
-				$detail = $detail_res['data'] ?? [];
+				// Ambil detail lengkap produk dari hasil paralel request
+				$detail = $parallel_details[$product_id]['data'] ?? [];
 
 				if (strtoupper($detail['status'] ?? '') === 'DELETED') {
 					$this->db->where('product_id', $product_id)->delete('tiktok_product_skus');
@@ -1622,12 +1646,12 @@ class Tiktok_products extends Admin
 					'updated_at'        => date('Y-m-d H:i:s'),
 				];
 
-				// Cek apakah produk sudah ada di database
-				$existing = $this->db->get_where('tiktok_products', ['product_id' => $product_id])->row();
+				// Cek apakah produk sudah ada di database dari map pre-fetch
+				$existing_id = $existing_products[$product_id] ?? null;
 
-				if ($existing) {
-					$this->db->where('id', $existing->id)->update('tiktok_products', $product_data);
-					$local_product_id = $existing->id;
+				if ($existing_id) {
+					$this->db->where('id', $existing_id)->update('tiktok_products', $product_data);
+					$local_product_id = $existing_id;
 				} else {
 					$product_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_products', $product_data);
@@ -1675,6 +1699,8 @@ class Tiktok_products extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

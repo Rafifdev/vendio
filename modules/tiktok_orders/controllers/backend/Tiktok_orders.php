@@ -350,6 +350,33 @@ class Tiktok_orders extends Admin
 			}
 
 			$orders = $search_res['data']['orders'] ?? [];
+			if (empty($orders)) {
+				continue;
+			}
+
+			// Optimasi: Kumpulkan seluruh ID pesanan
+			$order_ids = [];
+			foreach ($orders as $o) {
+				if (!empty($o['id'])) {
+					$order_ids[] = $o['id'];
+				}
+			}
+
+			// Ambil detail seluruh pesanan dalam 1 kali batch request ke TikTok API (Sangat Cepat!)
+			$batch_details = $this->tiktok_api->get_order_details_batch($order_ids, [], $shop->id);
+
+			// Pre-fetch data pesanan lokal untuk toko ini dalam 1 query agar tidak query berkali-kali di dalam loop
+			$existing_orders = [];
+			if (!empty($order_ids)) {
+				$ex_rows = $this->db->select('id, order_id, order_status')
+					->where_in('order_id', $order_ids)
+					->get('tiktok_orders')->result();
+				foreach ($ex_rows as $er) {
+					$existing_orders[$er->order_id] = $er;
+				}
+			}
+
+			$this->db->trans_start();
 
 			foreach ($orders as $order) {
 				$order_id = $order['id'] ?? '';
@@ -357,13 +384,10 @@ class Tiktok_orders extends Admin
 					continue;
 				}
 
-				// Ambil detail lengkap pesanan dari API TikTok
+				// Ambil detail lengkap pesanan dari hasil batch
 				$detail = $order;
-				$detail_res = $this->tiktok_api->get_order_detail($order_id, [], $shop->id);
-				if (!empty($detail_res['data']['orders'][0])) {
-					$detail = array_merge($order, $detail_res['data']['orders'][0]);
-				} elseif (!empty($detail_res['data']['id'])) {
-					$detail = array_merge($order, $detail_res['data']);
+				if (!empty($batch_details[$order_id])) {
+					$detail = array_merge($order, $batch_details[$order_id]);
 				}
 
 				$status = $detail['status'] ?? 'UNPAID';
@@ -435,8 +459,8 @@ class Tiktok_orders extends Admin
 					'updated_at'          => date('Y-m-d H:i:s'),
 				];
 
-				// Cek apakah data order sudah ada di database lokal
-				$existing = $this->db->get_where('tiktok_orders', ['order_id' => $order_id])->row();
+				// Cek apakah data order sudah ada di database lokal dari map pre-fetch
+				$existing = $existing_orders[$order_id] ?? null;
 				$prev_status = $existing ? $existing->order_status : null;
 
 				if ($existing) {
@@ -556,6 +580,8 @@ class Tiktok_orders extends Admin
 
 				$total_synced++;
 			}
+
+			$this->db->trans_complete();
 		}
 
 		if (!empty($error_messages)) {

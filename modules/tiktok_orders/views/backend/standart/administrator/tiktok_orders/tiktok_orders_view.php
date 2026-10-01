@@ -345,16 +345,9 @@ jQuery(document).ready(domo);
                      <div class="form-group">
                         <label for="content" class="col-sm-2 control-label">ID Paket</label>
                         <div class="col-sm-8" style="display: flex; align-items: center; gap: 8px;">
-                           <?php if (!empty($tiktok_orders->package_id)): 
-                              $pkg_row = $this->db->get_where('tiktok_packages', ['package_id' => $tiktok_orders->package_id])->row();
-                           ?>
-                              <span class="chip-id" style="color: #db2777; background-color: #fdf2f8; border-color: #fce7f3; font-weight: 600;"><?= _ent($tiktok_orders->package_id); ?></span>
-                              <?php if ($pkg_row): ?>
-                                 <a href="<?= site_url('administrator/tiktok_packages/view/' . $pkg_row->id); ?>" class="btn btn-xs btn-flat btn-info" style="border-radius: 4px; padding: 3px 9px; font-weight: 600;">
-                                    <i class="fa fa-cube"></i> Lihat Pengiriman Paket
-                                 </a>
-                              <?php endif; ?>
-                           <?php else: ?>
+                           <?php if (!empty($tiktok_orders->package_id)): ?>
+                               <span class="chip-id" style="color: #db2777; background-color: #fdf2f8; border-color: #fce7f3; font-weight: 600;"><?= _ent($tiktok_orders->package_id); ?></span>
+                            <?php else: ?>
                               <span class="text-muted">-</span>
                            <?php endif; ?>
                         </div>
