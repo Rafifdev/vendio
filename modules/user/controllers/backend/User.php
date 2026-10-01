@@ -88,18 +88,11 @@ class User extends Admin
 				'date_created'	=> date('Y-m-d H:i:s')
 			];
 
-			if (!empty($user_avatar_name)) {
-
-				$user_avatar_name_copy = date('YmdHis') . '-' . $user_avatar_name;
-
-				if (!is_dir(FCPATH . '/uploads/user')) {
-					mkdir(FCPATH . '/uploads/user');
+			if (!empty($user_avatar_name) && !empty($user_avatar_uuid)) {
+				$new_avatar = $this->_process_avatar_upload($user_avatar_name, $user_avatar_uuid);
+				if ($new_avatar) {
+					$save_data['avatar'] = $new_avatar;
 				}
-
-				@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
-						FCPATH . 'uploads/user/' . $user_avatar_name_copy);
-
-				$save_data['avatar'] = $user_avatar_name_copy;
 			}
 
 			$save_user = $this->aauth->create_user($this->input->post('email'), $this->input->post('password'), $this->input->post('username'), $save_data);
@@ -183,28 +176,16 @@ class User extends Admin
 				'full_name' 	=> $this->input->post('full_name'),
 			];
 
-			if (!empty($user_avatar_name)) {
-				if (!empty($user_avatar_uuid)) {
-					$user_avatar_name_copy = date('YmdHis') . '-' . $user_avatar_name;
-
-					if (!is_dir(FCPATH . 'uploads/user')) {
-						mkdir(FCPATH . 'uploads/user', 0777, true);
-					}
-		
-					if (is_file(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name)) {
-						@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
-								FCPATH . 'uploads/user/' . $user_avatar_name_copy);
-					}
-
-					if (!is_file(FCPATH . 'uploads/user/' . $user_avatar_name_copy)) {
-						return $this->response([
-							'success' => false,
-							'message' => 'Error uploading avatar'
-							]);
-						exit;
-					}
-
-					$save_data['avatar'] = $user_avatar_name_copy;
+			if (!empty($user_avatar_name) && !empty($user_avatar_uuid)) {
+				$new_avatar = $this->_process_avatar_upload($user_avatar_name, $user_avatar_uuid);
+				if ($new_avatar) {
+					$save_data['avatar'] = $new_avatar;
+				} else {
+					return $this->response([
+						'success' => false,
+						'message' => 'Error uploading avatar'
+					]);
+					exit;
 				}
 			}
 
@@ -353,28 +334,16 @@ class User extends Admin
 				'full_name' 	=> $this->input->post('full_name'),
 			];
 
-			if (!empty($user_avatar_name)) {
-				if (!empty($user_avatar_uuid)) {
-					$user_avatar_name_copy = date('YmdHis') . '-' . $user_avatar_name;
-
-					if (!is_dir(FCPATH . 'uploads/user')) {
-						mkdir(FCPATH . 'uploads/user', 0777, true);
-					}
-		
-					if (is_file(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name)) {
-						@rename(FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name, 
-								FCPATH . 'uploads/user/' . $user_avatar_name_copy);
-					}
-
-					if (!is_file(FCPATH . 'uploads/user/' . $user_avatar_name_copy)) {
-						return $this->response([
-							'success' => false,
-							'message' => 'Error uploading avatar'
-							]);
-						exit;
-					}
-
-					$save_data['avatar'] = $user_avatar_name_copy;
+			if (!empty($user_avatar_name) && !empty($user_avatar_uuid)) {
+				$new_avatar = $this->_process_avatar_upload($user_avatar_name, $user_avatar_uuid);
+				if ($new_avatar) {
+					$save_data['avatar'] = $new_avatar;
+				} else {
+					return $this->response([
+						'success' => false,
+						'message' => 'Error uploading avatar'
+					]);
+					exit;
 				}
 			}
 
@@ -423,36 +392,79 @@ class User extends Admin
 	}
 
 	/**
+	 * Pindahkan avatar dari folder tmp ke folder user dengan aman
+	 */
+	private function _process_avatar_upload($user_avatar_name, $user_avatar_uuid)
+	{
+		if (empty($user_avatar_name) || empty($user_avatar_uuid)) {
+			return false;
+		}
+
+		$user_avatar_name_copy = date('YmdHis') . '-' . preg_replace('/[^a-zA-Z0-9_\.-]/', '', $user_avatar_name);
+
+		if (!is_dir(FCPATH . 'uploads/user')) {
+			@mkdir(FCPATH . 'uploads/user', 0777, true);
+			@chmod(FCPATH . 'uploads/user', 0777);
+		}
+
+		$source_file = FCPATH . 'uploads/tmp/' . $user_avatar_uuid . '/' . $user_avatar_name;
+		$dest_file   = FCPATH . 'uploads/user/' . $user_avatar_name_copy;
+
+		if (is_file($source_file)) {
+			if (!@rename($source_file, $dest_file)) {
+				@copy($source_file, $dest_file);
+				@unlink($source_file);
+			}
+			@rmdir(FCPATH . 'uploads/tmp/' . $user_avatar_uuid);
+		}
+
+		if (is_file($dest_file)) {
+			@chmod($dest_file, 0644);
+			return $user_avatar_name_copy;
+		}
+
+		return false;
+	}
+
+	/**
 	* Upload Image User
 	* 
 	* @return JSON
 	*/
 	public function upload_avatar_file()
 	{
-		if (!$this->is_allowed('user_add', false)) {
+		if (!$this->is_allowed('user_add', false) && !$this->is_allowed('user_update', false) && !$this->is_allowed('user_update_profile', false) && !$this->aauth->is_loggedin()) {
 			return $this->response([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 		}
 
 		$uuid = $this->input->post('qquuid');
+		if (empty($uuid)) {
+			$uuid = md5(uniqid(mt_rand(), true));
+		}
 
-		mkdir(FCPATH . '/uploads/tmp/' . $uuid);
+		$target_dir = FCPATH . 'uploads/tmp/' . $uuid . '/';
+		if (!is_dir($target_dir)) {
+			@mkdir($target_dir, 0777, true);
+			@chmod(FCPATH . 'uploads/tmp', 0777);
+			@chmod($target_dir, 0777);
+		}
 
 		$config = [
-			'upload_path' 		=> './uploads/tmp/' . $uuid . '/',
-			'allowed_types' 	=> 'png|jpeg|jpg|gif',
-			'max_size'  		=> '1000'
+			'upload_path' 		=> $target_dir,
+			'allowed_types' 	=> 'png|jpeg|jpg|gif|PNG|JPEG|JPG|GIF',
+			'max_size'  		=> '10240'
 		];
 		
 		$this->load->library('upload', $config);
 		$this->load->helper('file');
 
-		if ( ! $this->upload->do_upload('qqfile')){
+		if (!$this->upload->do_upload('qqfile')){
 			$result = [
 				'success' 	=> false,
-				'error' 	=>  $this->upload->display_errors()
+				'error' 	=> $this->upload->display_errors()
 			];
 
     		return $this->response($result);
@@ -476,61 +488,50 @@ class User extends Admin
 	*/
 	public function delete_avatar_file($uuid)
 	{
-		if (!$this->is_allowed('user_delete', false)) {
+		if (!$this->is_allowed('user_delete', false) && !$this->is_allowed('user_update', false) && !$this->is_allowed('user_update_profile', false) && !$this->aauth->is_loggedin()) {
 			return $this->response([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 		}
 
 		if (!empty($uuid)) {
 			$this->load->helper('file');
 
 			$delete_by = $this->input->get('by');
-			$delete_file = false;
 
 			if ($delete_by == 'id') {
 				$user = $this->model_user->find($uuid);
-				if ($user->avatar == 'default.png') {
-					$result = [
-						'success' => true,
-					];
-
-		    		return $this->response($result);
+				if ($user && $user->avatar == 'default.png') {
+					return $this->response(['success' => true]);
 				} 
-				$path = FCPATH . 'uploads/user/'.$user->avatar;
-
-				if (isset($uuid)) {
+				if ($user && !empty($user->avatar)) {
+					$path = FCPATH . 'uploads/user/' . $user->avatar;
 					if (is_file($path)) {
-						$delete_file = unlink($path);
+						@unlink($path);
 						$this->model_user->change($uuid, ['avatar' => '']);
 					}
 				}
 			} else {
-				$path = FCPATH . '/uploads/tmp/' . $uuid . '/';
-				$delete_file = delete_files($path, true);
-			}
-
-			if (isset($uuid)) {
+				$path = FCPATH . 'uploads/tmp/' . $uuid . '/';
 				if (is_dir($path)) {
-					rmdir($path);
+					delete_files($path, true);
+					@rmdir($path);
 				}
 			}
 
-			if (!$delete_file) {
-				$result = [
-					'error' =>  'Error delete file'
-				];
-
-	    		return $this->response($result);
-			} else {
-				$result = [
-					'success' => true,
-				];
-
-	    		return $this->response($result);
-			}
+			return $this->response(['success' => true]);
 		}
+
+		return $this->response(['success' => false, 'error' => 'UUID empty']);
+	}
+
+	/**
+	 * Alias for delete_avatar_file to match JavaScript calls
+	 */
+	public function delete_image_file($uuid)
+	{
+		return $this->delete_avatar_file($uuid);
 	}
 
 	/**
@@ -540,22 +541,19 @@ class User extends Admin
 	*/
 	public function get_avatar_file($id)
 	{
-		if (!$this->is_allowed('user_update', false)) {
+		$is_own = ($this->aauth->is_loggedin() && $this->aauth->get_user() && $this->aauth->get_user()->id == $id);
+		if (!$this->is_allowed('user_update', false) && !$this->is_allowed('user_update_profile', false) && !$is_own) {
 			return $this->response([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 		}
 		$this->load->helper('file');
 		
 		$user = $this->model_user->find($id);
 
 		if (!$user) {
-			$result = [
-				'error' =>  'Error getting file'
-			];
-
-    		return $this->response($result);
+			return $this->response(['error' => 'User not found']);
 		} else {
 			if (!empty($user->avatar)) {
 				$result[] = [
@@ -571,6 +569,8 @@ class User extends Admin
 	    		return $this->response($result);
 			}
 		}
+
+		return $this->response([]);
 	}
 
 	/**

@@ -283,14 +283,26 @@ jQuery(document).ready(domo);
             toastr['error'](msg);
         },
         callbacks: {
-            onComplete: function(id, name) {
-                var uuid = $('#user_avatar_galery').fineUploader('getUuid', id);
-                $('#user_avatar_uuid').val(uuid);
-                $('#user_avatar_name').val(name);
+            onComplete: function(id, name, responseJSON) {
+                if (responseJSON && responseJSON.success) {
+                    var uuid = $('#user_avatar_galery').fineUploader('getUuid', id);
+                    $('#user_avatar_uuid').val(uuid);
+                    $('#user_avatar_name').val(responseJSON.uploadName || name);
+                } else {
+                    var errorMsg = (responseJSON && (responseJSON.error || responseJSON.message)) ? (responseJSON.error || responseJSON.message) : 'Gagal mengupload avatar.';
+                    toastr['error'](errorMsg);
+                    $('#user_avatar_uuid').val('');
+                    $('#user_avatar_name').val('');
+                }
+            },
+            onError: function(id, name, errorReason, xhr) {
+                toastr['error'](errorReason || 'Gagal mengupload avatar.');
             },
             onSubmit: function(id, name) {
                 var uuid = $('#user_avatar_uuid').val();
-                $.get(BASE_URL + '/administrator/user/delete_avatar_file/' + uuid);
+                if (uuid) {
+                    $.get(BASE_URL + 'administrator/user/delete_avatar_file/' + uuid);
+                }
             }
         }
     }); /*end image galey*/

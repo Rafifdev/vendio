@@ -35,6 +35,12 @@ uploads/*
 uploads/user/*
 !uploads/user/.gitkeep
 !uploads/user/default.png
+!uploads/tmp/
+uploads/tmp/*
+!uploads/tmp/.gitkeep
+!uploads/tiktok_products/
+uploads/tiktok_products/*
+!uploads/tiktok_products/.gitkeep
 
 captcha/*
 phploy
