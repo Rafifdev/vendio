@@ -37,17 +37,20 @@ class Tiktok_products extends Admin
 		$this->data['tiktok_productss'] = $this->model_tiktok_products->get($filter, $field, $this->limit_page, $offset, [], $shop_id, $platform);
 		$this->data['tiktok_products_counts'] = $this->model_tiktok_products->count_all($filter, $field, $shop_id, $platform);
 
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$shops_query = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops');
+		$this->data['shops'] = $shops_query ? $shops_query->result() : [];
 		$this->data['selected_shop_id'] = $shop_id;
 		$this->data['selected_platform'] = $platform;
 
 		// Ambil varian SKU untuk setiap produk di halaman ini
-		$product_ids = array_column($this->data['tiktok_productss'], 'id');
+		$product_ids = !empty($this->data['tiktok_productss']) ? array_column($this->data['tiktok_productss'], 'id') : [];
 		$skus_by_product = [];
 		if (!empty($product_ids)) {
-			$skus = $this->db->where_in('tiktok_product_id', $product_ids)->get('tiktok_product_skus')->result();
-			foreach ($skus as $sku) {
-				$skus_by_product[$sku->tiktok_product_id][] = $sku;
+			$skus_query = $this->db->where_in('tiktok_product_id', $product_ids)->get('tiktok_product_skus');
+			if ($skus_query) {
+				foreach ($skus_query->result() as $sku) {
+					$skus_by_product[$sku->tiktok_product_id][] = $sku;
+				}
 			}
 		}
 		$this->data['skus_by_product'] = $skus_by_product;

@@ -21,24 +21,25 @@ class Model_tiktok_products extends MY_Model {
     public function count_all($q = null, $field = null, $shop_id = null, $platform = null)
     {
         $iterasi = 1;
-        $num = count($this->field_search);
         $where = NULL;
         $q = $this->scurity($q);
         $field = $this->scurity($field);
 
-        if (empty($field)) {
-            foreach ($this->field_search as $field) {
-                if ($iterasi == 1) {
-                    $where .= "tiktok_products.".$field . " LIKE '%" . $q . "%' ";
-                } else {
-                    $where .= "OR " . "tiktok_products.".$field . " LIKE '%" . $q . "%' ";
+        if (!empty($q)) {
+            if (empty($field)) {
+                foreach ($this->field_search as $f) {
+                    if ($iterasi == 1) {
+                        $where .= "tiktok_products.".$f . " LIKE '%" . $q . "%' ";
+                    } else {
+                        $where .= "OR " . "tiktok_products.".$f . " LIKE '%" . $q . "%' ";
+                    }
+                    $iterasi++;
                 }
-                $iterasi++;
-            }
 
-            $where = '('.$where.')';
-        } else {
-            $where .= "(" . "tiktok_products.".$field . " LIKE '%" . $q . "%' )";
+                $where = '('.$where.')';
+            } else {
+                $where .= "(" . "tiktok_products.".$field . " LIKE '%" . $q . "%' )";
+            }
         }
 
         if (!empty($shop_id)) {
@@ -50,33 +51,36 @@ class Model_tiktok_products extends MY_Model {
         }
 
         $this->join_avaiable()->filter_avaiable();
-        $this->db->where($where);
+        if ($where) {
+            $this->db->where($where);
+        }
         $query = $this->db->get($this->table_name);
 
-        return $query->num_rows();
+        return $query ? $query->num_rows() : 0;
     }
 
     public function get($q = null, $field = null, $limit = 0, $offset = 0, $select_field = [], $shop_id = null, $platform = null)
     {
         $iterasi = 1;
-        $num = count($this->field_search);
         $where = NULL;
         $q = $this->scurity($q);
         $field = $this->scurity($field);
 
-        if (empty($field)) {
-            foreach ($this->field_search as $field) {
-                if ($iterasi == 1) {
-                    $where .= "tiktok_products.".$field . " LIKE '%" . $q . "%' ";
-                } else {
-                    $where .= "OR " . "tiktok_products.".$field . " LIKE '%" . $q . "%' ";
+        if (!empty($q)) {
+            if (empty($field)) {
+                foreach ($this->field_search as $f) {
+                    if ($iterasi == 1) {
+                        $where .= "tiktok_products.".$f . " LIKE '%" . $q . "%' ";
+                    } else {
+                        $where .= "OR " . "tiktok_products.".$f . " LIKE '%" . $q . "%' ";
+                    }
+                    $iterasi++;
                 }
-                $iterasi++;
-            }
 
-            $where = '('.$where.')';
-        } else {
-            $where .= "(" . "tiktok_products.".$field . " LIKE '%" . $q . "%' )";
+                $where = '('.$where.')';
+            } else {
+                $where .= "(" . "tiktok_products.".$field . " LIKE '%" . $q . "%' )";
+            }
         }
 
         if (is_array($select_field) AND count($select_field)) {
@@ -92,12 +96,14 @@ class Model_tiktok_products extends MY_Model {
         }
         
         $this->join_avaiable()->filter_avaiable();
-        $this->db->where($where);
+        if ($where) {
+            $this->db->where($where);
+        }
         $this->db->limit($limit, $offset);
         $this->db->order_by('tiktok_products.'.$this->primary_key, "DESC");
         $query = $this->db->get($this->table_name);
 
-        return $query->result();
+        return $query ? $query->result() : [];
     }
 
     public function join_avaiable() {
