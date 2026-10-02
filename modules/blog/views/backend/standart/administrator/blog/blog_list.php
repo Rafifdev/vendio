@@ -355,6 +355,176 @@ jQuery(document).ready(domo);
    font-size: 11.5px;
    color: #94a3b8;
 }
+
+/* Clean Table Styling */
+.box-blog .table-responsive {
+   border: none;
+   margin: 0;
+   overflow: visible !important;
+}
+
+.box-blog .table-minimal {
+   table-layout: auto;
+   width: 100%;
+   border-collapse: collapse;
+   margin-bottom: 0;
+}
+
+.box-blog .table-minimal thead th {
+   background-color: #f8fafc;
+   color: #64748b;
+   font-size: 11px;
+   font-weight: 700;
+   text-transform: uppercase;
+   letter-spacing: 0.04em;
+   border-top: none;
+   border-bottom: 2px solid #e2e8f0;
+   border-left: none;
+   border-right: none;
+   padding: 12px 14px;
+   vertical-align: middle;
+}
+
+.box-blog .table-minimal tbody td {
+   border-top: 1px solid #f1f5f9;
+   border-bottom: none;
+   border-left: none;
+   border-right: none;
+   padding: 12px 14px;
+   font-size: 13px;
+   color: #334155;
+   vertical-align: middle;
+}
+
+.box-blog .table-minimal tbody tr {
+   position: relative;
+   transition: background-color 0.15s ease;
+}
+
+.box-blog .table-minimal tbody tr:hover {
+   background-color: #fbfcfd;
+}
+
+.box-blog .table-minimal tbody tr.dropdown-open {
+   z-index: 50;
+}
+
+/* Chips & Badges */
+.badge-category {
+   background-color: #f1f5f9;
+   color: #475569;
+   font-size: 11.5px;
+   font-weight: 600;
+   padding: 4px 10px;
+   border-radius: 6px;
+   display: inline-block;
+}
+
+.badge-status-publish {
+   background-color: #ecfdf5;
+   color: #059669;
+   border: 1px solid #a7f3d0;
+   font-size: 11.5px;
+   font-weight: 600;
+   padding: 3px 9px;
+   border-radius: 12px;
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.badge-status-draft {
+   background-color: #fffbeb;
+   color: #d97706;
+   border: 1px solid #fde68a;
+   font-size: 11.5px;
+   font-weight: 600;
+   padding: 3px 9px;
+   border-radius: 12px;
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.badge-status-archive {
+   background-color: #f1f5f9;
+   color: #64748b;
+   border: 1px solid #e2e8f0;
+   font-size: 11.5px;
+   font-weight: 600;
+   padding: 3px 9px;
+   border-radius: 12px;
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.chip-slug {
+   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+   font-size: 11.5px;
+   color: #0284c7;
+   background-color: #f0f9ff;
+   border: 1px solid #bae6fd;
+   padding: 2px 7px;
+   border-radius: 4px;
+   display: inline-flex;
+   align-items: center;
+   gap: 4px;
+   text-decoration: none !important;
+}
+
+.chip-slug:hover {
+   background-color: #e0f2fe;
+   color: #0369a1;
+}
+
+.blog-title-cell {
+   display: flex;
+   flex-direction: column;
+   gap: 4px;
+}
+
+.blog-title-text {
+   font-weight: 600;
+   color: #1e293b;
+   font-size: 13.5px;
+   line-height: 1.35;
+}
+
+.blog-author-tag {
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+   color: #475569;
+   font-size: 12.5px;
+}
+
+.blog-thumb-img {
+   width: 44px;
+   height: 44px;
+   object-fit: cover;
+   border-radius: 6px;
+   border: 1px solid #e2e8f0;
+   display: block;
+   transition: transform 0.15s ease;
+}
+
+.blog-thumb-img:hover {
+   transform: scale(1.05);
+}
+
+.blog-thumb-placeholder {
+   width: 44px;
+   height: 44px;
+   border-radius: 6px;
+   background-color: #f1f5f9;
+   border: 1px solid #e2e8f0;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   color: #94a3b8;
+   font-size: 16px;
+}
 </style>
 
 <!-- Content Header (Page header) -->
@@ -447,52 +617,80 @@ jQuery(document).ready(domo);
                   
 
                   <div class="table-responsive"> 
-                  <table class="table table-bordered table-striped dataTable">
+                  <table class="table table-minimal">
                      <thead>
-                        <tr class="">
-                           <th>
-                            <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="check all">
+                        <tr>
+                           <th style="width: 40px; text-align: center;">
+                              <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="<?= cclang('check_all'); ?>">
                            </th>
-                           <th>Title</th>
-                           <th>Slug</th>
-                           <th>Image</th>
-                           <th>Category</th>
-                           <th>Status</th>
-                           <th>Author</th>
-                           <th>Created At</th>
+                           <th style="width: 65px; text-align: center;">Gambar</th>
+                           <th style="min-width: 250px;">Judul & Slug</th>
+                           <th style="width: 150px;">Kategori</th>
+                           <th style="width: 120px; text-align: center;">Status</th>
+                           <th style="width: 130px;">Penulis</th>
+                           <th style="width: 130px;">Dibuat</th>
                            <th style="width: 48px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_blog">
                      <?php foreach($blogs as $blog): ?>
                         <tr>
-                           <td width="5">
+                           <td style="text-align: center;">
                               <input type="checkbox" class="flat-red check" name="id[]" value="<?= $blog->id; ?>">
                            </td>
-                           
-                           <td><?= _ent($blog->title); ?></td> 
-                           <td><?= (anchor('blog/'.$blog->slug, $blog->slug, ['target' => 'blank'])); ?> <i class="fa fa-link"></i></td> 
-                           <td>
-                              <?php foreach (explode(',', $blog->image) as $file): ?>
-                              <?php if (!empty($file)): ?>
-                                <?php if (is_image($file)): ?>
-                                <a class="fancybox" rel="group" href="<?= BASE_URL . 'uploads/blog/' . $file; ?>">
-                                  <img src="<?= BASE_URL . 'uploads/blog/' . $file; ?>" class="image-responsive" alt="image blog" title="image blog" width="40px">
-                                </a>
-                                <?php else: ?>
-                                  <a href="<?= BASE_URL . 'administrator/file/download/blog/' . $file; ?>">
-                                   <img src="<?= get_icon_file($file); ?>" class="image-responsive image-icon" alt="image blog" title="image <?= $file; ?>" width="40px"> 
-                                 </a>
-                                <?php endif; ?>
+
+                           <td style="text-align: center;">
+                              <?php 
+                              $images = !empty($blog->image) ? explode(',', $blog->image) : [];
+                              $first_image = !empty($images[0]) ? trim($images[0]) : '';
+                              if (!empty($first_image)):
+                                 if (is_image($first_image)): ?>
+                                    <a class="fancybox" rel="group" href="<?= BASE_URL . 'uploads/blog/' . $first_image; ?>">
+                                       <img src="<?= BASE_URL . 'uploads/blog/' . $first_image; ?>" class="blog-thumb-img" alt="<?= _ent($blog->title); ?>">
+                                    </a>
+                                 <?php else: ?>
+                                    <a href="<?= BASE_URL . 'administrator/file/download/blog/' . $first_image; ?>">
+                                       <img src="<?= get_icon_file($first_image); ?>" class="blog-thumb-img" alt="file">
+                                    </a>
+                                 <?php endif; ?>
+                              <?php else: ?>
+                                 <div class="blog-thumb-placeholder">
+                                    <i class="fa fa-picture-o"></i>
+                                 </div>
                               <?php endif; ?>
-                              <?php endforeach; ?>
                            </td>
-                            
-                           <td><?= _ent($blog->category_name); ?></td>
-                             
-                           <td><?= _ent($blog->status); ?></td> 
-                           <td><?= _ent($blog->author); ?></td> 
-                           <td><?= _ent($blog->created_at); ?></td> 
+                           <td>
+                              <div class="blog-title-cell">
+                                 <span class="blog-title-text"><?= _ent($blog->title); ?></span>
+                                 <a href="<?= site_url('blog/' . $blog->slug); ?>" target="_blank" class="chip-slug">
+                                    <i class="fa fa-link"></i> /<?= _ent($blog->slug); ?>
+                                 </a>
+                              </div>
+                           </td>
+                           <td>
+                              <span class="badge-category"><?= _ent(!empty($blog->category_name) ? $blog->category_name : 'Uncategorized'); ?></span>
+                           </td>
+                           <td style="text-align: center;">
+                              <?php 
+                              $status = strtolower(trim((string)$blog->status));
+                              if ($status == 'publish' || $status == 'published'): ?>
+                                 <span class="badge-status-publish"><i class="fa fa-circle" style="font-size: 7px;"></i> Publish</span>
+                              <?php elseif ($status == 'draft'): ?>
+                                 <span class="badge-status-draft"><i class="fa fa-circle" style="font-size: 7px;"></i> Draft</span>
+                              <?php else: ?>
+                                 <span class="badge-status-archive"><i class="fa fa-circle" style="font-size: 7px;"></i> <?= _ent(ucfirst($status)); ?></span>
+                              <?php endif; ?>
+                           </td>
+                           <td>
+                              <span class="blog-author-tag">
+                                 <i class="fa fa-user-circle-o text-muted"></i> <?= _ent($blog->author); ?>
+                              </span>
+                           </td>
+                           <td>
+                              <span style="color: #64748b; font-size: 12.5px;">
+                                 <?= !empty($blog->created_at) ? date('d M Y, H:i', strtotime($blog->created_at)) : '-'; ?>
+                              </span>
+                           </td> 
                            <td style="text-align: center; white-space: nowrap;">
                               <?= render_table_action([
                                  'view' => [
@@ -513,8 +711,9 @@ jQuery(document).ready(domo);
                       <?php endforeach; ?>
                       <?php if ($blog_counts == 0) :?>
                          <tr>
-                           <td colspan="100">
-                           Blog data is not available
+                           <td colspan="100" style="text-align: center; padding: 35px 20px; color: #94a3b8;">
+                              <i class="fa fa-folder-open-o" style="font-size: 32px; display: block; margin-bottom: 8px; color: #cbd5e1;"></i>
+                              Belum ada data artikel blog yang tersedia
                            </td>
                          </tr>
                       <?php endif; ?>
