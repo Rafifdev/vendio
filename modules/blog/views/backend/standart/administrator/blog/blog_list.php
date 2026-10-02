@@ -30,6 +30,129 @@ function domo(){
 
 jQuery(document).ready(domo);
 </script>
+
+<style>
+/* Action Dropdown 3-Dots Component */
+.action-dropdown {
+   position: relative;
+   display: inline-block;
+}
+
+.btn-action-dots,
+.btn-action-dropdown {
+   display: inline-flex !important;
+   align-items: center !important;
+   justify-content: center !important;
+   width: 32px !important;
+   height: 32px !important;
+   min-width: 32px !important;
+   padding: 0 !important;
+   font-size: 15px !important;
+   color: #475569 !important;
+   background-color: #ffffff !important;
+   border: 1px solid #cbd5e1 !important;
+   border-radius: 6px !important;
+   cursor: pointer !important;
+   outline: none !important;
+   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-action-dots:hover,
+.btn-action-dots:focus,
+.btn-action-dropdown:hover,
+.btn-action-dropdown:focus {
+   background-color: #f8fafc !important;
+   border-color: #94a3b8 !important;
+   color: #0f172a !important;
+   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+}
+
+.action-dropdown.open .btn-action-dots,
+.action-dropdown.open .btn-action-dropdown {
+   background-color: #ffffff !important;
+   border-color: #00a65a !important;
+   color: #00a65a !important;
+   box-shadow: 0 0 0 2.5px rgba(0, 166, 90, 0.15) !important;
+}
+
+.action-dropdown .action-dropdown-menu {
+   position: absolute !important;
+   top: calc(100% + 5px) !important;
+   right: 0 !important;
+   left: auto !important;
+   min-width: 170px !important;
+   padding: 6px 0 !important;
+   margin: 0 !important;
+   background: #ffffff !important;
+   border: 1px solid #e2e8f0 !important;
+   border-radius: 8px !important;
+   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06) !important;
+   list-style: none !important;
+   z-index: 1050 !important;
+   text-align: left !important;
+   display: block !important;
+   opacity: 0;
+   visibility: hidden;
+   transform: translateY(-8px) scale(0.97);
+   transform-origin: top right;
+   pointer-events: none;
+   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+               transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+               visibility 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.action-dropdown.open .action-dropdown-menu {
+   opacity: 1 !important;
+   visibility: visible !important;
+   transform: translateY(0) scale(1) !important;
+   pointer-events: auto !important;
+}
+
+.action-dropdown-menu li {
+   margin: 0 !important;
+   padding: 0 !important;
+}
+
+.action-dropdown-menu .dropdown-item-action {
+   display: flex !important;
+   align-items: center !important;
+   gap: 9px !important;
+   padding: 7px 14px !important;
+   font-size: 12.5px !important;
+   font-weight: 500 !important;
+   color: #334155 !important;
+   text-decoration: none !important;
+   line-height: 1.4 !important;
+   transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.15s ease !important;
+   clear: both;
+   white-space: nowrap;
+}
+
+.action-dropdown-menu .dropdown-item-action i {
+   width: 16px;
+   text-align: center;
+   font-size: 13px;
+   flex-shrink: 0;
+}
+
+.action-dropdown-menu .dropdown-item-action:hover {
+   background-color: #f1f5f9 !important;
+   color: #0f172a !important;
+   padding-left: 17px !important;
+}
+
+.action-dropdown-menu .dropdown-item-action.item-danger {
+   color: #e11d48 !important;
+}
+
+.action-dropdown-menu .dropdown-item-action.item-danger:hover {
+   background-color: #fef2f2 !important;
+   color: #be123c !important;
+   padding-left: 17px !important;
+}
+</style>
+
 <!-- Content Header (Page header) -->
 <section class="content-header">
    <h1>
@@ -82,7 +205,7 @@ jQuery(document).ready(domo);
                            <th>Status</th>
                            <th>Author</th>
                            <th>Created At</th>
-                           <th>Action</th>
+                           <th style="width: 48px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
                      <tbody id="tbody_blog">
@@ -115,18 +238,21 @@ jQuery(document).ready(domo);
                            <td><?= _ent($blog->status); ?></td> 
                            <td><?= _ent($blog->author); ?></td> 
                            <td><?= _ent($blog->created_at); ?></td> 
-                           <td><?= _ent($blog->created_at); ?></td> 
-                           
-                           <td width="200">
-                              <?php is_allowed('blog_view', function() use ($blog){?>
-                              <a href="<?= site_url('administrator/blog/view/' . $blog->id); ?>" class="label-default"><i class="fa fa-newspaper-o"></i> <?= cclang('view_button'); ?>
-                              <?php }) ?>
-                              <?php is_allowed('blog_update', function() use ($blog){?>
-                              <a href="<?= site_url('administrator/blog/edit/' . $blog->id); ?>" class="label-default"><i class="fa fa-edit "></i> <?= cclang('update_button'); ?></a>
-                              <?php }) ?>
-                              <?php is_allowed('blog_delete', function() use ($blog){?>
-                              <a href="javascript:void(0);" data-href="<?= site_url('administrator/blog/delete/' . $blog->id); ?>" class="label-default remove-data"><i class="fa fa-close"></i> <?= cclang('remove_button'); ?></a>
-                               <?php }) ?>
+                           <td style="text-align: center; white-space: nowrap;">
+                              <?= render_table_action([
+                                 'view' => [
+                                    'url' => site_url('administrator/blog/view/' . $blog->id),
+                                    'permission' => 'blog_view',
+                                 ],
+                                 'edit' => [
+                                    'url' => site_url('administrator/blog/edit/' . $blog->id),
+                                    'permission' => 'blog_update',
+                                 ],
+                                 'delete' => [
+                                    'data_href' => site_url('administrator/blog/delete/' . $blog->id),
+                                    'permission' => 'blog_delete',
+                                 ]
+                              ]); ?>
                            </td>
                         </tr>
                       <?php endforeach; ?>
