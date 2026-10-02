@@ -414,11 +414,13 @@ jQuery(document).ready(domo);
    color: #0284c7;
    background-color: #f0f9ff;
    border: 1px solid #bae6fd;
-   padding: 2px 7px;
+   padding: 2px 8px;
    border-radius: 4px;
-   display: inline-flex;
+   display: inline-flex !important;
    align-items: center;
-   gap: 4px;
+   align-self: flex-start !important;
+   width: fit-content !important;
+   gap: 5px;
    text-decoration: none !important;
 }
 
@@ -430,7 +432,8 @@ jQuery(document).ready(domo);
 .blog-title-cell {
    display: flex;
    flex-direction: column;
-   gap: 4px;
+   align-items: flex-start !important;
+   gap: 5px;
 }
 
 .blog-title-text {
@@ -548,11 +551,11 @@ jQuery(document).ready(domo);
                               <input type="checkbox" class="flat-red toltip" id="check_all" name="check_all" title="<?= cclang('check_all'); ?>">
                            </th>
                            <th style="width: 65px; text-align: center;">Gambar</th>
-                           <th style="min-width: 250px;">Judul & Slug</th>
-                           <th style="width: 150px;">Kategori</th>
-                           <th style="width: 120px; text-align: center;">Status</th>
-                           <th style="width: 130px;">Penulis</th>
-                           <th style="width: 130px;">Dibuat</th>
+                           <th style="width: 36%;">Judul & Slug</th>
+                           <th style="width: 140px;">Kategori</th>
+                           <th style="width: 110px; text-align: center;">Status</th>
+                           <th style="width: 120px;">Penulis</th>
+                           <th style="width: 140px;">Dibuat</th>
                            <th style="width: 48px; text-align: center;">Aksi</th>
                         </tr>
                      </thead>
@@ -567,7 +570,8 @@ jQuery(document).ready(domo);
                               <?php 
                               $images = !empty($blog->image) ? explode(',', $blog->image) : [];
                               $first_image = !empty($images[0]) ? trim($images[0]) : '';
-                              if (!empty($first_image)):
+                              $image_file_exists = !empty($first_image) && is_file(FCPATH . 'uploads/blog/' . $first_image);
+                              if ($image_file_exists):
                                  if (is_image($first_image)): ?>
                                     <a class="fancybox" rel="group" href="<?= BASE_URL . 'uploads/blog/' . $first_image; ?>">
                                        <img src="<?= BASE_URL . 'uploads/blog/' . $first_image; ?>" class="blog-thumb-img" alt="<?= _ent($blog->title); ?>">
@@ -578,7 +582,7 @@ jQuery(document).ready(domo);
                                     </a>
                                  <?php endif; ?>
                               <?php else: ?>
-                                 <div class="blog-thumb-placeholder">
+                                 <div class="blog-thumb-placeholder" title="Tidak ada gambar">
                                     <i class="fa fa-picture-o"></i>
                                  </div>
                               <?php endif; ?>
