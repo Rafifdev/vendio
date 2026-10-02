@@ -43,6 +43,12 @@ class Blog extends Admin
 
 		$this->data['pagination'] = $this->pagination($config);
 
+		// Overview stats for blog management
+		$this->data['total_articles'] = $this->db->count_all('blog');
+		$this->data['published_count'] = $this->db->where('status', 'publish')->count_all_results('blog');
+		$this->data['draft_count'] = $this->db->where('status', 'draft')->count_all_results('blog');
+		$this->data['categories_count'] = $this->db->count_all('blog_category');
+
 		$this->template->title('Blog List');
 
 		if ($this->agent->is_mobile()) {

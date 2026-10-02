@@ -263,6 +263,98 @@ jQuery(document).ready(domo);
    box-shadow: 0 2px 6px rgba(0, 166, 90, 0.25);
    color: #ffffff !important;
 }
+
+/* Stat Cards Overview Grid */
+.blog-stats-grid {
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 16px;
+   margin-bottom: 20px;
+}
+
+@media (max-width: 992px) {
+   .blog-stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+   }
+}
+
+@media (max-width: 576px) {
+   .blog-stats-grid {
+      grid-template-columns: 1fr;
+   }
+}
+
+.stat-card-item {
+   background: #ffffff;
+   border: 1px solid #e5e9f0;
+   border-radius: 8px;
+   padding: 16px 20px;
+   display: flex;
+   align-items: center;
+   gap: 16px;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card-item:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon-wrapper {
+   width: 46px;
+   height: 46px;
+   border-radius: 10px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 20px;
+   flex-shrink: 0;
+}
+
+.stat-icon-blue {
+   background-color: #eff6ff;
+   color: #2563eb;
+}
+
+.stat-icon-green {
+   background-color: #f0fdf4;
+   color: #16a34a;
+}
+
+.stat-icon-amber {
+   background-color: #fffbeb;
+   color: #d97706;
+}
+
+.stat-icon-purple {
+   background-color: #faf5ff;
+   color: #9333ea;
+}
+
+.stat-card-info {
+   display: flex;
+   flex-direction: column;
+}
+
+.stat-card-value {
+   font-size: 22px;
+   font-weight: 700;
+   color: #0f172a;
+   line-height: 1.2;
+}
+
+.stat-card-label {
+   font-size: 13px;
+   font-weight: 600;
+   color: #475569;
+   margin-bottom: 2px;
+}
+
+.stat-card-subtext {
+   font-size: 11.5px;
+   color: #94a3b8;
+}
 </style>
 
 <!-- Content Header (Page header) -->
@@ -277,6 +369,50 @@ jQuery(document).ready(domo);
 </section>
 <!-- Main content -->
 <section class="content">
+   <!-- Stats Overview Cards -->
+   <div class="blog-stats-grid">
+      <div class="stat-card-item">
+         <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa fa-newspaper-o"></i>
+         </div>
+         <div class="stat-card-info">
+            <span class="stat-card-value"><?= number_format($total_articles ?? $blog_counts, 0, ',', '.'); ?></span>
+            <span class="stat-card-label">Total Artikel</span>
+            <span class="stat-card-subtext">Semua postingan blog</span>
+         </div>
+      </div>
+      <div class="stat-card-item">
+         <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa fa-check-circle"></i>
+         </div>
+         <div class="stat-card-info">
+            <span class="stat-card-value"><?= number_format($published_count ?? 0, 0, ',', '.'); ?></span>
+            <span class="stat-card-label">Artikel Terbit</span>
+            <span class="stat-card-subtext">Aktif dan dapat dibaca</span>
+         </div>
+      </div>
+      <div class="stat-card-item">
+         <div class="stat-icon-wrapper stat-icon-amber">
+            <i class="fa fa-pencil-square-o"></i>
+         </div>
+         <div class="stat-card-info">
+            <span class="stat-card-value"><?= number_format($draft_count ?? 0, 0, ',', '.'); ?></span>
+            <span class="stat-card-label">Draft / Review</span>
+            <span class="stat-card-subtext">Belum dipublikasikan</span>
+         </div>
+      </div>
+      <div class="stat-card-item">
+         <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa fa-folder-open-o"></i>
+         </div>
+         <div class="stat-card-info">
+            <span class="stat-card-value"><?= number_format($categories_count ?? 0, 0, ',', '.'); ?></span>
+            <span class="stat-card-label">Kategori</span>
+            <span class="stat-card-subtext">Kategori artikel blog</span>
+         </div>
+      </div>
+   </div>
+
    <div class="row">
       
       <div class="col-md-12">
