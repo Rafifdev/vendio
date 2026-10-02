@@ -55,7 +55,8 @@ $route_path = APPPATH . 'routes/';
 // require_once $route_path . 'routes_landing.php';
 
 
-$route['default_controller'] = 'auth/backend/auth/login';
+$route['default_controller'] = 'web';
+$route['home'] = 'web/home';
 $route['404_override'] = 'not_found';
 $route['translate_uri_dashes'] = FALSE;
 

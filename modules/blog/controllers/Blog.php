@@ -15,19 +15,23 @@ class Blog extends Front
 	{
 		parent::__construct();
         $this->load->model('model_blog');
+        $this->load->helper(['text']);
 	}
 
 
  
     public function index($offset = 0) 
     {
-        $this->limit_page = 5;
+        $this->limit_page = 9;
         
         $filter = $this->input->get('q');
         $field  = $this->input->get('f');
 
         $this->data['blogs'] = $this->model_blog->get($filter, $field, $this->limit_page, $offset);
         $this->data['blog_counts'] = $this->model_blog->count_all($filter, $field);
+
+        $categories_query = $this->db->get('blog_category');
+        $this->data['categories'] = $categories_query ? $categories_query->result() : [];
 
         $config = [
             'base_url'     => 'blog/index/',
@@ -38,6 +42,7 @@ class Blog extends Front
 
         $this->data['pagination'] = $this->pagination($config);
 
+        $this->template->title('Vendio Tech Insights | Blog & Panduan Ritel Omnichannel');
         $this->template->build('blog/blog_index', $this->data);
     }
 
@@ -105,6 +110,7 @@ class Blog extends Front
             'title' => $blog->title
         ];
 
+        $this->template->title($blog->title . ' | Vendio Tech Insights');
         $this->template->build('blog/blog_read', $data);
     }
     

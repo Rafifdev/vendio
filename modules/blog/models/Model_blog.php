@@ -21,24 +21,25 @@ class Model_blog extends MY_Model {
 	public function count_all($q = null, $field = null,$category = null, $tag = null)
 	{
 		$iterasi = 1;
-        $num = count($this->field_search);
         $where = NULL;
         $q = $this->scurity($q);
 		$field = $this->scurity($field);
 
-        if (empty($field)) {
-	        foreach ($this->field_search as $field) {
-	            if ($iterasi == 1) {
-	                $where .= "blog.".$field . " LIKE '%" . $q . "%' ";
-	            } else {
-	                $where .= "OR " . "blog.".$field . " LIKE '%" . $q . "%' ";
-	            }
-	            $iterasi++;
-	        }
+        if (!empty($q)) {
+	        if (empty($field)) {
+		        foreach ($this->field_search as $f) {
+		            if ($iterasi == 1) {
+		                $where .= "blog.".$f . " LIKE '%" . $q . "%' ";
+		            } else {
+		                $where .= "OR " . "blog.".$f . " LIKE '%" . $q . "%' ";
+		            }
+		            $iterasi++;
+		        }
 
-	        $where = '('.$where.')';
-        } else {
-        	$where .= "(" . "blog.".$field . " LIKE '%" . $q . "%' )";
+		        $where = '('.$where.')';
+	        } else {
+	        	$where .= "(" . "blog.".$field . " LIKE '%" . $q . "%' )";
+	        }
         }
 
         if ($tag) {
@@ -49,33 +50,36 @@ class Model_blog extends MY_Model {
 			$this->db->where('category', $category);
 		}
 		$this->join_avaiable()->filter_avaiable();
-        $this->db->where($where);
+        if ($where) {
+            $this->db->where($where);
+        }
 		$query = $this->db->get($this->table_name);
 
-		return $query->num_rows();
+		return $query ? $query->num_rows() : 0;
 	}
 
 	public function get($q = null, $field = null, $limit = 0, $offset = 0, $category = null, $tag = null)
 	{
 		$iterasi = 1;
-        $num = count($this->field_search);
         $where = NULL;
         $q = $this->scurity($q);
 		$field = $this->scurity($field);
 
-        if (empty($field)) {
-	        foreach ($this->field_search as $field) {
-	            if ($iterasi == 1) {
-	                $where .= "blog.".$field . " LIKE '%" . $q . "%' ";
-	            } else {
-	                $where .= "OR " . "blog.".$field . " LIKE '%" . $q . "%' ";
-	            }
-	            $iterasi++;
-	        }
+        if (!empty($q)) {
+	        if (empty($field)) {
+		        foreach ($this->field_search as $f) {
+		            if ($iterasi == 1) {
+		                $where .= "blog.".$f . " LIKE '%" . $q . "%' ";
+		            } else {
+		                $where .= "OR " . "blog.".$f . " LIKE '%" . $q . "%' ";
+		            }
+		            $iterasi++;
+		        }
 
-	        $where = '('.$where.')';
-        } else {
-        	$where .= "(" . "blog.".$field . " LIKE '%" . $q . "%' )";
+		        $where = '('.$where.')';
+	        } else {
+	        	$where .= "(" . "blog.".$field . " LIKE '%" . $q . "%' )";
+	        }
         }
         if ($tag) {
         	$this->db->where('tags LIKE "%'.$tag.'%"');
@@ -85,12 +89,14 @@ class Model_blog extends MY_Model {
 			$this->db->where('category', $category);
 		}
 		$this->join_avaiable()->filter_avaiable();
-        $this->db->where($where);
+        if ($where) {
+            $this->db->where($where);
+        }
         $this->db->limit($limit, $offset);
         $this->db->order_by('blog.'.$this->primary_key, "DESC");
 		$query = $this->db->get($this->table_name);
 
-		return $query->result();
+		return $query ? $query->result() : [];
 	}
 
     public function join_avaiable() {
