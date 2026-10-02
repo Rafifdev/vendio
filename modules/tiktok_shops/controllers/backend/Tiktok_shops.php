@@ -47,6 +47,23 @@ class Tiktok_shops extends Admin
 		$this->load->library('tiktok_api');
 		$this->data['auth_url'] = $this->tiktok_api->get_auth_url();
 
+		$this->_ensure_oauth_table();
+		// Cek apakah ada otorisasi link aktif yang belum digunakan dan belum expired
+		$active_state = $this->db->where('is_used', 0)
+			->where('expires_at >', date('Y-m-d H:i:s'))
+			->order_by('id', 'DESC')
+			->get('tiktok_oauth_states')
+			->row();
+
+		$active_remaining_seconds = 0;
+		if ($active_state) {
+			$diff = strtotime($active_state->expires_at) - time();
+			if ($diff > 0) {
+				$active_remaining_seconds = $diff;
+			}
+		}
+		$this->data['active_remaining_seconds'] = $active_remaining_seconds;
+
 		$this->template->title('Akun Toko List');
 		$this->render('backend/standart/administrator/tiktok_shops/tiktok_shops_list', $this->data);
 	}
@@ -482,10 +499,16 @@ class Tiktok_shops extends Admin
 		$this->_ensure_oauth_table();
 		$this->load->library('tiktok_api');
 
+		// Otomatis masa berlaku 10 menit dari backend (tanpa modal)
+		$duration = 10;
 		$client_name = trim((string)$this->input->post('client_name') ?: (string)$this->input->get('client_name'));
-		$duration = intval($this->input->post('duration') ?: $this->input->get('duration')) ?: 60; // default 60 menit
-		if ($duration < 5) $duration = 5;
-		if ($duration > 43200) $duration = 43200; // max 30 hari
+
+		// Hanguskan link otorisasi aktif sebelumnya agar hanya ada 1 link di 1 waktu
+		$this->db->where('is_used', 0)
+			->update('tiktok_oauth_states', [
+				'is_used' => 1,
+				'used_at' => date('Y-m-d H:i:s')
+			]);
 
 		$state = bin2hex(random_bytes(16));
 		$expires_at = date('Y-m-d H:i:s', time() + ($duration * 60));
@@ -502,12 +525,13 @@ class Tiktok_shops extends Admin
 		$auth_url = $this->tiktok_api->get_auth_url(null, $state);
 
 		$response = [
-			'status'      => true,
-			'auth_url'    => $auth_url,
-			'state'       => $state,
-			'client_name' => $client_name,
-			'expires_at'  => date('d M Y, H:i', strtotime($expires_at)) . ' WIB',
-			'message'     => 'Link otorisasi sekali pakai berhasil dibuat!'
+			'status'            => true,
+			'auth_url'          => $auth_url,
+			'state'             => $state,
+			'client_name'       => $client_name,
+			'remaining_seconds' => $duration * 60,
+			'expires_at'        => date('d M Y, H:i', strtotime($expires_at)) . ' WIB',
+			'message'           => 'Link otorisasi berhasil dibuat & disalin! Berlaku selama 10 menit.'
 		];
 
 		if ($this->input->is_ajax_request() || $this->input->get('json')) {
@@ -515,7 +539,7 @@ class Tiktok_shops extends Admin
 			return;
 		}
 
-		set_message('Link otorisasi sekali pakai berhasil dibuat!', 'success');
+		set_message('Link otorisasi berhasil dibuat! Berlaku selama 10 menit.', 'success');
 		redirect('administrator/tiktok_shops');
 	}
 
@@ -603,8 +627,17 @@ class Tiktok_shops extends Admin
 		}
 
 		// 2. Validasi Parameter State (One-Time Link Protection)
-		if (!empty($state)) {
-			$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
+		if (empty($state)) {
+			if ($this->aauth->is_loggedin()) {
+				set_message('Gagal: Parameter keamanan (state) tidak ditemukan di URL callback. Silakan buat tautan otorisasi baru.', 'error');
+				redirect('administrator/tiktok_shops');
+			} else {
+				redirect('administrator/tiktok_shops/auth_status?status=invalid');
+			}
+			return;
+		}
+
+		$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
 
 			// Jika state tidak ada di database kita
 			if (!$state_row) {
@@ -624,12 +657,11 @@ class Tiktok_shops extends Admin
 				return;
 			}
 
-			// Kunci state seketika (Atomic burn) agar tidak bisa dipakai oleh request lain bersamaan
-			$this->db->where('id', $state_row->id)->update('tiktok_oauth_states', [
-				'is_used' => 1,
-				'used_at' => date('Y-m-d H:i:s'),
-			]);
-		}
+		// Kunci state seketika (Atomic burn) agar tidak bisa dipakai oleh request lain bersamaan
+		$this->db->where('id', $state_row->id)->update('tiktok_oauth_states', [
+			'is_used' => 1,
+			'used_at' => date('Y-m-d H:i:s'),
+		]);
 
 		// 3. Tukar auth_code ke TikTok API untuk mendapatkan access_token & refresh_token
 		$res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);

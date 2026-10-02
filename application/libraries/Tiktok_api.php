@@ -59,7 +59,14 @@ class Tiktok_api
     {
         $config = $this->CI->config->item('tiktok');
         if (!empty($config['tiktok_custom_auth_url'])) {
-            return $config['tiktok_custom_auth_url'];
+            $url = $config['tiktok_custom_auth_url'];
+            if (!empty($state)) {
+                $url = preg_replace('/([?&])state=[^&]*(&|$)/', '$1', $url);
+                $url = rtrim($url, '?&');
+                $sep = (strpos($url, '?') !== false) ? '&' : '?';
+                $url .= $sep . 'state=' . urlencode($state);
+            }
+            return $url;
         }
 
         $auth_url = $config['tiktok_auth_url'] ?? 'https://services.tiktokshop.com/open/authorize';

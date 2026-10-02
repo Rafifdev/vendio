@@ -620,9 +620,15 @@ jQuery(document).ready(domo);
                         <a class="btn btn-top-action btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', [cclang('tiktok_shops')]); ?> (Ctrl+a)" href="<?= site_url('administrator/tiktok_shops/add'); ?>">
                            <i class="fa fa-plus-square-o"></i> <?= cclang('add_new_button', [cclang('tiktok_shops')]); ?>
                         </a>
-                        <a class="btn btn-top-action" id="btn_connect_tiktok" href="javascript:void(0);" title="Buat & Salin Authorize Link Sekali Pakai (TikTok Shop)">
+                        <?php if (!empty($active_remaining_seconds) && $active_remaining_seconds > 0): ?>
+                        <a class="btn btn-top-action" id="btn_connect_tiktok" href="javascript:void(0);" title="Link otorisasi aktif. Klik jika ingin membuat baru (link lama akan hangus)">
+                           <i class="fa fa-clock-o"></i> Link Aktif (<?= sprintf('%02d:%02d', floor($active_remaining_seconds / 60), $active_remaining_seconds % 60); ?>)
+                        </a>
+                        <?php else: ?>
+                        <a class="btn btn-top-action" id="btn_connect_tiktok" href="javascript:void(0);" title="Buat & Salin Authorize Link">
                            <i class="fa fa-key"></i> Buat Authorize Link
                         </a>
+                        <?php endif; ?>
                         <?php }) ?>
                         <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" title="Tarik Data Akun Toko dari TikTok Shop" href="<?= site_url('administrator/tiktok_shops/sync'); ?>">
                            <i class="fa fa-refresh"></i>
@@ -784,67 +790,8 @@ jQuery(document).ready(domo);
 </section>
 <!-- /.content -->
 
-<!-- Modal Generate Authorize Link Sekali Pakai -->
-<div class="modal fade" id="modal-generate-auth-link" tabindex="-1" role="dialog" aria-labelledby="modalGenerateLabel">
-  <div class="modal-dialog" role="document" style="max-width: 520px;">
-    <div class="modal-content" style="border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border: none;">
-      <div class="modal-header" style="background-color: #0f172a; color: #ffffff; padding: 18px 24px; border: none;">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #ffffff; opacity: 0.8; font-size: 24px;">&times;</button>
-        <h4 class="modal-title" id="modalGenerateLabel" style="font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-          <i class="fa fa-shield text-success"></i> Buat Authorize Link Sekali Pakai (One-Time)
-        </h4>
-      </div>
-      <div class="modal-body" style="padding: 24px;">
-        <div class="alert alert-info" style="border-radius: 8px; font-size: 12px; margin-bottom: 20px; background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; color: #166534 !important;">
-          <i class="fa fa-lock" style="font-size: 14px; margin-right: 6px;"></i>
-          <strong>Proteksi Sekali Pakai Aktif:</strong> Link yang dihasilkan memiliki token keamanan unik. Setelah klien berhasil menghubungkan 1 toko, link otomatis hangus dan <strong>tidak dapat disebarkan ke toko lain</strong>.
-        </div>
 
-        <div class="form-group">
-          <label style="font-weight: 600; font-size: 13px; color: #334155;">Nama Klien / Toko (Opsional):</label>
-          <input type="text" class="form-control" id="gen_client_name" placeholder="Contoh: Klien Toko Berkah" style="border-radius: 6px; height: 38px;">
-        </div>
 
-        <div class="form-group">
-          <label style="font-weight: 600; font-size: 13px; color: #334155;">Masa Berlaku Link:</label>
-          <select class="form-control" id="gen_duration" style="border-radius: 6px; height: 38px;">
-            <option value="30">30 Menit</option>
-            <option value="60" selected>1 Jam (Rekomendasi)</option>
-            <option value="1440">24 Jam</option>
-            <option value="10080">7 Hari</option>
-          </select>
-          <small class="text-muted">Setelah durasi habis, link otomatis tidak dapat digunakan lagi.</small>
-        </div>
-
-        <button type="button" class="btn btn-primary btn-block" id="btn_do_generate" style="background-color: #0284c7; border: none; height: 42px; font-weight: 600; border-radius: 8px; margin-top: 20px; font-size: 14px;">
-          <i class="fa fa-magic"></i> Generate & Salin Link
-        </button>
-
-        <!-- Result Box (Hidden by default) -->
-        <div id="gen_result_box" style="display: none; margin-top: 20px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="label label-success" style="font-size: 11px;"><i class="fa fa-check"></i> Link Berhasil Dibuat</span>
-            <span class="text-muted" style="font-size: 11px;" id="gen_res_expiry"></span>
-          </div>
-          <div class="input-group">
-            <input type="text" class="form-control" id="gen_res_url" readonly style="background: #ffffff; font-size: 12px; height: 36px; border-radius: 6px 0 0 6px;">
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="button" id="btn_res_copy" style="height: 36px; border-radius: 0 6px 6px 0; font-weight: 600;" title="Salin ke Clipboard">
-                <i class="fa fa-copy"></i> Salin
-              </button>
-            </span>
-          </div>
-          <p style="font-size: 11px; color: #64748b; margin-top: 10px; margin-bottom: 0;">
-            <i class="fa fa-paper-plane-o"></i> Berikan link di atas kepada klien Anda. Link langsung siap digunakan untuk 1 kali otorisasi toko TikTok.
-          </p>
-        </div>
-      </div>
-      <div class="modal-footer" style="padding: 12px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
-        <button type="button" class="btn btn-default" data-dismiss="modal" style="border-radius: 6px;">Tutup</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Page script -->
 <script>
@@ -948,62 +895,101 @@ jQuery(document).ready(domo);
         }
         checkAll.iCheck('update');
     });
-    // Buka Modal Generate Authorize Link Sekali Pakai
-    $('#btn_connect_tiktok').on('click', function(e) {
-        e.preventDefault();
-        $('#gen_result_box').hide();
-        $('#btn_do_generate').html('<i class="fa fa-magic"></i> Generate & Salin Link').prop('disabled', false);
-        $('#modal-generate-auth-link').modal('show');
-    });
+    // Timer & Authorize Link State Management
+    var authTimerInterval = null;
+    var authRemainingSeconds = <?= (int)($active_remaining_seconds ?? 0); ?>;
 
-    // Proses Generate Link via AJAX
-    $('#btn_do_generate').on('click', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var clientName = $('#gen_client_name').val();
-        var duration = $('#gen_duration').val();
+    function formatTimerMMSS(totalSeconds) {
+        var m = Math.floor(totalSeconds / 60);
+        var s = totalSeconds % 60;
+        return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+    }
 
-        btn.html('<i class="fa fa-spin fa-refresh"></i> Membuat Link...').prop('disabled', true);
+    function startAuthCountdown(seconds) {
+        clearInterval(authTimerInterval);
+        authRemainingSeconds = seconds;
+        var btn = $('#btn_connect_tiktok');
+
+        function updateBtnDisplay() {
+            if (authRemainingSeconds > 0) {
+                btn.html('<i class="fa fa-clock-o"></i> Link Aktif (' + formatTimerMMSS(authRemainingSeconds) + ')')
+                   .attr('title', 'Link otorisasi aktif (' + formatTimerMMSS(authRemainingSeconds) + '). Klik untuk membuat baru (link lama akan hangus).')
+                   .css('pointer-events', '');
+            } else {
+                clearInterval(authTimerInterval);
+                authRemainingSeconds = 0;
+                btn.html('<i class="fa fa-key"></i> Buat Authorize Link')
+                   .attr('title', 'Buat & Salin Authorize Link')
+                   .css('pointer-events', '');
+            }
+        }
+
+        updateBtnDisplay();
+        authTimerInterval = setInterval(function() {
+            authRemainingSeconds--;
+            updateBtnDisplay();
+        }, 1000);
+    }
+
+    // Inisialisasi timer countdown saat halaman dibuka jika ada link aktif
+    if (authRemainingSeconds > 0) {
+        startAuthCountdown(authRemainingSeconds);
+    }
+
+    function requestNewAuthLink() {
+        var btn = $('#btn_connect_tiktok');
+        btn.html('<i class="fa fa-spin fa-refresh"></i> Membuat link...').css('pointer-events', 'none');
 
         $.ajax({
             url: BASE_URL + 'administrator/tiktok_shops/generate_auth_link',
             type: 'POST',
             dataType: 'json',
             data: {
-                client_name: clientName,
-                duration: duration,
                 '<?= $this->security->get_csrf_token_name(); ?>': '<?= $this->security->get_csrf_hash(); ?>'
             },
             success: function(res) {
-                btn.html('<i class="fa fa-magic"></i> Generate & Salin Link').prop('disabled', false);
                 if (res.status && res.auth_url) {
-                    $('#gen_res_url').val(res.auth_url);
-                    $('#gen_res_expiry').text('Berlaku s/d: ' + res.expires_at);
-                    $('#gen_result_box').slideDown('fast');
-
-                    // Otomatis salin ke clipboard
                     copyToClipboard(res.auth_url, function() {
-                        toastr.success('Link otorisasi sekali pakai berhasil dibuat dan disalin ke clipboard!');
+                        btn.html('<i class="fa fa-check" style="color: #ffffff !important;"></i> Link Tersalin!');
+                        toastr.success('Link otorisasi berhasil disalin ke clipboard! (Masa berlaku 10 menit)');
+                        setTimeout(function() {
+                            startAuthCountdown(res.remaining_seconds || 600);
+                        }, 1200);
                     });
                 } else {
+                    btn.html('<i class="fa fa-key"></i> Buat Authorize Link').css('pointer-events', '');
                     toastr.error(res.message || 'Gagal membuat link otorisasi.');
                 }
             },
             error: function() {
-                btn.html('<i class="fa fa-magic"></i> Generate & Salin Link').prop('disabled', false);
+                btn.html('<i class="fa fa-key"></i> Buat Authorize Link').css('pointer-events', '');
                 toastr.error('Terjadi kesalahan koneksi saat membuat link.');
             }
         });
-    });
+    }
 
-    // Tombol Salin Ulang di Modal Result
-    $('#btn_res_copy').on('click', function(e) {
+    // Klik tombol: Jika link sebelumnya masih aktif, tampilkan validasi konfirmasi bahwa link lama akan hangus
+    $('#btn_connect_tiktok').on('click', function(e) {
         e.preventDefault();
-        var url = $('#gen_res_url').val();
-        if (url) {
-            copyToClipboard(url, function() {
-                toastr.success('Link otorisasi berhasil disalin ke clipboard!');
+
+        if (authRemainingSeconds > 0) {
+            swal({
+                title: "Buat Link Baru?",
+                text: "Link sebelumnya masih aktif dan akan otomatis hangus jika Anda membuat link baru.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#00a65a",
+                confirmButtonText: "Ya, Buat Baru",
+                cancelButtonText: "Batal",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    requestNewAuthLink();
+                }
             });
+        } else {
+            requestNewAuthLink();
         }
     });
 
