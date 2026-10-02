@@ -192,39 +192,22 @@ $display_expire    = date('d M Y, H:i');
     .auth-card-footer {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 12px;
       padding: 14px 24px;
       background-color: #fafbfc;
       border-top: 1px solid #e2e8f0;
     }
 
-    .auth-secure-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: #00a65a;
-      font-weight: 600;
-      font-size: 12.5px;
-    }
-
-    .auth-secure-tag.tag-warning {
-      color: #d97706;
-    }
-
-    .auth-secure-tag.tag-danger {
-      color: #dc2626;
-    }
-
     .btn-selesai {
       height: 35px;
       padding: 0 16px;
-      background-color: #00a65a;
-      color: #ffffff;
+      background-color: #ffffff;
+      color: #334155;
       font-size: 12.5px;
       font-weight: 600;
       border-radius: 4px;
-      border: 1px solid #008d4c;
+      border: 1px solid #cbd5e1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -235,10 +218,13 @@ $display_expire    = date('d M Y, H:i');
       text-decoration: none;
     }
 
-    .btn-selesai:hover {
-      background-color: #008d4c;
-      color: #ffffff;
-      box-shadow: 0 2px 6px rgba(0, 166, 90, 0.25);
+    .btn-selesai:hover,
+    .btn-selesai:focus,
+    .btn-selesai:active {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      border-color: #94a3b8;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       text-decoration: none;
     }
 
@@ -248,10 +234,14 @@ $display_expire    = date('d M Y, H:i');
       color: #334155;
     }
 
-    .btn-selesai-default:hover {
+    .btn-selesai-default:hover,
+    .btn-selesai-default:focus,
+    .btn-selesai-default:active {
       background-color: #f1f5f9;
       color: #1e293b;
+      border-color: #94a3b8;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      text-decoration: none;
     }
 
     /* Close Hint */
@@ -300,7 +290,7 @@ $display_expire    = date('d M Y, H:i');
           <div class="auth-info-box">
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-shield"></i> Status Otorisasi
+                <i class="fa fa-info-circle"></i> Status Tautan
               </span>
               <span class="auth-info-value">
                 <span class="badge-terhubung">Terhubung Aktif</span>
@@ -309,7 +299,7 @@ $display_expire    = date('d M Y, H:i');
 
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-calendar"></i> Waktu Otorisasi
+                <i class="fa fa-calendar"></i> Waktu Akses
               </span>
               <span class="auth-info-value">
                 <?= $display_expire; ?> WIB
@@ -338,11 +328,8 @@ $display_expire    = date('d M Y, H:i');
 
         <!-- Footer Row -->
         <div class="auth-card-footer">
-          <div class="auth-secure-tag">
-            <i class="fa fa-shield"></i> Terkoneksi Resmi
-          </div>
-          <button type="button" class="btn-selesai" onclick="handleClosePage(this);">
-            <i class="fa fa-check"></i> Selesai & Tutup Halaman
+          <button type="button" class="btn-selesai btn-selesai-default" onclick="handleClosePage(this);">
+            <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
         </div>
 
@@ -379,22 +366,10 @@ $display_expire    = date('d M Y, H:i');
                 <?= date('d M Y, H:i'); ?> WIB
               </span>
             </div>
-
-            <div class="auth-info-row">
-              <span class="auth-info-label">
-                <i class="fa fa-shield"></i> Proteksi Sistem
-              </span>
-              <span class="auth-info-value">
-                1 Tautan = 1 Toko
-              </span>
-            </div>
           </div>
         </div>
 
         <div class="auth-card-footer">
-          <div class="auth-secure-tag tag-warning">
-            <i class="fa fa-info-circle"></i> Link Expired
-          </div>
           <button type="button" class="btn-selesai btn-selesai-default" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
@@ -418,7 +393,7 @@ $display_expire    = date('d M Y, H:i');
           <div class="auth-info-box">
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-exclamation-circle"></i> Status Tautan
+                <i class="fa fa-info-circle"></i> Status Tautan
               </span>
               <span class="auth-info-value">
                 <span class="badge-terhubung badge-danger">Kedaluwarsa</span>
@@ -436,7 +411,7 @@ $display_expire    = date('d M Y, H:i');
 
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-info-circle"></i> Keterangan
+                <i class="fa fa-shield"></i> Keterangan
               </span>
               <span class="auth-info-value" style="font-size: 12px; color: #64748b;">
                 Hubungi Administrator
@@ -446,9 +421,6 @@ $display_expire    = date('d M Y, H:i');
         </div>
 
         <div class="auth-card-footer">
-          <div class="auth-secure-tag tag-danger">
-            <i class="fa fa-clock-o"></i> Link Expired
-          </div>
           <button type="button" class="btn-selesai btn-selesai-default" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
@@ -472,28 +444,34 @@ $display_expire    = date('d M Y, H:i');
           <div class="auth-info-box">
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-exclamation-triangle"></i> Status
+                <i class="fa fa-info-circle"></i> Status Tautan
               </span>
               <span class="auth-info-value">
-                <span class="badge-terhubung badge-danger">Gagal Validasi</span>
+                <span class="badge-terhubung badge-danger"><?= ($status == 'error') ? 'Otorisasi Gagal' : 'Tidak Valid'; ?></span>
               </span>
             </div>
 
             <div class="auth-info-row">
               <span class="auth-info-label">
-                <i class="fa fa-calendar"></i> Waktu
+                <i class="fa fa-calendar"></i> Waktu Akses
               </span>
               <span class="auth-info-value">
                 <?= date('d M Y, H:i'); ?> WIB
+              </span>
+            </div>
+
+            <div class="auth-info-row">
+              <span class="auth-info-label">
+                <i class="fa fa-shield"></i> Keterangan
+              </span>
+              <span class="auth-info-value" style="font-size: 12px; color: #64748b;">
+                Hubungi Administrator
               </span>
             </div>
           </div>
         </div>
 
         <div class="auth-card-footer">
-          <div class="auth-secure-tag tag-danger">
-            <i class="fa fa-times-circle"></i> Gagal
-          </div>
           <button type="button" class="btn-selesai btn-selesai-default" onclick="handleClosePage(this);">
             <i class="fa fa-times"></i> Tutup Halaman Ini
           </button>
@@ -510,28 +488,21 @@ $display_expire    = date('d M Y, H:i');
 
     <!-- Footer Copyright -->
     <div class="auth-copyright">
-      &copy; <?= date('Y'); ?> <?= get_option('site_name', 'Vendio'); ?> &bull; TikTok Shop Partner
+      &copy; <?= date('Y'); ?> Vendio. All rights reserved.
     </div>
 
   </div>
 
   <script>
     function handleClosePage(btn) {
+      var hint = document.getElementById('close-hint-box');
+      if (hint) {
+        hint.style.display = 'block';
+      }
+
       try {
-        window.open('', '_self', '');
         window.close();
       } catch (e) {}
-
-      setTimeout(function() {
-        var hint = document.getElementById('close-hint-box');
-        if (hint) {
-          hint.style.display = 'block';
-        }
-        if (btn) {
-          btn.innerHTML = '<i class="fa fa-check"></i> Selesai (Silakan Tutup Tab)';
-          btn.style.opacity = '0.8';
-        }
-      }, 150);
     }
   </script>
 </body>

@@ -3,15 +3,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 /**
-*| --------------------------------------------------------------------------
-*| Dashboard Controller
-*| --------------------------------------------------------------------------
-*| For see your board
-*|
-*/
-class Dashboard extends Admin	
+ *| --------------------------------------------------------------------------
+ *| Dashboard Controller
+ *| --------------------------------------------------------------------------
+ *| For see your board
+ *|
+ */
+class Dashboard extends Admin
 {
-	
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -38,4 +38,4 @@ class Dashboard extends Admin
 }
 
 /* End of file Dashboard.php */
-/* Location: ./application/controllers/administrator/Dashboard.php */
+/* Location: ./application/controllers/administrator/Dashboard.php */

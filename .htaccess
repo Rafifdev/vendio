@@ -13,4 +13,4 @@
 </IfModule>
 
 # Cegah directory listing
-Options -Indexes
+Options -Indexes
