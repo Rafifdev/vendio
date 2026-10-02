@@ -114,17 +114,42 @@ jQuery(document).ready(domo);
 
 /* Chip Badge for IDs */
 .box-order-view .chip-id {
-   display: inline-block;
-   font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-   font-size: 12.5px;
-   font-weight: 500;
-   color: #475569;
-   background-color: #f1f5f9;
-   border: 1px solid #e2e8f0;
-   border-radius: 6px;
-   padding: 3px 10px;
+   display: inline-flex;
+   align-items: center;
+   gap: 6px;
+   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+   font-size: 12px;
+   font-weight: 600;
+   color: #0284c7;
+   background-color: #f0f9ff;
+   border: 1px solid #bae6fd;
+   border-radius: 4px;
+   padding: 3px 8px;
    letter-spacing: 0.02em;
+   cursor: pointer;
+   user-select: none;
+   transition: all 0.15s ease;
 }
+
+.box-order-view .chip-id:hover {
+   background-color: #e0f2fe;
+   color: #0369a1;
+   border-color: #7dd3fc;
+}
+
+.box-order-view .chip-id .copy-icon {
+   font-size: 11px;
+   color: #0284c7;
+   opacity: 0.7;
+   transition: all 0.15s ease;
+}
+
+.box-order-view .chip-id:hover .copy-icon {
+   opacity: 1;
+   color: #0369a1;
+}
+
+
 
 /* Modern Sub Tables */
 .box-order-view .sub-table-wrapper {
@@ -257,7 +282,10 @@ jQuery(document).ready(domo);
                      <div class="form-group">
                         <label for="content" class="col-sm-2 control-label">ID Pesanan</label>
                         <div class="col-sm-8">
-                           <span class="chip-id"><?= _ent($tiktok_orders->order_id); ?></span>
+                           <span class="chip-id btn-copy-order-id" data-id="<?= _ent($tiktok_orders->order_id); ?>" title="Klik untuk menyalin ID Pesanan" role="button">
+                               <?= _ent($tiktok_orders->order_id); ?>
+                               <i class="fa fa-copy copy-icon"></i>
+                            </span>
                         </div>
                      </div>
                                          
@@ -634,5 +662,54 @@ $(document).on('click', '.cancel-data', function(){
       }
     });
   return false;
+});
+// Copy ID Pesanan satu-klik dengan transisi ikon ceklis
+function copyOrderId(text, callback) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function () {
+      if (typeof callback === "function") callback();
+    }).catch(function () {
+      fallbackCopyOrderId(text, callback);
+    });
+  } else {
+    fallbackCopyOrderId(text, callback);
+  }
+}
+
+function fallbackCopyOrderId(text, callback) {
+  var tempInput = document.createElement("textarea");
+  tempInput.style.position = "fixed";
+  tempInput.style.left = "-9999px";
+  tempInput.value = text;
+  document.body.appendChild(tempInput);
+  tempInput.select();
+  try {
+    var successful = document.execCommand("copy");
+    if (successful && typeof callback === "function") {
+      callback();
+    }
+  } catch (err) {}
+  document.body.removeChild(tempInput);
+}
+
+$(document).on("click", ".btn-copy-order-id", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  var btn = $(this);
+  var id = btn.attr("data-id") || btn.text().trim();
+  var icon = btn.find(".copy-icon");
+
+  if (!id) return;
+
+  copyOrderId(id, function () {
+    
+    icon.removeClass("fa-copy fa-clone").addClass("fa-check");
+    toastr.success("ID Pesanan " + id + " berhasil disalin!");
+
+    setTimeout(function () {
+      
+      icon.removeClass("fa-check").addClass("fa-copy");
+    }, 1500);
+  });
 });
 </script>

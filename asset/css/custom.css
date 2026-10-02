@@ -1574,9 +1574,11 @@ div.phpdebugbar-header, .phpdebugbar-restore-btn {
     color: #1e293b !important;
 }
 
-/* Standar Chip Link (ID yang berupa link klikable) */
+/* Standar Chip Link (ID yang berupa link klikable) & Copyable ID */
 .chip-link,
-a.chip-id {
+a.chip-id,
+.btn-copy-order-id,
+span.btn-copy-order-id {
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace !important;
     font-size: 12px !important;
     color: #0284c7 !important;
@@ -1584,19 +1586,40 @@ a.chip-id {
     border: 1px solid #bae6fd !important;
     padding: 3px 8px !important;
     border-radius: 4px !important;
-    display: inline-block !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
     text-decoration: none !important;
     font-weight: 600 !important;
     line-height: 1.3 !important;
     vertical-align: middle;
     white-space: nowrap;
+    cursor: pointer !important;
+    user-select: none;
+    transition: all 0.15s ease;
 }
 
 a.chip-id:hover,
-.chip-link:hover {
+.chip-link:hover,
+.btn-copy-order-id:hover,
+span.btn-copy-order-id:hover {
     background-color: #e0f2fe !important;
     color: #0369a1 !important;
     border-color: #7dd3fc !important;
+}
+
+.btn-copy-order-id .copy-icon,
+span.btn-copy-order-id .copy-icon {
+    font-size: 11px !important;
+    color: #0284c7 !important;
+    opacity: 0.75;
+    transition: all 0.15s ease;
+}
+
+.btn-copy-order-id:hover .copy-icon,
+span.btn-copy-order-id:hover .copy-icon {
+    opacity: 1;
+    color: #0369a1 !important;
 }
 
 /* 3. Horizontal Status Navigation Tabs (TikTok Shop Seller Center Style) */

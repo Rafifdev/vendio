@@ -64,6 +64,9 @@ class Tiktok_shops extends Admin
 		}
 		$this->data['active_remaining_seconds'] = $active_remaining_seconds;
 
+		// Bersihkan data orphan (jika ada data nyangkut dari toko yang sudah terhapus)
+		$this->model_tiktok_shops->clean_orphaned_records();
+
 		$this->template->title('Akun Toko List');
 		$this->render('backend/standart/administrator/tiktok_shops/tiktok_shops_list', $this->data);
 	}
@@ -345,14 +348,14 @@ class Tiktok_shops extends Admin
 
 		if (!empty($id)) {
 			$remove = $this->_remove($id);
-		} elseif (count($arr_id) >0) {
+		} elseif (is_array($arr_id) && count($arr_id) > 0) {
 			foreach ($arr_id as $id) {
 				$remove = $this->_remove($id);
 			}
 		}
 
 		if ($remove) {
-            set_message(cclang('has_been_deleted', 'tiktok_shops'), 'success');
+            set_message('Akun toko dan seluruh data terkait berhasil dihapus.', 'success');
         } else {
             set_message(cclang('error_delete', 'tiktok_shops'), 'error');
         }
@@ -360,7 +363,7 @@ class Tiktok_shops extends Admin
 		redirect_back();
 	}
 
-		/**
+	/**
 	* View view Tiktok Shopss
 	*
 	* @var $id String
@@ -383,10 +386,11 @@ class Tiktok_shops extends Admin
 	private function _remove($id)
 	{
 		$tiktok_shops = $this->model_tiktok_shops->find($id);
+		if (!$tiktok_shops) {
+			return false;
+		}
 
-		
-		
-		return $this->model_tiktok_shops->remove($id);
+		return $this->model_tiktok_shops->remove_cascade($id);
 	}
 	
 	

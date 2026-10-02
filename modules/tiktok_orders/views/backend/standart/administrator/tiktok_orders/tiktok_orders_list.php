@@ -183,25 +183,44 @@ jQuery(document).ready(domo);
    z-index: 50;
 }
 
-/* Chips & Badges */
+/* Subtle Column Chips & Tags */
 .chip-id {
    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-   font-size: 11.5px;
+   font-size: 12px;
    color: #0284c7;
    background-color: #f0f9ff;
    border: 1px solid #bae6fd;
-   padding: 2px 7px;
+   padding: 3px 8px;
    border-radius: 4px;
-   display: inline-block;
+   display: inline-flex;
+   align-items: center;
+   gap: 6px;
    text-decoration: none !important;
    font-weight: 600;
    white-space: nowrap;
+   cursor: pointer;
+   user-select: none;
+   transition: all 0.15s ease;
 }
 
 .chip-id:hover {
    background-color: #e0f2fe;
    color: #0369a1;
 }
+
+.chip-id .copy-icon {
+   font-size: 11px;
+   color: #0284c7;
+   opacity: 0.7;
+   transition: all 0.15s ease;
+}
+
+.chip-id:hover .copy-icon {
+   opacity: 1;
+   color: #0369a1;
+}
+
+
 
 /* Action Dropdown 3-Dots Component */
 .action-dropdown {
@@ -641,14 +660,10 @@ jQuery(document).ready(domo);
                                     <?php endif; ?>
                                  </td>
                                  <td style="white-space: nowrap;">
-                                    <div style="display: inline-flex; align-items: center; gap: 4px;">
-                                       <a href="<?= site_url('administrator/tiktok_orders/view/' . $tiktok_orders->id); ?>" class="chip-id" title="Lihat Detail Pesanan">
-                                          <?= _ent($tiktok_orders->order_id); ?>
-                                       </a>
-                                       <button type="button" class="btn btn-default btn-xs btn-copy-order-id" data-id="<?= _ent($tiktok_orders->order_id); ?>" title="Salin ID Pesanan" style="padding: 2px 6px; font-size: 11px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; color: #475569; cursor: pointer;">
-                                          <i class="fa fa-copy"></i>
-                                       </button>
-                                    </div>
+                                    <span class="chip-id btn-copy-order-id" data-id="<?= _ent($tiktok_orders->order_id); ?>" title="Klik untuk menyalin ID Pesanan" role="button">
+                                       <?= _ent($tiktok_orders->order_id); ?>
+                                       <i class="fa fa-copy copy-icon"></i>
+                                    </span>
                                  </td>
                                  <td>
                                     <div style="font-weight: 600; color: #1e293b; font-size: 12.5px;"><?= _ent($tiktok_orders->recipient_name ?: '-'); ?></div>
@@ -924,15 +939,54 @@ jQuery(document).ready(domo);
          }
          checkAll.iCheck('update');
       });
-      // Copy ID Pesanan satu-klik
+      // Copy ID Pesanan satu-klik dengan transisi ikon ceklis
+      function copyOrderId(text, callback) {
+         if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function () {
+               if (typeof callback === 'function') callback();
+            }).catch(function () {
+               fallbackCopyOrderId(text, callback);
+            });
+         } else {
+            fallbackCopyOrderId(text, callback);
+         }
+      }
+
+      function fallbackCopyOrderId(text, callback) {
+         var tempInput = document.createElement("textarea");
+         tempInput.style.position = "fixed";
+         tempInput.style.left = "-9999px";
+         tempInput.value = text;
+         document.body.appendChild(tempInput);
+         tempInput.select();
+         try {
+            var successful = document.execCommand('copy');
+            if (successful && typeof callback === 'function') {
+               callback();
+            }
+         } catch (err) {}
+         document.body.removeChild(tempInput);
+      }
+
       $(document).on('click', '.btn-copy-order-id', function (e) {
          e.preventDefault();
-         var id = $(this).data('id');
-         if (navigator.clipboard) {
-            navigator.clipboard.writeText(id).then(function () {
-               toastr.success('ID Pesanan ' + id + ' berhasil disalin!');
-            });
-         }
+         e.stopPropagation();
+         var btn = $(this);
+         var id = btn.attr('data-id') || btn.text().trim();
+         var icon = btn.find('.copy-icon');
+
+         if (!id) return;
+
+         copyOrderId(id, function () {
+            
+            icon.removeClass('fa-copy fa-clone').addClass('fa-check');
+            toastr.success('ID Pesanan ' + id + ' berhasil disalin!');
+
+            setTimeout(function () {
+               
+               icon.removeClass('fa-check').addClass('fa-copy');
+            }, 1500);
+         });
       });
 
       // Filter toko

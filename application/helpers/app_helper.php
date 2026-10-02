@@ -1512,7 +1512,7 @@ if (!function_exists('render_package_status_badge')) {
 			return '<span class="text-muted">-</span>';
 		}
 
-		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
+		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; border: none !important; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
 	}
 }
 
@@ -1553,67 +1553,67 @@ if (!function_exists('get_order_status_info')) {
 			'UNPAID' => [
 				'text'  => 'Belum Dibayar',
 				'class' => 'label-warning',
-				'style' => 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;'
+				'style' => 'background-color: #fef3c7; color: #92400e; border: none;'
 			],
 			'ON_HOLD' => [
 				'text'  => 'Dalam proses',
 				'class' => 'label-warning',
-				'style' => 'background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;'
+				'style' => 'background-color: #ffedd5; color: #c2410c; border: none;'
 			],
 			'AWAITING_SHIPMENT' => [
 				'text'  => 'Menunggu Pengiriman',
 				'class' => 'label-warning',
-				'style' => 'background-color: #fef9c3; color: #854d0e; border: 1px solid #fef08a;'
+				'style' => 'background-color: #fef9c3; color: #854d0e; border: none;'
 			],
 			'AWAITING_COLLECTION' => [
 				'text'  => 'Menunggu Pengambilan',
 				'class' => 'label-info',
-				'style' => 'background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;'
+				'style' => 'background-color: #e0f2fe; color: #0369a1; border: none;'
 			],
 			'PARTIALLY_SHIPPING' => [
 				'text'  => 'Sebagian Dikirim',
 				'class' => 'label-info',
-				'style' => 'background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe;'
+				'style' => 'background-color: #ede9fe; color: #6d28d9; border: none;'
 			],
 			'IN_TRANSIT' => [
 				'text'  => 'Sedang transit',
 				'class' => 'label-info',
-				'style' => 'background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;'
+				'style' => 'background-color: #e0e7ff; color: #3730a3; border: none;'
 			],
 			'SHIPPED' => [
 				'text'  => 'Telah Dikirim',
 				'class' => 'label-info',
-				'style' => 'background-color: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4;'
+				'style' => 'background-color: #ccfbf1; color: #0f766e; border: none;'
 			],
 			'DELIVERED' => [
 				'text'  => 'Terkirim',
 				'class' => 'label-primary',
-				'style' => 'background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;'
+				'style' => 'background-color: #d1fae5; color: #065f46; border: none;'
 			],
 			'COMPLETED' => [
 				'text'  => 'Selesai',
 				'class' => 'label-success',
-				'style' => 'background-color: #ecfdf5; color: #047857; border: 1px solid #6ee7b7;'
+				'style' => 'background-color: #ecfdf5; color: #047857; border: none;'
 			],
 			'CANCELLED' => [
 				'text'  => 'Dibatalkan',
 				'class' => 'label-danger',
-				'style' => 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;'
+				'style' => 'background-color: #fee2e2; color: #991b1b; border: none;'
 			],
 			'DELIVERY_FAILED' => [
 				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
-				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: none;'
 			],
 			'UNDELIVERED' => [
 				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
-				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: none;'
 			],
 			'FAILED' => [
 				'text'  => 'Pengiriman Gagal',
 				'class' => 'label-danger',
-				'style' => 'background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3;'
+				'style' => 'background-color: #ffe4e6; color: #be123c; border: none;'
 			],
 		];
 
@@ -1628,7 +1628,7 @@ if (!function_exists('get_order_status_info')) {
 				'code'  => '',
 				'text'  => '-',
 				'class' => 'label-default',
-				'style' => 'background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1;'
+				'style' => 'background-color: #f1f5f9; color: #64748b; border: none;'
 			];
 		}
 
@@ -1637,7 +1637,7 @@ if (!function_exists('get_order_status_info')) {
 			'code'  => $st,
 			'text'  => $clean_text,
 			'class' => 'label-primary',
-			'style' => 'background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;'
+			'style' => 'background-color: #f1f5f9; color: #334155; border: none;'
 		];
 	}
 }
@@ -1656,7 +1656,7 @@ if (!function_exists('render_order_status_badge')) {
 			return '<span class="text-muted">-</span>';
 		}
 
-		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
+		return '<span class="label ' . $info['class'] . '" style="display: inline-block; padding: 4px 9px; font-weight: 600; font-size: 11.5px; border-radius: 4px; line-height: 1.3; border: none !important; ' . $info['style'] . '">' . htmlspecialchars($info['text']) . '</span>';
 	}
 }
 
