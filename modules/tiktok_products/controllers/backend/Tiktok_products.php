@@ -814,7 +814,8 @@ class Tiktok_products extends Admin
 			// Sinkronisasi update ke TikTok Shop jika produk terhubung
 			if (!empty($existing_product->product_id)) {
 				$this->load->library('tiktok_api');
-				$shop_id = $save_data['tiktok_shop_id'];
+				$shop_id = !empty($save_data['tiktok_shop_id']) ? $save_data['tiktok_shop_id'] : (!empty($existing_product->tiktok_shop_id) ? $existing_product->tiktok_shop_id : null);
+				$save_data['tiktok_shop_id'] = $shop_id;
 
 				// Jika ada upload gambar baru, upload ke TikTok CDN
 				if (!empty($save_data['main_image']) && $save_data['main_image'] !== $existing_product->main_image) {
@@ -833,8 +834,35 @@ class Tiktok_products extends Admin
 				}
 
 				// Ambil detail produk terbaru dari TikTok Shop API
-				$prod_detail = $this->tiktok_api->get_product_detail($existing_product->product_id, [], $shop_id);
-				$remote_data = $prod_detail['data'] ?? [];
+				$prod_detail = $this->tiktok_api->get_product_detail($existing_product->product_id, ['category_version' => 'v2'], $shop_id);
+				$remote_data = (!empty($prod_detail['data']) && is_array($prod_detail['data'])) ? $prod_detail['data'] : [];
+
+				// Fallback 1: Jika remote API gagal atau tidak mengembalikan skus, gunakan data lengkap dari raw_data di database
+				if (empty($remote_data['skus']) && !empty($existing_product->raw_data)) {
+					$raw_detail = json_decode($existing_product->raw_data, true);
+					if (!empty($raw_detail) && is_array($raw_detail)) {
+						if (empty($remote_data)) {
+							$remote_data = $raw_detail;
+						} else {
+							foreach (['skus', 'category_chains', 'product_attributes', 'package_dimensions', 'brand', 'main_images'] as $k) {
+								if (empty($remote_data[$k]) && !empty($raw_detail[$k])) {
+									$remote_data[$k] = $raw_detail[$k];
+								}
+							}
+						}
+					}
+				}
+
+				// Fallback 2: Jika masih kosong, coba cari via search_products API
+				if (empty($remote_data['skus'])) {
+					$search_res = $this->tiktok_api->search_products(['product_ids' => [$existing_product->product_id]], ['category_version' => 'v2'], $shop_id);
+					if (!empty($search_res['data']['products'][0]['skus'])) {
+						$remote_data['skus'] = $search_res['data']['products'][0]['skus'];
+						if (empty($remote_data['category_chains']) && !empty($search_res['data']['products'][0]['category_chains'])) {
+							$remote_data['category_chains'] = $search_res['data']['products'][0]['category_chains'];
+						}
+					}
+				}
 
 				// Tentukan Category ID
 				$category_id = '601756';
@@ -968,22 +996,40 @@ class Tiktok_products extends Admin
 					}
 				}
 
-				// Penanganan SKU dan Sales Attributes (Mendukung Varian dari Seller Center)
-				$sku_row = $this->db->get_where('tiktok_product_skus', ['tiktok_product_id' => $id])->row();
-				if (!empty($remote_data['skus'])) {
-					$updated_skus = [];
+				// Penanganan SKU dan Sales Attributes (Mendukung Varian dari Seller Center & Database Lokal)
+				$this->db->group_start();
+				$this->db->where('tiktok_product_id', $id);
+				if (!empty($existing_product->product_id)) {
+					$this->db->or_where('product_id', $existing_product->product_id);
+				}
+				$this->db->group_end();
+				$db_skus = $this->db->get('tiktok_product_skus')->result();
+				$sku_row = !empty($db_skus) ? $db_skus[0] : null;
+
+				$edit_skus = [];
+
+				if (!empty($remote_data['skus']) && is_array($remote_data['skus'])) {
 					foreach ($remote_data['skus'] as $idx => $api_sku) {
+						if (empty($api_sku['id'])) continue;
+
+						$seller_sku_val = !empty($api_sku['seller_sku']) ? (string)$api_sku['seller_sku'] : '';
+						if (empty($seller_sku_val)) {
+							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string)$save_data['seller_sku'] : (string)$save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $api_sku['id'];
+						} elseif ($idx === 0 && !empty($save_data['seller_sku'])) {
+							$seller_sku_val = (string)$save_data['seller_sku'];
+						}
+
 						$sku_item = [
 							'id' => (string)$api_sku['id'],
 							'price' => [
 								'amount' => (string)$save_data['price'],
-								'currency' => 'IDR'
+								'currency' => !empty($api_sku['price']['currency']) ? (string)$api_sku['price']['currency'] : 'IDR'
 							],
-							'seller_sku' => !empty($api_sku['seller_sku']) ? (string)$api_sku['seller_sku'] : (string)$save_data['seller_sku']
+							'seller_sku' => $seller_sku_val
 						];
 
 						// Pertahankan sales_attributes jika ada
-						if (!empty($api_sku['sales_attributes'])) {
+						if (!empty($api_sku['sales_attributes']) && is_array($api_sku['sales_attributes'])) {
 							$clean_sales_attrs = [];
 							foreach ($api_sku['sales_attributes'] as $sa) {
 								$attr_entry = [];
@@ -1011,25 +1057,41 @@ class Tiktok_products extends Admin
 							}
 						}
 
-						if ($idx === 0 && !empty($save_data['seller_sku'])) {
-							$sku_item['seller_sku'] = (string)$save_data['seller_sku'];
+						$edit_skus[] = $sku_item;
+					}
+				} elseif (!empty($db_skus)) {
+					// Fallback dari database lokal tiktok_product_skus jika remote_data tidak memiliki skus
+					foreach ($db_skus as $idx => $d_sku) {
+						if (empty($d_sku->sku_id)) continue;
+
+						$seller_sku_val = !empty($d_sku->seller_sku) ? (string)$d_sku->seller_sku : '';
+						if (empty($seller_sku_val)) {
+							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string)$save_data['seller_sku'] : (string)$save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $d_sku->sku_id;
+						} elseif ($idx === 0 && !empty($save_data['seller_sku'])) {
+							$seller_sku_val = (string)$save_data['seller_sku'];
 						}
 
-						$updated_skus[] = $sku_item;
-					}
-					$edit_payload['skus'] = $updated_skus;
-				} elseif ($sku_row && !empty($sku_row->sku_id)) {
-					$edit_payload['skus'] = [
-						[
-							'id' => $sku_row->sku_id,
+						$edit_skus[] = [
+							'id' => (string)$d_sku->sku_id,
 							'price' => [
 								'amount' => (string)$save_data['price'],
-								'currency' => 'IDR'
+								'currency' => !empty($d_sku->currency) ? (string)$d_sku->currency : 'IDR'
 							],
-							'seller_sku' => (string)$save_data['seller_sku']
-						]
-					];
+							'seller_sku' => $seller_sku_val
+						];
+					}
 				}
+
+				// Guard: pastikan skus tidak boleh kosong sebelum memanggil TikTok API
+				if (empty($edit_skus)) {
+					echo json_encode([
+						'success' => false,
+						'message' => 'Data SKU/Varian produk ini belum tersinkronisasi di sistem. Silakan buka menu Produk TikTok dan klik tombol "Tarik Data Produk" terlebih dahulu untuk menyinkronkan data varian dari TikTok Shop.'
+					]);
+					exit;
+				}
+
+				$edit_payload['skus'] = $edit_skus;
 
 				$put_res = $this->tiktok_api->update_product($existing_product->product_id, $edit_payload, $shop_id);
 
@@ -1043,41 +1105,88 @@ class Tiktok_products extends Admin
 				}
 
 				// Update stok di TikTok Shop jika ada warehouse
-				if ($sku_row && !empty($sku_row->sku_id) && !empty($sku_row->warehouse_id)) {
+				$target_sku_id = !empty($edit_skus[0]['id']) ? $edit_skus[0]['id'] : ($sku_row->sku_id ?? null);
+				$target_warehouse_id = null;
+
+				// 1. Cari warehouse_id dari data remote
+				if (!empty($remote_data['skus']) && is_array($remote_data['skus'])) {
+					foreach ($remote_data['skus'] as $r_sku) {
+						if (!empty($r_sku['inventory']) && is_array($r_sku['inventory'])) {
+							foreach ($r_sku['inventory'] as $inv) {
+								if (!empty($inv['warehouse_id'])) {
+									$target_warehouse_id = (string)$inv['warehouse_id'];
+									break 2;
+								}
+							}
+						}
+					}
+				}
+
+				// 2. Cari dari database lokal
+				if (empty($target_warehouse_id) && !empty($sku_row->warehouse_id)) {
+					$target_warehouse_id = (string)$sku_row->warehouse_id;
+				}
+
+				// 3. Fallback ambil dari API warehouse TikTok
+				if (empty($target_warehouse_id)) {
+					$wh_res = $this->tiktok_api->get_warehouses($shop_id);
+					if (!empty($wh_res['data']['warehouses'][0]['id'])) {
+						$target_warehouse_id = (string)$wh_res['data']['warehouses'][0]['id'];
+					}
+				}
+
+				if ($target_sku_id && $target_warehouse_id) {
 					$inv_res = $this->tiktok_api->update_inventory($existing_product->product_id, [
 						[
-							'id' => $sku_row->sku_id,
+							'id' => (string)$target_sku_id,
 							'inventory' => [
 								[
-									'quantity' => $save_data['total_stock'],
-									'warehouse_id' => (string)$sku_row->warehouse_id
+									'quantity' => intval($save_data['total_stock']),
+									'warehouse_id' => (string)$target_warehouse_id
 								]
 							]
 						]
 					], $shop_id);
 
 					if ((isset($inv_res['code']) && $inv_res['code'] !== 0) || !empty($inv_res['data']['errors'])) {
-						$err_msg = $this->parse_tiktok_error($inv_res, 'Gagal memperbarui stok di TikTok Shop');
-						echo json_encode([
-							'success' => false,
-							'message' => 'Ketentuan TikTok belum terpenuhi pada stok: ' . $err_msg
-						]);
-						exit;
+						log_message('error', 'Gagal memperbarui stok TikTok Shop untuk produk ' . $existing_product->product_id . ': ' . json_encode($inv_res));
 					}
 				}
 
 				// Pastikan status produk tetap aktif di TikTok
 				@$this->tiktok_api->activate_products([$existing_product->product_id], $shop_id);
 
-				// Update SKU lokal
-				if ($sku_row) {
-					$this->db->where('id', $sku_row->id)->update('tiktok_product_skus', [
-						'seller_sku' => $save_data['seller_sku'],
-						'sku_name'   => $save_data['title'],
-						'price'      => $save_data['price'],
-						'stock'      => $save_data['total_stock'],
-						'updated_at' => date('Y-m-d H:i:s')
-					]);
+				// Update SKU lokal di database
+				if (!empty($db_skus)) {
+					foreach ($db_skus as $idx => $d_sku) {
+						$sku_up = [
+							'price'      => $save_data['price'],
+							'updated_at' => date('Y-m-d H:i:s')
+						];
+						if ($idx === 0) {
+							$sku_up['seller_sku'] = $save_data['seller_sku'];
+							$sku_up['sku_name']   = $save_data['title'];
+							$sku_up['stock']      = $save_data['total_stock'];
+						}
+						$this->db->where('id', $d_sku->id)->update('tiktok_product_skus', $sku_up);
+					}
+				} elseif (!empty($remote_data['skus'])) {
+					// Jika database lokal belum punya baris SKU, masukkan agar sinkron
+					foreach ($remote_data['skus'] as $idx => $r_sku) {
+						$this->db->insert('tiktok_product_skus', [
+							'tiktok_product_id' => $id,
+							'product_id'        => $existing_product->product_id,
+							'sku_id'            => $r_sku['id'],
+							'seller_sku'        => !empty($r_sku['seller_sku']) ? $r_sku['seller_sku'] : ($idx === 0 ? $save_data['seller_sku'] : null),
+							'sku_name'          => $idx === 0 ? $save_data['title'] : null,
+							'price'             => $save_data['price'],
+							'currency'          => 'IDR',
+							'stock'             => $idx === 0 ? $save_data['total_stock'] : 0,
+							'warehouse_id'      => $target_warehouse_id,
+							'created_at'        => date('Y-m-d H:i:s'),
+							'updated_at'        => date('Y-m-d H:i:s')
+						]);
+					}
 				}
 			}
 

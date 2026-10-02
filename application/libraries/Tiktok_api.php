@@ -614,6 +614,7 @@ class Tiktok_api
      */
     public function get_product_detail($product_id, array $params = [], $shop_identifier = null)
     {
+        $params['category_version'] = $params['category_version'] ?? 'v2';
         return $this->request('/product/202309/products/' . $product_id, 'GET', $params, null, $shop_identifier);
     }
 
@@ -632,6 +633,8 @@ class Tiktok_api
         if (empty($product_ids)) {
             return [];
         }
+
+        $params['category_version'] = $params['category_version'] ?? 'v2';
 
         $requests = [];
         foreach ($product_ids as $pid) {
