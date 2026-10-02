@@ -151,6 +151,118 @@ jQuery(document).ready(domo);
    color: #be123c !important;
    padding-left: 17px !important;
 }
+
+/* Main Card Wrapper */
+.box-blog {
+   border-radius: 8px;
+   border: 1px solid #e5e9f0 !important;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+   background: #ffffff;
+   margin-top: 14px;
+   margin-bottom: 25px;
+}
+
+/* Header with Generous & Balanced Spacing */
+.box-blog .widget-user-header {
+   display: flex !important;
+   align-items: center !important;
+   justify-content: space-between !important;
+   padding: 22px 25px !important;
+   border-bottom: 1px solid #edf2f7 !important;
+   background: #ffffff !important;
+   flex-wrap: wrap !important;
+   gap: 16px !important;
+}
+
+.box-blog .header-left {
+   display: flex !important;
+   align-items: center !important;
+   gap: 20px !important;
+}
+
+.box-blog .widget-user-image {
+   width: 52px !important;
+   height: 52px !important;
+   flex-shrink: 0 !important;
+   margin: 0 !important;
+   padding: 0 !important;
+   float: none !important;
+   display: flex !important;
+   align-items: center !important;
+   justify-content: center !important;
+}
+
+.box-blog .widget-user-image img {
+   width: 52px !important;
+   height: 52px !important;
+   border-radius: 50% !important;
+   display: block !important;
+   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+   float: none !important;
+   margin: 0 !important;
+}
+
+.box-blog .header-titles {
+   display: flex !important;
+   flex-direction: column !important;
+   justify-content: center !important;
+   margin-left: 0 !important;
+}
+
+.box-blog .widget-user-username {
+   font-size: 20px !important;
+   font-weight: 700 !important;
+   color: #1e293b !important;
+   margin: 0 0 5px 0 !important;
+   line-height: 1.2 !important;
+}
+
+.box-blog .widget-user-desc {
+   font-size: 13px !important;
+   color: #64748b !important;
+   margin: 0 !important;
+   display: flex !important;
+   align-items: center !important;
+   gap: 10px !important;
+}
+
+.box-blog .widget-user-desc .label {
+   font-size: 11px !important;
+   padding: 3px 9px !important;
+   border-radius: 12px !important;
+   font-weight: 600 !important;
+   margin-left: 2px !important;
+}
+
+/* Header Top Action Buttons */
+.box-blog .header-right {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   flex-wrap: wrap;
+}
+
+.box-blog .btn-top-action {
+   height: 34px !important;
+   padding: 0 14px !important;
+   font-size: 12px !important;
+   font-weight: 600 !important;
+   border-radius: 4px !important;
+   background-color: #00a65a !important;
+   border: 1px solid #008d4c !important;
+   color: #ffffff !important;
+   display: inline-flex !important;
+   align-items: center !important;
+   gap: 6px !important;
+   transition: all 0.15s ease;
+   text-decoration: none !important;
+}
+
+.box-blog .btn-top-action:hover {
+   background-color: #008d4c !important;
+   box-shadow: 0 2px 6px rgba(0, 166, 90, 0.25);
+   color: #ffffff !important;
+}
 </style>
 
 <!-- Content Header (Page header) -->
@@ -165,27 +277,34 @@ jQuery(document).ready(domo);
 </section>
 <!-- Main content -->
 <section class="content">
-   <div class="row" >
+   <div class="row">
       
       <div class="col-md-12">
-         <div class="box box-warning">
-            <div class="box-body ">
+         <div class="box box-blog">
+            <div class="box-body" style="padding: 0;">
                <!-- Widget: user widget style 1 -->
-               <div class="box box-widget widget-user-2">
-                  <!-- Add the bg color to the header using any of the bg-* classes -->
-                  <div class="widget-user-header ">
-                     <div class="row pull-right">
+               <div class="box-widget widget-user-2" style="margin-bottom: 0;">
+                  <div class="widget-user-header">
+                     <div class="header-left">
+                        <div class="widget-user-image">
+                           <img src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
+                        </div>
+                        <div class="header-titles">
+                           <h3 class="widget-user-username">Blog</h3>
+                           <h5 class="widget-user-desc">
+                              <?= cclang('list_all', ['Blog']); ?> 
+                              <span class="label bg-yellow"><?= $blog_counts; ?> <?= cclang('items'); ?></span>
+                           </h5>
+                        </div>
+                     </div>
+
+                     <div class="header-right">
                         <?php is_allowed('blog_add', function(){?>
-                        <a class="btn btn-flat btn-success btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', ['Blog']); ?>  (Ctrl+a)" href="<?=  site_url('administrator/blog/add'); ?>"><i class="fa fa-plus-square-o" ></i> <?= cclang('add_new_button', ['Blog']); ?></a>
+                        <a class="btn btn-top-action btn_add_new" id="btn_add_new" title="<?= cclang('add_new_button', ['Blog']); ?> (Ctrl+a)" href="<?= site_url('administrator/blog/add'); ?>">
+                           <i class="fa fa-plus-square-o"></i> <?= cclang('add_new_button', ['Blog']); ?>
+                        </a>
                         <?php }) ?>
-                      
                      </div>
-                     <div class="widget-user-image">
-                        <img class="img-circle" src="<?= BASE_ASSET; ?>/img/list.png" alt="User Avatar">
-                     </div>
-                     <!-- /.widget-user-image -->
-                     <h3 class="widget-user-username">Blog</h3>
-                     <h5 class="widget-user-desc"><?= cclang('list_all', ['Blog']); ?>  <i class="label bg-yellow"><?= $blog_counts; ?>  <?= cclang('items'); ?></i></h5>
                   </div>
 
                   <form name="form_blog" id="form_blog" action="<?= base_url('administrator/blog/index'); ?>">
