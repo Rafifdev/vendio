@@ -1813,7 +1813,11 @@ class Tiktok_products extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi selesai dengan peringatan: ' . implode('; ', $error_messages) . '. Total produk tersinkronisasi: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan produk: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian produk gagal ditarik ({$total_synced} produk berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' produk dari TikTok Shop!', 'success');
 		}

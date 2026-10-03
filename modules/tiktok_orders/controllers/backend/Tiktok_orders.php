@@ -585,7 +585,11 @@ class Tiktok_orders extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total pesanan tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan pesanan: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian pesanan gagal ditarik ({$total_synced} pesanan berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' pesanan dari TikTok Shop!', 'success');
 		}

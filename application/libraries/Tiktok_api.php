@@ -252,6 +252,32 @@ class Tiktok_api
         $result = $this->http_request($method, $url, $body_string, $headers);
         $duration_ms = (int) round((microtime(true) - $start_time) * 1000);
 
+        // Jika respons gagal karena kredensial/token kedaluwarsa, coba otomatis refresh on-the-fly jika refresh_token ada
+        if (!empty($result['is_token_expired']) && !empty($shop->refresh_token)) {
+            $refresh_result = $this->refresh_access_token($shop->refresh_token, $app_key, $app_secret);
+            if (isset($refresh_result['code']) && $refresh_result['code'] === 0 && !empty($refresh_result['data']['access_token'])) {
+                $new_data = $refresh_result['data'];
+                $this->CI->db->where('id', $shop->id)->update('tiktok_shops', [
+                    'access_token' => $new_data['access_token'],
+                    'access_token_expire_in' => $new_data['access_token_expire_in'],
+                    'refresh_token' => $new_data['refresh_token'],
+                    'refresh_token_expire_in' => $new_data['refresh_token_expire_in'],
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+                $shop->access_token = $new_data['access_token'];
+                $shop->refresh_token = $new_data['refresh_token'];
+
+                // Ulangi request dengan access_token baru yang telah diperbarui
+                $headers = [
+                    'Content-Type: application/json',
+                    'x-tts-access-token: ' . $shop->access_token,
+                ];
+                $start_time = microtime(true);
+                $result = $this->http_request($method, $url, $body_string, $headers);
+                $duration_ms = (int) round((microtime(true) - $start_time) * 1000);
+            }
+        }
+
         // Logging ke tabel tiktok_api_logs sesuai PRD Bab 7.1
         $this->log_api_call(
             $shop->id,
@@ -317,6 +343,97 @@ class Tiktok_api
     }
 
     /**
+     * Format dan bersihkan pesan error dari TikTok API agar jelas, informatif, dan mudah dipahami user
+     *
+     * @param int|string $code
+     * @param string $raw_message
+     * @return string
+     */
+    public function format_api_error_message($code, $raw_message)
+    {
+        $raw = trim((string)$raw_message);
+        if (empty($raw)) {
+            return 'Terjadi kendala pada sistem TikTok Shop.';
+        }
+
+        $code = (int)$code;
+
+        // Cek kedaluwarsa token otorisasi / kredensial
+        if (
+            $code === 105001 || 
+            $code === 36004007 || 
+            stripos($raw, 'expired credentials') !== false || 
+            stripos($raw, 'x-tts-access-token') !== false || 
+            (stripos($raw, 'access_token') !== false && stripos($raw, 'expired') !== false) ||
+            (stripos($raw, 'access-token') !== false && stripos($raw, 'expired') !== false) ||
+            stripos($raw, 'invalid refresh token') !== false ||
+            stripos($raw, 'refresh_token is expired') !== false ||
+            stripos($raw, 'refresh token has expired') !== false ||
+            stripos($raw, 'authorization is expired') !== false ||
+            stripos($raw, 'authoirzaition is expired') !== false ||
+            stripos($raw, 'token is expired') !== false
+        ) {
+            return 'Sesi otorisasi toko telah kedaluwarsa. Silakan hubungkan ulang via menu TikTok Shops.';
+        }
+
+        // Cek izin akses / otorisasi aplikasi
+        if (
+            $code === 105002 ||
+            stripos($raw, 'not authorized') !== false ||
+            stripos($raw, 'unauthorized') !== false ||
+            stripos($raw, 'permission') !== false ||
+            stripos($raw, 'scope is not') !== false
+        ) {
+            return 'Akses tidak diizinkan. Pastikan izin aplikasi pada toko TikTok Anda sudah lengkap.';
+        }
+
+        // Cek batasan frekuensi panggilan API / rate limiting
+        if (
+            stripos($raw, 'frequency exceeds') !== false ||
+            stripos($raw, 'rate limit') !== false ||
+            stripos($raw, 'too many requests') !== false ||
+            stripos($raw, 'traffic limit') !== false
+        ) {
+            return 'Terlalu banyak permintaan ke TikTok Shop. Silakan tunggu beberapa saat lalu coba lagi.';
+        }
+
+        // Cek toko / cipher tidak ditemukan
+        if (
+            stripos($raw, 'shop cipher is empty') !== false ||
+            stripos($raw, 'shop is not authorized') !== false ||
+            stripos($raw, 'shop_cipher') !== false
+        ) {
+            return 'Identitas toko (shop cipher) tidak ditemukan atau belum aktif. Silakan sinkronkan toko terlebih dahulu.';
+        }
+
+        // Cek koneksi cURL / timeout
+        if (
+            stripos($raw, 'curl error') !== false ||
+            stripos($raw, 'failed to connect') !== false ||
+            stripos($raw, 'connection timed out') !== false ||
+            stripos($raw, 'could not resolve host') !== false
+        ) {
+            return 'Koneksi ke server TikTok gagal atau timeout. Periksa koneksi internet Anda dan coba lagi.';
+        }
+
+        // Cek format respon tidak valid
+        if (stripos($raw, 'invalid json') !== false) {
+            return 'Format data dari server TikTok Shop tidak valid.';
+        }
+
+        // Bersihkan URL teknis dan tautan dari pesan asli jika ada
+        $clean = preg_replace('/For more details:\s*https?:\/\/\S+/i', '', $raw);
+        $clean = preg_replace('/https?:\/\/\S+/i', '', $clean);
+        $clean = trim($clean, " \t\n\r\0\x0B.;,:-");
+
+        if (empty($clean)) {
+            return 'Terjadi kendala saat berkomunikasi dengan server TikTok Shop.';
+        }
+
+        return $clean;
+    }
+
+    /**
      * HTTP Request executor menggunakan cURL
      */
     protected function http_request($method, $url, $body = null, array $headers = [])
@@ -357,7 +474,8 @@ class Tiktok_api
             return [
                 'success' => false,
                 'code' => -1,
-                'message' => 'cURL Error: ' . $curl_error,
+                'message' => $this->format_api_error_message(-1, 'cURL Error: ' . $curl_error),
+                'is_token_expired' => false,
                 'data' => null,
                 'raw' => null
             ];
@@ -369,19 +487,35 @@ class Tiktok_api
             return [
                 'success' => false,
                 'code' => $http_code,
-                'message' => 'Invalid JSON response from server',
+                'message' => $this->format_api_error_message($http_code, 'Invalid JSON response from server'),
+                'is_token_expired' => false,
                 'data' => null,
                 'raw' => $response
             ];
         }
 
         $is_success = isset($decoded['code']) && $decoded['code'] === 0;
+        $raw_msg = $decoded['message'] ?? ($is_success ? 'OK' : 'Error API');
+        $code = $decoded['code'] ?? $http_code;
+
+        $is_token_expired = (
+            $code === 105001 || 
+            $code === 36004007 || 
+            stripos($raw_msg, 'expired credentials') !== false || 
+            stripos($raw_msg, 'x-tts-access-token') !== false || 
+            (stripos($raw_msg, 'access_token') !== false && stripos($raw_msg, 'expired') !== false) ||
+            (stripos($raw_msg, 'access-token') !== false && stripos($raw_msg, 'expired') !== false) ||
+            stripos($raw_msg, 'invalid refresh token') !== false ||
+            stripos($raw_msg, 'token is expired') !== false
+        );
 
         return [
             'success' => $is_success,
-            'code' => $decoded['code'] ?? $http_code,
+            'code' => $code,
             'http_status' => $http_code,
-            'message' => $decoded['message'] ?? 'OK',
+            'message' => $is_success ? $raw_msg : $this->format_api_error_message($code, $raw_msg),
+            'raw_message' => $raw_msg,
+            'is_token_expired' => $is_token_expired,
             'data' => $decoded['data'] ?? null,
             'request_id' => $decoded['request_id'] ?? null,
             'raw' => $response
@@ -514,18 +648,21 @@ class Tiktok_api
                         $results[$key] = [
                             'success' => false,
                             'code' => -1,
-                            'message' => 'cURL Error: ' . $curl_err,
+                            'message' => $this->format_api_error_message(-1, 'cURL Error: ' . $curl_err),
                             'data' => null,
                             'raw' => null,
                         ];
                     } else {
                         $decoded = json_decode($content, true);
                         if (json_last_error() === JSON_ERROR_NONE) {
+                            $is_succ = (isset($decoded['code']) && $decoded['code'] === 0);
+                            $code = $decoded['code'] ?? $http_code;
+                            $msg = $decoded['message'] ?? ($is_succ ? 'OK' : 'Error API');
                             $results[$key] = [
-                                'success' => (isset($decoded['code']) && $decoded['code'] === 0),
-                                'code' => $decoded['code'] ?? $http_code,
+                                'success' => $is_succ,
+                                'code' => $code,
                                 'http_status' => $http_code,
-                                'message' => $decoded['message'] ?? 'OK',
+                                'message' => $is_succ ? $msg : $this->format_api_error_message($code, $msg),
                                 'data' => $decoded['data'] ?? null,
                                 'request_id' => $decoded['request_id'] ?? null,
                                 'raw' => $content,
@@ -534,7 +671,7 @@ class Tiktok_api
                             $results[$key] = [
                                 'success' => false,
                                 'code' => $http_code,
-                                'message' => 'Invalid JSON',
+                                'message' => $this->format_api_error_message($http_code, 'Invalid JSON'),
                                 'data' => null,
                                 'raw' => $content,
                             ];
@@ -734,7 +871,7 @@ class Tiktok_api
         if (isset($data['code']) && $data['code'] === 0) {
             return ['success' => true, 'data' => $data['data']];
         }
-        return ['success' => false, 'message' => $data['message'] ?? 'Gagal upload gambar ke TikTok'];
+        return ['success' => false, 'message' => $this->format_api_error_message($data['code'] ?? -1, $data['message'] ?? 'Gagal upload gambar ke TikTok')];
     }
 
     /**

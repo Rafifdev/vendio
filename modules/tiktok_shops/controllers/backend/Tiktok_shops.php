@@ -325,7 +325,13 @@ class Tiktok_shops extends Admin
 			$hours = round(($new_data['access_token_expire_in'] - time()) / 3600, 1);
 			set_message("Berhasil memperbarui access token toko {$shop->shop_name}! Token aktif untuk {$hours} jam ke depan.", 'success');
 		} else {
-			$err_msg = $ref_res['message'] ?? 'Terjadi kesalahan saat refresh token ke TikTok Shop API.';
+			$raw_err = $ref_res['message'] ?? 'Terjadi kesalahan saat refresh token ke TikTok Shop API.';
+			$ref_code = $ref_res['code'] ?? 0;
+			if ($ref_code === 36004007 || stripos($raw_err, 'expired') !== false) {
+				$err_msg = 'Masa berlaku izin/token otorisasi TikTok telah habis. Silakan hubungkan ulang toko melalui tombol "Buat Authorize Link".';
+			} else {
+				$err_msg = $raw_err;
+			}
 			set_message("Gagal memperbarui token toko {$shop->shop_name}: {$err_msg}", 'error');
 		}
 
@@ -718,25 +724,44 @@ class Tiktok_shops extends Admin
 		$cfg = $this->config->item('tiktok');
 
 		foreach ($shops as $shop) {
-			if (empty($shop->access_token)) {
+			if (empty($shop->access_token) && empty($shop->refresh_token)) {
 				continue;
-			}
-
-			// Refresh token jika mendekati expired
-			$expire_ts = (int) $shop->access_token_expire_in;
-			if ($expire_ts > 0 && ($expire_ts - time()) < 3600 && !empty($shop->refresh_token)) {
-				$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $shop->app_key, $shop->app_secret);
-				if (!empty($ref_res['success']) && !empty($ref_res['data']['access_token'])) {
-					$shop->access_token = $ref_res['data']['access_token'];
-					$this->tiktok_api->save_token_response($ref_res['data'], $shop->app_key, $shop->app_secret);
-				}
 			}
 
 			$app_key = !empty($shop->app_key) ? $shop->app_key : (!empty($cfg['tiktok_app_key']) ? $cfg['tiktok_app_key'] : $this->config->item('tiktok_app_key'));
 			$app_secret = !empty($shop->app_secret) ? $shop->app_secret : (!empty($cfg['tiktok_app_secret']) ? $cfg['tiktok_app_secret'] : $this->config->item('tiktok_app_secret'));
 
+			// 1. Cek sebelum request: apakah token sudah mendekati expired (< 1 jam) atau sudah lewat
+			$expire_ts = (int) $shop->access_token_expire_in;
+			if (!empty($shop->refresh_token) && ($expire_ts <= 0 || ($expire_ts - time()) < 3600)) {
+				$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $app_key, $app_secret);
+				if (!empty($ref_res['data']['access_token'])) {
+					$shop->access_token = $ref_res['data']['access_token'];
+					$this->tiktok_api->save_token_response($ref_res['data'], $app_key, $app_secret);
+				}
+			}
+
+			// 2. Tarik data toko terotorisasi
 			$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
 
+			// 3. Jika gagal dan terindikasi token kadaluarsa, otomatis refresh on-the-fly jika refresh_token masih aktif
+			if (empty($shops_resp['data']['shops'][0])) {
+				$resp_msg = $shops_resp['message'] ?? '';
+				$resp_code = $shops_resp['code'] ?? 0;
+				$is_token_expired = (stripos($resp_msg, 'expired') !== false || stripos($resp_msg, 'access_token') !== false || stripos($resp_msg, 'access-token') !== false || stripos($resp_msg, 'credential') !== false || $resp_code === 105001 || $resp_code === 36004007);
+
+				if ($is_token_expired && !empty($shop->refresh_token)) {
+					$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $app_key, $app_secret);
+					if (!empty($ref_res['data']['access_token'])) {
+						// REFRESH TOKEN MASIH BERLAKU: Simpan token baru dan ulangi pengambilan data
+						$shop->access_token = $ref_res['data']['access_token'];
+						$this->tiktok_api->save_token_response($ref_res['data'], $app_key, $app_secret);
+						$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
+					}
+				}
+			}
+
+			// 4. Jika berhasil (baik dengan token awal maupun setelah auto-refresh):
 			if (!empty($shops_resp['data']['shops'][0])) {
 				$first_shop = $shops_resp['data']['shops'][0];
 				$update_data = [
@@ -750,16 +775,23 @@ class Tiktok_shops extends Admin
 				$this->db->where('id', $shop->id)->update('tiktok_shops', $update_data);
 				$total_synced++;
 			} else {
-				$err_msg = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API';
-				$error_messages[] = $shop->shop_name . ': ' . $err_msg;
+				// JIKA GAGAL (karena refresh_token juga sudah kadaluarsa atau kendala lain):
+				$raw_err = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API';
+				$is_token_expired = (stripos($raw_err, 'expired') !== false || stripos($raw_err, 'access_token') !== false || stripos($raw_err, 'access-token') !== false || stripos($raw_err, 'credential') !== false || ($shops_resp['code'] ?? 0) === 105001 || ($shops_resp['code'] ?? 0) === 36004007);
+
+				if ($is_token_expired) {
+					$error_messages[] = "Toko {$shop->shop_name}: Masa berlaku izin/token otorisasi TikTok telah habis. Silakan hubungkan ulang via tombol \"Buat Authorize Link\".";
+				} else {
+					$error_messages[] = "Toko {$shop->shop_name}: " . $raw_err;
+				}
 			}
 		}
 
-		if ($total_synced > 0) {
+		if ($total_synced > 0 && empty($error_messages)) {
 			set_message("Berhasil menarik & memperbarui data {$total_synced} akun toko dari TikTok Shop.", 'success');
 		} else {
 			if (!empty($error_messages)) {
-				set_message("Gagal menarik data toko: " . implode('; ', $error_messages), 'error');
+				set_message("Gagal menarik data toko: " . implode(' | ', $error_messages), 'error');
 			} else {
 				set_message("Belum ada akun toko dengan token aktif yang dapat ditarik.", 'warning');
 			}
@@ -795,6 +827,20 @@ class Tiktok_shops extends Admin
 
 		$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
 
+		// Jika gagal dan token terindikasi expired, otomatis coba refresh token on-the-fly
+		if (empty($shops_resp['data']['shops'][0])) {
+			$resp_msg = $shops_resp['message'] ?? '';
+			$is_expired = (stripos($resp_msg, 'expired') !== false || stripos($resp_msg, 'access-token') !== false || stripos($resp_msg, 'access_token') !== false || ($shops_resp['code'] ?? 0) === 105001);
+			if ($is_expired && !empty($shop->refresh_token)) {
+				$ref_res = $this->tiktok_api->refresh_access_token($shop->refresh_token, $app_key, $app_secret);
+				if (!empty($ref_res['data']['access_token'])) {
+					$shop->access_token = $ref_res['data']['access_token'];
+					$this->tiktok_api->save_token_response($ref_res['data'], $app_key, $app_secret);
+					$shops_resp = $this->tiktok_api->get_authorized_shops($shop->access_token, $app_key, $app_secret);
+				}
+			}
+		}
+
 		if (!empty($shops_resp['data']['shops'][0])) {
 			$first_shop = $shops_resp['data']['shops'][0];
 			$update_data = [
@@ -808,7 +854,13 @@ class Tiktok_shops extends Admin
 			$this->db->where('id', $shop->id)->update('tiktok_shops', $update_data);
 			set_message("Berhasil sinkronisasi Shop Cipher toko {$update_data['shop_name']}!", 'success');
 		} else {
-			$err_msg = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API.';
+			$raw_err = $shops_resp['message'] ?? 'Gagal mengambil data toko dari TikTok API.';
+			$is_expired = (stripos($raw_err, 'expired') !== false || stripos($raw_err, 'access-token') !== false || stripos($raw_err, 'access_token') !== false || ($shops_resp['code'] ?? 0) === 105001 || ($shops_resp['code'] ?? 0) === 36004007);
+			if ($is_expired) {
+				$err_msg = 'Masa berlaku izin/token otorisasi TikTok telah habis. Silakan hubungkan ulang via tombol "Buat Authorize Link".';
+			} else {
+				$err_msg = $raw_err;
+			}
 			set_message("Gagal sinkronisasi cipher toko {$shop->shop_name}: {$err_msg}", 'error');
 		}
 

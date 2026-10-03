@@ -199,7 +199,11 @@ class Tiktok_warehouses extends Admin
 		$redirect_url = 'administrator/tiktok_warehouses' . (!empty($shop_id) ? '?shop_id=' . $shop_id : '');
 
 		if (!empty($error_messages)) {
-			set_message("Sebagian data gudang gagal ditarik: " . implode('; ', $error_messages), 'warning');
+			if ($total_synced === 0) {
+				set_message("Gagal menarik data gudang: " . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data gudang gagal ditarik ({$total_synced} gudang berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message("Berhasil menarik {$total_synced} data gudang beserta opsi pengiriman dan kurir logistik.", 'success');
 		}

@@ -159,7 +159,11 @@ class Tiktok_withdrawals extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data penarikan tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan penarikan dana: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data penarikan gagal ditarik ({$total_synced} data berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' data penarikan dana dari TikTok Shop!', 'success');
 		}

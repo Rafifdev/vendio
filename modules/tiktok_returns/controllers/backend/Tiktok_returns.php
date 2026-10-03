@@ -449,7 +449,11 @@ class Tiktok_returns extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi retur selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data retur tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan retur: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data retur gagal ditarik ({$total_synced} data berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' data retur / pengembalian dari TikTok Shop!', 'success');
 		}

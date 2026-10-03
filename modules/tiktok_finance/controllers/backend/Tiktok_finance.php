@@ -496,7 +496,11 @@ class Tiktok_finance extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data keuangan tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan data keuangan: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data keuangan gagal ditarik ({$total_synced} data berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' data keuangan (Settlement) dari TikTok Shop!', 'success');
 		}

@@ -190,7 +190,11 @@ class Tiktok_cancellations extends Admin
 		}
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi pembatalan pesanan selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan pembatalan pesanan: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data pembatalan gagal ditarik ({$total_synced} data berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' data pembatalan pesanan dari TikTok Shop!', 'success');
 		}

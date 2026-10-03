@@ -139,7 +139,11 @@ class Tiktok_unsettled_transactions extends Admin
 		$this->db->trans_complete();
 
 		if (!empty($error_messages)) {
-			set_message('Sinkronisasi selesai dengan catatan: ' . implode('; ', $error_messages) . '. Total data tersinkron: ' . $total_synced, 'warning');
+			if ($total_synced === 0) {
+				set_message('Gagal menyinkronkan transaksi belum settle: ' . implode('; ', $error_messages), 'error');
+			} else {
+				set_message("Sebagian data transaksi belum settle gagal ditarik ({$total_synced} data berhasil): " . implode('; ', $error_messages), 'warning');
+			}
 		} else {
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' data transaksi belum settle dari TikTok Shop!', 'success');
 		}
