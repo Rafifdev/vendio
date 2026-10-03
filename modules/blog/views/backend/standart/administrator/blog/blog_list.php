@@ -369,44 +369,6 @@ jQuery(document).ready(domo);
    display: inline-block;
 }
 
-.badge-status-publish {
-   background-color: #ecfdf5;
-   color: #059669;
-   border: 1px solid #a7f3d0;
-   font-size: 11.5px;
-   font-weight: 600;
-   padding: 3px 9px;
-   border-radius: 12px;
-   display: inline-flex;
-   align-items: center;
-   gap: 5px;
-}
-
-.badge-status-draft {
-   background-color: #fffbeb;
-   color: #d97706;
-   border: 1px solid #fde68a;
-   font-size: 11.5px;
-   font-weight: 600;
-   padding: 3px 9px;
-   border-radius: 12px;
-   display: inline-flex;
-   align-items: center;
-   gap: 5px;
-}
-
-.badge-status-archive {
-   background-color: #f1f5f9;
-   color: #64748b;
-   border: 1px solid #e2e8f0;
-   font-size: 11.5px;
-   font-weight: 600;
-   padding: 3px 9px;
-   border-radius: 12px;
-   display: inline-flex;
-   align-items: center;
-   gap: 5px;
-}
 
 .chip-slug {
    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -599,14 +561,16 @@ jQuery(document).ready(domo);
                               <span class="badge-category"><?= _ent(!empty($blog->category_name) ? $blog->category_name : 'Uncategorized'); ?></span>
                            </td>
                            <td style="text-align: center;">
-                              <?php 
+                              <?php
                               $status = strtolower(trim((string)$blog->status));
                               if ($status == 'publish' || $status == 'published'): ?>
-                                 <span class="badge-status-publish"><i class="fa fa-circle" style="font-size: 7px;"></i> Publish</span>
+                                 <span class="label label-success">Publish</span>
                               <?php elseif ($status == 'draft'): ?>
-                                 <span class="badge-status-draft"><i class="fa fa-circle" style="font-size: 7px;"></i> Draft</span>
+                                 <span class="label label-info">Draft</span>
+                              <?php elseif ($status == 'archive' || $status == 'archived'): ?>
+                                 <span class="label label-default">Archive</span>
                               <?php else: ?>
-                                 <span class="badge-status-archive"><i class="fa fa-circle" style="font-size: 7px;"></i> <?= _ent(ucfirst($status)); ?></span>
+                                 <span class="label label-default"><?= _ent(ucfirst($status)); ?></span>
                               <?php endif; ?>
                            </td>
                            <td>

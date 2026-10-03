@@ -130,7 +130,17 @@ jQuery(document).ready(domo);
                         <label for="content" class="col-sm-2 control-label">Status </label>
 
                         <div class="col-sm-8">
-                           <?= _ent($blog->status); ?>
+                           <?php 
+                           $status = strtolower(trim((string)$blog->status));
+                           if ($status == 'publish' || $status == 'published'): ?>
+                              <span class="label label-success">Publish</span>
+                           <?php elseif ($status == 'draft'): ?>
+                              <span class="label label-info">Draft</span>
+                           <?php elseif ($status == 'archive' || $status == 'archived'): ?>
+                              <span class="label label-default">Archive</span>
+                           <?php else: ?>
+                              <span class="label label-default"><?= _ent(ucfirst($status)); ?></span>
+                           <?php endif; ?>
                         </div>
                     </div>
                                          
