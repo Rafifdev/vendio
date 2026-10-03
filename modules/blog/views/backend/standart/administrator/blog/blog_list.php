@@ -458,6 +458,158 @@
       color: #94a3b8;
       font-size: 16px;
    }
+
+   /* Bottom Toolbar & Pagination with Clean Modern Styling */
+   .box-footer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      background: #fafbfc;
+      border-top: 1px solid #e9edf2;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      flex-wrap: wrap;
+      gap: 12px;
+   }
+
+   .toolbar-controls-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+   }
+
+   .bulk-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+   }
+
+   .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+   }
+
+   .toolbar-divider {
+      width: 1px;
+      height: 22px;
+      background-color: #e2e8f0;
+      margin: 0 4px;
+   }
+
+   .box-footer-toolbar .form-control {
+      height: 34px !important;
+      border-radius: 4px !important;
+      font-size: 13px !important;
+      border: 1px solid #cbd5e1 !important;
+      background-color: #ffffff !important;
+      box-shadow: none !important;
+      padding: 6px 10px !important;
+   }
+
+   .box-footer-toolbar .form-control:focus {
+      border-color: #00a65a !important;
+   }
+
+   .box-footer-toolbar select.form-control,
+   .box-footer-toolbar select {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      background-color: #ffffff !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 14px center !important;
+      background-size: 11px !important;
+      padding-right: 34px !important;
+      padding-left: 12px !important;
+      cursor: pointer !important;
+   }
+
+   .box-footer-toolbar select.form-control:focus,
+   .box-footer-toolbar select:focus {
+      border-color: #00a65a !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300a65a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+   }
+
+   .box-footer-toolbar .btn-apply {
+      height: 34px !important;
+      padding: 0 14px !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #334155 !important;
+   }
+
+   .box-footer-toolbar .btn-apply:hover {
+      background: #f1f5f9 !important;
+   }
+
+   .box-footer-toolbar .btn-filter-submit {
+      height: 34px !important;
+      padding: 0 14px !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      background: #00a65a !important;
+      border: 1px solid #008d4c !important;
+      color: #ffffff !important;
+   }
+
+   .box-footer-toolbar .btn-filter-submit:hover {
+      background: #008d4c !important;
+   }
+
+   .box-footer-toolbar .btn-reset {
+      height: 34px !important;
+      width: 34px !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 4px !important;
+      background: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #64748b !important;
+   }
+
+   .box-footer-toolbar .btn-reset:hover {
+      background: #f1f5f9 !important;
+      color: #334155 !important;
+   }
+
+   .toolbar-controls-right {
+      display: flex;
+      align-items: center;
+   }
+
+   .toolbar-controls-right .pagination {
+      margin: 0 !important;
+   }
+
+   .toolbar-controls-right .pagination > li > a,
+   .toolbar-controls-right .pagination > li > span {
+      border-radius: 4px !important;
+      margin-left: 3px !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #475569 !important;
+      font-size: 12.5px !important;
+      font-weight: 500 !important;
+      padding: 5px 11px !important;
+   }
+
+   .toolbar-controls-right .pagination > .active > a,
+   .toolbar-controls-right .pagination > .active > span {
+      background-color: #00a65a !important;
+      border-color: #00a65a !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+   }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -644,62 +796,56 @@
                            </tbody>
                         </table>
                      </div>
-               </div>
-               <hr>
-               <!-- /.widget-user -->
-               <div class="row">
-                  <div class="col-md-8">
-                     <div class="col-sm-2 padd-left-0 ">
-                        <select type="text" class="form-control chosen chosen-select" name="bulk" id="bulk"
-                           placeholder="Site Email">
-                           <option value="">Bulk</option>
-                           <option value="delete">Delete</option>
-                        </select>
-                     </div>
-                     <div class="col-sm-2 padd-left-0 ">
-                        <button type="button" class="btn btn-flat" name="apply" id="apply"
-                           title="<?= cclang('apply_bulk_action'); ?>"><?= cclang('apply_button'); ?></button>
-                     </div>
-                     <div class="col-sm-3 padd-left-0  ">
-                        <input type="text" class="form-control" name="q" id="filter"
-                           placeholder="<?= cclang('filter'); ?>" value="<?= $this->input->get('q'); ?>">
-                     </div>
-                     <div class="col-sm-3 padd-left-0 ">
-                        <select type="text" class="form-control chosen chosen-select" name="f" id="field">
-                           <option value=""><?= cclang('all'); ?></option>
-                           <option <?= $this->input->get('f') == 'title' ? 'selected' : ''; ?> value="title">Title</option>
-                           <option <?= $this->input->get('f') == 'slug' ? 'selected' : ''; ?> value="slug">Slug</option>
-                           <option <?= $this->input->get('f') == 'image' ? 'selected' : ''; ?> value="image">Image</option>
-                           <option <?= $this->input->get('f') == 'category' ? 'selected' : ''; ?> value="category">Category
-                           </option>
-                           <option <?= $this->input->get('f') == 'status' ? 'selected' : ''; ?> value="status">Status
-                           </option>
-                           <option <?= $this->input->get('f') == 'author' ? 'selected' : ''; ?> value="author">Author
-                           </option>
-                           <option <?= $this->input->get('f') == 'created_at' ? 'selected' : ''; ?> value="created_at">
-                              Created At</option>
-                        </select>
-                     </div>
-                     <div class="col-sm-1 padd-left-0 ">
-                        <button type="submit" class="btn btn-flat" name="sbtn" id="sbtn" value="Apply"
-                           title="<?= cclang('filter_search'); ?>">
-                           Filter
-                        </button>
-                     </div>
-                     <div class="col-sm-1 padd-left-0 ">
-                        <a class="btn btn-default btn-flat" name="reset" id="reset" value="Apply"
-                           href="<?= base_url('administrator/blog'); ?>" title="<?= cclang('reset_filter'); ?>">
-                           <i class="fa fa-undo"></i>
-                        </a>
-                     </div>
-                  </div>
-                  </form>
-                  <div class="col-md-4">
-                     <div class="dataTables_paginate paging_simple_numbers pull-right" id="example2_paginate">
-                        <?= $pagination; ?>
-                     </div>
-                  </div>
-               </div>
+                      <!-- Bottom Toolbar with Precise Compact Gaps -->
+                      <div class="box-footer-toolbar">
+                         <div class="toolbar-controls-left">
+                            <!-- Bulk Action -->
+                            <div class="bulk-group">
+                               <select class="form-control" name="bulk" id="bulk" style="width: 115px;">
+                                  <option value="">Bulk</option>
+                                  <option value="delete">Delete</option>
+                               </select>
+                               <button type="button" class="btn btn-apply" name="apply" id="apply" title="<?= cclang('apply_bulk_action'); ?>">
+                                  <?= cclang('apply_button'); ?>
+                               </button>
+                            </div>
+
+                            <div class="toolbar-divider"></div>
+
+                            <!-- Search & Filter Controls -->
+                            <div class="filter-group">
+                               <input type="text" class="form-control" name="q" id="filter" placeholder="<?= cclang('filter'); ?>..." value="<?= $this->input->get('q'); ?>" style="width: 170px;">
+                               
+                               <select class="form-control" name="f" id="field" style="width: 150px;">
+                                  <option value=""><?= cclang('all'); ?></option>
+                                  <option <?= $this->input->get('f') == 'title' ? 'selected' : ''; ?> value="title">Judul</option>
+                                  <option <?= $this->input->get('f') == 'slug' ? 'selected' : ''; ?> value="slug">Slug</option>
+                                  <option <?= $this->input->get('f') == 'category' ? 'selected' : ''; ?> value="category">Kategori</option>
+                                  <option <?= $this->input->get('f') == 'status' ? 'selected' : ''; ?> value="status">Status</option>
+                                  <option <?= $this->input->get('f') == 'author' ? 'selected' : ''; ?> value="author">Penulis</option>
+                                  <option <?= $this->input->get('f') == 'created_at' ? 'selected' : ''; ?> value="created_at">Dibuat</option>
+                               </select>
+
+                               <button type="submit" class="btn btn-filter-submit" name="sbtn" id="sbtn" value="Apply" title="<?= cclang('filter_search'); ?>">
+                                  Filter
+                               </button>
+                               <a class="btn btn-reset" name="reset" id="reset" value="Apply" href="<?= base_url('administrator/blog'); ?>" title="<?= cclang('reset_filter'); ?>">
+                                  <i class="fa fa-undo"></i>
+                               </a>
+                            </div>
+                         </div>
+
+                         <!-- Pagination on Right -->
+                         <div class="toolbar-controls-right">
+                            <div class="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                               <?= $pagination; ?>
+                            </div>
+                         </div>
+                      </div>
+
+                   </form>
+                </div>
+                <!-- /.widget-user -->
             </div>
             <!--/box body -->
          </div>
