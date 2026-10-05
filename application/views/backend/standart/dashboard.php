@@ -1,7 +1,7 @@
 <style type="text/css">
-   .widget-user-header {
-      padding-left: 20px !important;
-   }
+    .widget-user-header {
+        padding-left: 20px !important;
+    }
 </style>
 
 <link rel="stylesheet" href="<?= BASE_ASSET; ?>admin-lte/plugins/morris/morris.css">
@@ -10,8 +10,8 @@
     <h1>
         <?= cclang('dashboard') ?>
         <small>
-            
-        <?= cclang('control_panel') ?>
+
+            <?= cclang('control_panel') ?>
         </small>
     </h1>
     <ol class="breadcrumb">
@@ -30,9 +30,9 @@
 
 <section class="content">
     <div class="row">
-      <?php cicool()->eventListen('dashboard_content_top'); ?>
+        <?php cicool()->eventListen('dashboard_content_top'); ?>
 
-       <div class="col-md-3 col-sm-6 col-xs-12">
+        <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="info-box button" onclick="goUrl('administrator/crud')">
                 <span class="info-box-icon bg-aqua">
                     <i class="ion ion-ios-gear">
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-         <div class="col-md-3 col-sm-6 col-xs-12">
+        <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="info-box button" onclick="goUrl('administrator/page')">
                 <span class="info-box-icon bg-aqua">
                     <i class="ion ion-ios-paper">
@@ -87,9 +87,9 @@
         </div>
 
     </div>
-  
-      <!-- /.row -->
-      <?php cicool()->eventListen('dashboard_content_bottom'); ?>
+
+    <!-- /.row -->
+    <?php cicool()->eventListen('dashboard_content_bottom'); ?>
 
 </section>
 <!-- /.content -->

@@ -351,19 +351,19 @@ class Tiktok_api
      */
     public function format_api_error_message($code, $raw_message)
     {
-        $raw = trim((string)$raw_message);
+        $raw = trim((string) $raw_message);
         if (empty($raw)) {
             return 'Terjadi kendala pada sistem TikTok Shop.';
         }
 
-        $code = (int)$code;
+        $code = (int) $code;
 
         // Cek kedaluwarsa token otorisasi / kredensial
         if (
-            $code === 105001 || 
-            $code === 36004007 || 
-            stripos($raw, 'expired credentials') !== false || 
-            stripos($raw, 'x-tts-access-token') !== false || 
+            $code === 105001 ||
+            $code === 36004007 ||
+            stripos($raw, 'expired credentials') !== false ||
+            stripos($raw, 'x-tts-access-token') !== false ||
             (stripos($raw, 'access_token') !== false && stripos($raw, 'expired') !== false) ||
             (stripos($raw, 'access-token') !== false && stripos($raw, 'expired') !== false) ||
             stripos($raw, 'invalid refresh token') !== false ||
@@ -395,17 +395,6 @@ class Tiktok_api
             stripos($raw, 'traffic limit') !== false
         ) {
             return 'Terlalu banyak permintaan ke TikTok Shop. Silakan tunggu beberapa saat lalu coba lagi.';
-        }
-
-        // Cek kendala gudang / warehouse belum di-assign untuk SKU
-        if (
-            stripos($raw, 'assigned warehouse') !== false ||
-            stripos($raw, 'unassigned SKU') !== false
-        ) {
-            if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $raw, $m)) {
-                return 'SKU ' . $m[1] . ' belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan buka TikTok Seller Center > Kelola Produk / Inventaris, lalu tentukan gudang untuk SKU tersebut.';
-            }
-            return 'SKU produk belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan tentukan gudang untuk varian produk tersebut.';
         }
 
         // Cek toko / cipher tidak ditemukan
@@ -510,10 +499,10 @@ class Tiktok_api
         $code = $decoded['code'] ?? $http_code;
 
         $is_token_expired = (
-            $code === 105001 || 
-            $code === 36004007 || 
-            stripos($raw_msg, 'expired credentials') !== false || 
-            stripos($raw_msg, 'x-tts-access-token') !== false || 
+            $code === 105001 ||
+            $code === 36004007 ||
+            stripos($raw_msg, 'expired credentials') !== false ||
+            stripos($raw_msg, 'x-tts-access-token') !== false ||
             (stripos($raw_msg, 'access_token') !== false && stripos($raw_msg, 'expired') !== false) ||
             (stripos($raw_msg, 'access-token') !== false && stripos($raw_msg, 'expired') !== false) ||
             stripos($raw_msg, 'invalid refresh token') !== false ||
@@ -629,7 +618,7 @@ class Tiktok_api
 
             curl_setopt_array($ch, $options);
             curl_multi_add_handle($mh, $ch);
-            $handles[(int)$ch] = ['key' => $key, 'ch' => $ch];
+            $handles[(int) $ch] = ['key' => $key, 'ch' => $ch];
         };
 
         // Mulai koneksi awal sesuai limit $concurrency
@@ -648,7 +637,7 @@ class Tiktok_api
 
             while ($info = curl_multi_info_read($mh)) {
                 $ch = $info['handle'];
-                $handle_info = $handles[(int)$ch] ?? null;
+                $handle_info = $handles[(int) $ch] ?? null;
                 if ($handle_info) {
                     $key = $handle_info['key'];
                     $content = curl_multi_getcontent($ch);
@@ -691,7 +680,7 @@ class Tiktok_api
 
                     curl_multi_remove_handle($mh, $ch);
                     curl_close($ch);
-                    unset($handles[(int)$ch]);
+                    unset($handles[(int) $ch]);
 
                     if (!empty($queue)) {
                         $next_key = array_shift($queue);

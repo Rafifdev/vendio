@@ -3,15 +3,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 
 /**
-*| --------------------------------------------------------------------------
-*| Tiktok Products Controller
-*| --------------------------------------------------------------------------
-*| Tiktok Products site
-*|
-*/
-class Tiktok_products extends Admin	
+ *| --------------------------------------------------------------------------
+ *| Tiktok Products Controller
+ *| --------------------------------------------------------------------------
+ *| Tiktok Products site
+ *|
+ */
+class Tiktok_products extends Admin
 {
-	
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -21,16 +21,16 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* show all Tiktok Productss
-	*
-	* @var $offset String
-	*/
+	 * show all Tiktok Productss
+	 *
+	 * @var $offset String
+	 */
 	public function index($offset = 0)
 	{
 		$this->is_allowed('tiktok_products_list');
 
 		$filter = $this->input->get('q');
-		$field 	= $this->input->get('f');
+		$field = $this->input->get('f');
 		$shop_id = $this->input->get('shop_id');
 		$platform = $this->input->get('platform');
 
@@ -56,10 +56,10 @@ class Tiktok_products extends Admin
 		$this->data['skus_by_product'] = $skus_by_product;
 
 		$config = [
-			'base_url'     => 'administrator/tiktok_products/index/',
-			'total_rows'   => $this->model_tiktok_products->count_all($filter, $field, $shop_id),
-			'per_page'     => $this->limit_page,
-			'uri_segment'  => 4,
+			'base_url' => 'administrator/tiktok_products/index/',
+			'total_rows' => $this->model_tiktok_products->count_all($filter, $field, $shop_id),
+			'per_page' => $this->limit_page,
+			'uri_segment' => 4,
 		];
 
 		$this->data['pagination'] = $this->pagination($config);
@@ -67,11 +67,11 @@ class Tiktok_products extends Admin
 		$this->template->title('Katalog Produk List');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_list', $this->data);
 	}
-	
+
 	/**
-	* Add new tiktok_productss
-	*
-	*/
+	 * Add new tiktok_productss
+	 *
+	 */
 	public function add()
 	{
 		$this->is_allowed('tiktok_products_add');
@@ -132,14 +132,14 @@ class Tiktok_products extends Admin
 					}
 					$full_name = implode(' > ', $path);
 					$leaf_categories[] = [
-						'id' => (string)$cat['id'],
+						'id' => (string) $cat['id'],
 						'name' => $full_name
 					];
 				}
 			}
 
 			// Sort berdasarkan nama path secara alfabetis
-			usort($leaf_categories, function($a, $b) {
+			usort($leaf_categories, function ($a, $b) {
 				return strcmp($a['name'], $b['name']);
 			});
 
@@ -209,8 +209,8 @@ class Tiktok_products extends Admin
 		if (!empty($res['data']['brands']) && is_array($res['data']['brands'])) {
 			foreach ($res['data']['brands'] as $b) {
 				$brands[] = [
-					'id' => (string)$b['id'],
-					'name' => (string)$b['name']
+					'id' => (string) $b['id'],
+					'name' => (string) $b['name']
 				];
 			}
 			@file_put_contents($cache_file, json_encode($brands, JSON_UNESCAPED_UNICODE));
@@ -231,9 +231,9 @@ class Tiktok_products extends Admin
 		$brands = $this->get_tiktok_brands($category_id, $shop_id);
 
 		echo json_encode([
-			'success'     => true,
+			'success' => true,
 			'category_id' => $category_id,
-			'brands'      => $brands
+			'brands' => $brands
 		]);
 		exit;
 	}
@@ -262,14 +262,16 @@ class Tiktok_products extends Admin
 			if (is_array($res['detail'])) {
 				foreach ($res['detail'] as $d) {
 					if (is_array($d)) {
-						if (!empty($d['message'])) $messages[] = $d['message'];
-						if (!empty($d['field'])) $messages[] = 'Field: ' . $d['field'];
+						if (!empty($d['message']))
+							$messages[] = $d['message'];
+						if (!empty($d['field']))
+							$messages[] = 'Field: ' . $d['field'];
 					} else {
-						$messages[] = (string)$d;
+						$messages[] = (string) $d;
 					}
 				}
 			} else {
-				$messages[] = (string)$res['detail'];
+				$messages[] = (string) $res['detail'];
 			}
 		}
 
@@ -293,9 +295,10 @@ class Tiktok_products extends Admin
 		if (!empty($res['errors']) && is_array($res['errors'])) {
 			foreach ($res['errors'] as $err) {
 				if (is_array($err)) {
-					if (!empty($err['message'])) $messages[] = $err['message'];
+					if (!empty($err['message']))
+						$messages[] = $err['message'];
 				} else {
-					$messages[] = (string)$err;
+					$messages[] = (string) $err;
 				}
 			}
 		}
@@ -310,17 +313,17 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* Add New Tiktok Productss
-	*
-	* @return JSON
-	*/
+	 * Add New Tiktok Productss
+	 *
+	 * @return JSON
+	 */
 	public function add_save()
 	{
 		if (!$this->is_allowed('tiktok_products_add', false)) {
 			echo json_encode([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 			exit;
 		}
 
@@ -328,27 +331,27 @@ class Tiktok_products extends Admin
 			'required' => 'Toko TikTok wajib dipilih sesuai ketentuan.'
 		]);
 		$this->form_validation->set_rules('title', 'Judul Produk', 'trim|required|min_length[25]|max_length[255]', [
-			'required'   => 'Judul produk wajib diisi sesuai ketentuan TikTok.',
+			'required' => 'Judul produk wajib diisi sesuai ketentuan TikTok.',
 			'min_length' => 'Judul produk minimal 25 karakter sesuai ketentuan TikTok.',
 			'max_length' => 'Judul produk maksimal 255 karakter sesuai ketentuan TikTok.'
 		]);
 		$this->form_validation->set_rules('price', 'Harga Produk', 'trim|required|numeric|greater_than[0]', [
-			'required'     => 'Harga produk wajib diisi sesuai ketentuan TikTok.',
-			'numeric'      => 'Harga produk harus berupa angka.',
+			'required' => 'Harga produk wajib diisi sesuai ketentuan TikTok.',
+			'numeric' => 'Harga produk harus berupa angka.',
 			'greater_than' => 'Harga produk minimal Rp 1.000.'
 		]);
 		$this->form_validation->set_rules('total_stock', 'Total Stok', 'trim|required|integer|greater_than_equal_to[0]', [
-			'required'              => 'Total stok produk wajib diisi sesuai ketentuan TikTok.',
-			'integer'               => 'Total stok harus berupa bilangan bulat.',
+			'required' => 'Total stok produk wajib diisi sesuai ketentuan TikTok.',
+			'integer' => 'Total stok harus berupa bilangan bulat.',
 			'greater_than_equal_to' => 'Total stok minimal 0.'
 		]);
 		$this->form_validation->set_rules('package_weight', 'Berat Paket', 'trim|required|numeric|greater_than[0]', [
-			'required'     => 'Berat paket (Package Weight) wajib diisi sesuai ketentuan TikTok.',
-			'numeric'      => 'Berat paket harus berupa angka (dalam kg).',
+			'required' => 'Berat paket (Package Weight) wajib diisi sesuai ketentuan TikTok.',
+			'numeric' => 'Berat paket harus berupa angka (dalam kg).',
 			'greater_than' => 'Berat paket minimal 0.01 kg.'
 		]);
 		$this->form_validation->set_rules('description', 'Deskripsi Produk', 'trim|required|min_length[10]', [
-			'required'   => 'Deskripsi produk wajib diisi sesuai ketentuan TikTok.',
+			'required' => 'Deskripsi produk wajib diisi sesuai ketentuan TikTok.',
 			'min_length' => 'Deskripsi produk minimal 10 karakter sesuai ketentuan TikTok.'
 		]);
 
@@ -375,17 +378,17 @@ class Tiktok_products extends Admin
 			}
 
 			$save_data = [
-				'tiktok_shop_id'    => $this->input->post('tiktok_shop_id'),
-				'title'             => $this->input->post('title'),
-				'status'            => 'ACTIVATE',
+				'tiktok_shop_id' => $this->input->post('tiktok_shop_id'),
+				'title' => $this->input->post('title'),
+				'status' => 'ACTIVATE',
 				'listing_platforms' => $listing_platforms_input,
-				'category_name'     => $this->input->post('category_name'),
-				'brand_name'        => $this->input->post('brand_name'),
-				'seller_sku'        => $this->input->post('seller_sku') ?: 'SKU-' . time(),
-				'price'             => max(1000, intval($this->input->post('price'))),
-				'total_stock'       => max(0, intval($this->input->post('total_stock'))),
-				'package_weight'    => (string)$package_weight,
-				'description'       => $this->input->post('description'),
+				'category_name' => $this->input->post('category_name'),
+				'brand_name' => $this->input->post('brand_name'),
+				'seller_sku' => $this->input->post('seller_sku') ?: 'SKU-' . time(),
+				'price' => max(1000, intval($this->input->post('price'))),
+				'total_stock' => max(0, intval($this->input->post('total_stock'))),
+				'package_weight' => (string) $package_weight,
+				'description' => $this->input->post('description'),
 			];
 
 			if (!is_dir(FCPATH . '/uploads/tiktok_products/')) {
@@ -444,13 +447,13 @@ class Tiktok_products extends Admin
 					$wh_type = $wh['type'] ?? ($wh['warehouse_type'] ?? '');
 					$wh_id = $wh['id'] ?? ($wh['warehouse_id'] ?? '');
 					if ($wh_type == 'SALES_WAREHOUSE') {
-						$warehouse_id = (string)$wh_id;
+						$warehouse_id = (string) $wh_id;
 						break;
 					}
 				}
 				if (empty($warehouse_id) && !empty($warehouse_res['data']['warehouses'][0])) {
 					$first_wh = $warehouse_res['data']['warehouses'][0];
-					$warehouse_id = (string)($first_wh['id'] ?? ($first_wh['warehouse_id'] ?? ''));
+					$warehouse_id = (string) ($first_wh['id'] ?? ($first_wh['warehouse_id'] ?? ''));
 				}
 			}
 
@@ -465,7 +468,7 @@ class Tiktok_products extends Admin
 			// 3. Tentukan category dan atribut sesuai ketentuan TikTok
 			$category_id = '601756';
 			if (is_numeric($this->input->post('category_name')) && !empty($this->input->post('category_name'))) {
-				$category_id = (string)$this->input->post('category_name');
+				$category_id = (string) $this->input->post('category_name');
 			}
 
 			$product_attributes = [
@@ -491,11 +494,11 @@ class Tiktok_products extends Admin
 						if (!empty($attr['is_requried']) && !empty($attr['values'])) {
 							$first_val = $attr['values'][0];
 							$custom_attrs[] = [
-								'id' => (string)$attr['id'],
+								'id' => (string) $attr['id'],
 								'values' => [
 									[
-										'id' => (string)$first_val['id'],
-										'name' => (string)$first_val['name']
+										'id' => (string) $first_val['id'],
+										'name' => (string) $first_val['name']
 									]
 								]
 							];
@@ -513,15 +516,15 @@ class Tiktok_products extends Admin
 			}
 
 			$tiktok_payload = [
-				'save_mode'         => 'LISTING',
-				'title'             => $save_data['title'],
-				'description'       => $save_data['description'],
-				'category_id'       => $category_id,
-				'brand_id'          => (string)$brand_id,
+				'save_mode' => 'LISTING',
+				'title' => $save_data['title'],
+				'description' => $save_data['description'],
+				'category_id' => $category_id,
+				'brand_id' => (string) $brand_id,
 				'listing_platforms' => $listing_platforms_arr,
-				'main_images'       => [['uri' => $image_uri]],
+				'main_images' => [['uri' => $image_uri]],
 				'package_weight' => [
-					'value' => (string)$package_weight,
+					'value' => (string) $package_weight,
 					'unit' => 'KILOGRAM'
 				],
 				'package_dimensions' => [
@@ -534,16 +537,16 @@ class Tiktok_products extends Admin
 				'skus' => [
 					[
 						'price' => [
-							'amount' => (string)$save_data['price'],
+							'amount' => (string) $save_data['price'],
 							'currency' => 'IDR'
 						],
 						'inventory' => [
 							[
 								'quantity' => $save_data['total_stock'],
-								'warehouse_id' => (string)$warehouse_id
+								'warehouse_id' => (string) $warehouse_id
 							]
 						],
-						'seller_sku' => (string)$save_data['seller_sku']
+						'seller_sku' => (string) $save_data['seller_sku']
 					]
 				]
 			];
@@ -591,7 +594,7 @@ class Tiktok_products extends Admin
 
 				if ($this->input->post('save_type') == 'stay') {
 					$this->data['success'] = true;
-					$this->data['id'] 	   = $save_tiktok_products;
+					$this->data['id'] = $save_tiktok_products;
 					$this->data['message'] = cclang('success_save_data_stay', [
 						anchor('administrator/tiktok_products/edit/' . $save_tiktok_products, 'Edit Tiktok Products'),
 						anchor('administrator/tiktok_products', ' Go back to list')
@@ -599,10 +602,12 @@ class Tiktok_products extends Admin
 				} else {
 					set_message(
 						cclang('success_save_data_redirect', [
-						anchor('administrator/tiktok_products/edit/' . $save_tiktok_products, 'Edit Tiktok Products')
-					]), 'success');
+							anchor('administrator/tiktok_products/edit/' . $save_tiktok_products, 'Edit Tiktok Products')
+						]),
+						'success'
+					);
 
-            		$this->data['success'] = true;
+					$this->data['success'] = true;
 					$this->data['redirect'] = base_url('administrator/tiktok_products');
 				}
 			} else {
@@ -610,8 +615,8 @@ class Tiktok_products extends Admin
 					$this->data['success'] = false;
 					$this->data['message'] = cclang('data_not_change');
 				} else {
-            		$this->data['success'] = false;
-            		$this->data['message'] = cclang('data_not_change');
+					$this->data['success'] = false;
+					$this->data['message'] = cclang('data_not_change');
 					$this->data['redirect'] = base_url('administrator/tiktok_products');
 				}
 			}
@@ -623,12 +628,12 @@ class Tiktok_products extends Admin
 
 		echo json_encode($this->data);
 	}
-	
-		/**
-	* Update view Tiktok Productss
-	*
-	* @var $id String
-	*/
+
+	/**
+	 * Update view Tiktok Productss
+	 *
+	 * @var $id String
+	 */
 	public function edit($id)
 	{
 		$this->is_allowed('tiktok_products_update');
@@ -642,7 +647,7 @@ class Tiktok_products extends Admin
 
 		// Bersihkan berat paket agar murni angka desimal tanpa teks satuan
 		if (!empty($product->package_weight)) {
-			$product->package_weight = preg_replace('/[^0-9.]/', '', (string)$product->package_weight);
+			$product->package_weight = preg_replace('/[^0-9.]/', '', (string) $product->package_weight);
 		}
 
 		// Ambil data raw_data untuk mendeteksi leaf category ID dan Brand ID asli dari TikTok Seller Center
@@ -652,11 +657,11 @@ class Tiktok_products extends Admin
 		if (!empty($raw['category_chains'])) {
 			$last_cat = end($raw['category_chains']);
 			if (!empty($last_cat['id'])) {
-				$leaf_cat_id = (string)$last_cat['id'];
-				$leaf_cat_name = (string)($last_cat['local_name'] ?? '');
+				$leaf_cat_id = (string) $last_cat['id'];
+				$leaf_cat_name = (string) ($last_cat['local_name'] ?? '');
 			}
 		} elseif (is_numeric($product->category_name)) {
-			$leaf_cat_id = (string)$product->category_name;
+			$leaf_cat_id = (string) $product->category_name;
 		}
 
 		$categories = $this->get_tiktok_categories($product->tiktok_shop_id);
@@ -677,7 +682,7 @@ class Tiktok_products extends Admin
 
 		// Brand
 		$brand_name = !empty($product->brand_name) ? trim($product->brand_name, " \"'") : '';
-		$brand_id = !empty($raw['brand']['id']) ? (string)$raw['brand']['id'] : '0';
+		$brand_id = !empty($raw['brand']['id']) ? (string) $raw['brand']['id'] : '0';
 		$brands = $this->get_tiktok_brands($leaf_cat_id, $product->tiktok_shop_id);
 
 		// Jika brand dari Seller Center belum ada di list brands dari API, tambahkan agar bisa terpilih
@@ -710,52 +715,52 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* Update Tiktok Productss
-	*
-	* @var $id String
-	*/
+	 * Update Tiktok Productss
+	 *
+	 * @var $id String
+	 */
 	public function edit_save($id)
 	{
 		if (!$this->is_allowed('tiktok_products_update', false)) {
 			echo json_encode([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 			exit;
 		}
-		
+
 		$this->form_validation->set_rules('tiktok_shop_id', 'Toko TikTok', 'trim|required', [
 			'required' => 'Toko TikTok wajib dipilih sesuai ketentuan.'
 		]);
 		$this->form_validation->set_rules('title', 'Judul Produk', 'trim|required|min_length[25]|max_length[255]', [
-			'required'   => 'Judul produk wajib diisi sesuai ketentuan TikTok.',
+			'required' => 'Judul produk wajib diisi sesuai ketentuan TikTok.',
 			'min_length' => 'Judul produk minimal 25 karakter sesuai ketentuan TikTok.',
 			'max_length' => 'Judul produk maksimal 255 karakter sesuai ketentuan TikTok.'
 		]);
 		$this->form_validation->set_rules('price', 'Harga Produk', 'trim|required|numeric|greater_than[0]', [
-			'required'     => 'Harga produk wajib diisi sesuai ketentuan TikTok.',
-			'numeric'      => 'Harga produk harus berupa angka.',
+			'required' => 'Harga produk wajib diisi sesuai ketentuan TikTok.',
+			'numeric' => 'Harga produk harus berupa angka.',
 			'greater_than' => 'Harga produk minimal Rp 1.000.'
 		]);
 		$this->form_validation->set_rules('total_stock', 'Total Stok', 'trim|required|integer|greater_than_equal_to[0]', [
-			'required'              => 'Total stok produk wajib diisi sesuai ketentuan TikTok.',
-			'integer'               => 'Total stok harus berupa bilangan bulat.',
+			'required' => 'Total stok produk wajib diisi sesuai ketentuan TikTok.',
+			'integer' => 'Total stok harus berupa bilangan bulat.',
 			'greater_than_equal_to' => 'Total stok minimal 0.'
 		]);
 		$this->form_validation->set_rules('package_weight', 'Berat Paket', 'trim|required|numeric|greater_than[0]', [
-			'required'     => 'Berat paket (Package Weight) wajib diisi sesuai ketentuan TikTok.',
-			'numeric'      => 'Berat paket harus berupa angka (dalam kg).',
+			'required' => 'Berat paket (Package Weight) wajib diisi sesuai ketentuan TikTok.',
+			'numeric' => 'Berat paket harus berupa angka (dalam kg).',
 			'greater_than' => 'Berat paket minimal 0.01 kg.'
 		]);
 		$this->form_validation->set_rules('description', 'Deskripsi Produk', 'trim|required|min_length[10]', [
-			'required'   => 'Deskripsi produk wajib diisi sesuai ketentuan TikTok.',
+			'required' => 'Deskripsi produk wajib diisi sesuai ketentuan TikTok.',
 			'min_length' => 'Deskripsi produk minimal 10 karakter sesuai ketentuan TikTok.'
 		]);
-		
+
 		if ($this->form_validation->run()) {
 			$tiktok_products_main_image_uuid = $this->input->post('tiktok_products_main_image_uuid');
 			$tiktok_products_main_image_name = $this->input->post('tiktok_products_main_image_name');
-		
+
 			$existing_product = $this->model_tiktok_products->find($id);
 			if (!$existing_product) {
 				echo json_encode([
@@ -776,17 +781,17 @@ class Tiktok_products extends Admin
 			}
 
 			$save_data = [
-				'tiktok_shop_id'    => $this->input->post('tiktok_shop_id'),
-				'title'             => $this->input->post('title'),
-				'status'            => 'ACTIVATE',
+				'tiktok_shop_id' => $this->input->post('tiktok_shop_id'),
+				'title' => $this->input->post('title'),
+				'status' => 'ACTIVATE',
 				'listing_platforms' => $listing_platforms_input,
-				'category_name'     => $this->input->post('category_name'),
-				'brand_name'        => $this->input->post('brand_name'),
-				'seller_sku'        => $this->input->post('seller_sku') ?: $existing_product->seller_sku,
-				'price'             => max(1000, intval($this->input->post('price'))),
-				'total_stock'       => max(0, intval($this->input->post('total_stock'))),
-				'package_weight'    => (string)$package_weight,
-				'description'       => $this->input->post('description'),
+				'category_name' => $this->input->post('category_name'),
+				'brand_name' => $this->input->post('brand_name'),
+				'seller_sku' => $this->input->post('seller_sku') ?: $existing_product->seller_sku,
+				'price' => max(1000, intval($this->input->post('price'))),
+				'total_stock' => max(0, intval($this->input->post('total_stock'))),
+				'package_weight' => (string) $package_weight,
+				'description' => $this->input->post('description'),
 			];
 
 			if (!is_dir(FCPATH . '/uploads/tiktok_products/')) {
@@ -867,11 +872,11 @@ class Tiktok_products extends Admin
 				// Tentukan Category ID
 				$category_id = '601756';
 				if (is_numeric($this->input->post('category_name')) && !empty($this->input->post('category_name'))) {
-					$category_id = (string)$this->input->post('category_name');
+					$category_id = (string) $this->input->post('category_name');
 				} elseif (!empty($remote_data['category_chains'])) {
 					$last_cat = end($remote_data['category_chains']);
 					if (!empty($last_cat['id'])) {
-						$category_id = (string)$last_cat['id'];
+						$category_id = (string) $last_cat['id'];
 					}
 				}
 
@@ -885,10 +890,10 @@ class Tiktok_products extends Admin
 							foreach ($pa['values'] as $v) {
 								$val_entry = [];
 								if (!empty($v['id'])) {
-									$val_entry['id'] = (string)$v['id'];
+									$val_entry['id'] = (string) $v['id'];
 								}
 								if (!empty($v['name'])) {
-									$val_entry['name'] = (string)$v['name'];
+									$val_entry['name'] = (string) $v['name'];
 								}
 								if (!empty($val_entry)) {
 									$vals[] = $val_entry;
@@ -896,7 +901,7 @@ class Tiktok_products extends Admin
 							}
 						}
 						$product_attributes[] = [
-							'id' => (string)$pa['id'],
+							'id' => (string) $pa['id'],
 							'values' => $vals
 						];
 					}
@@ -924,11 +929,11 @@ class Tiktok_products extends Admin
 								if (!empty($attr['is_requried']) && !empty($attr['values'])) {
 									$first_val = $attr['values'][0];
 									$custom_attrs[] = [
-										'id' => (string)$attr['id'],
+										'id' => (string) $attr['id'],
 										'values' => [
 											[
-												'id' => (string)$first_val['id'],
-												'name' => (string)$first_val['name']
+												'id' => (string) $first_val['id'],
+												'name' => (string) $first_val['name']
 											]
 										]
 									];
@@ -944,7 +949,7 @@ class Tiktok_products extends Admin
 				// Tentukan Brand ID
 				$brand_id = $this->input->post('brand_id');
 				if (empty($brand_id) || $brand_id === 'No Brand' || !is_numeric($brand_id)) {
-					$brand_id = !empty($remote_data['brand']['id']) ? (string)$remote_data['brand']['id'] : '0';
+					$brand_id = !empty($remote_data['brand']['id']) ? (string) $remote_data['brand']['id'] : '0';
 				}
 
 				// Tentukan Dimensi Paket
@@ -956,21 +961,21 @@ class Tiktok_products extends Admin
 				];
 				if (!empty($remote_data['package_dimensions']['length'])) {
 					$package_dimensions = [
-						'length' => (string)round(floatval($remote_data['package_dimensions']['length'])),
-						'width'  => (string)round(floatval($remote_data['package_dimensions']['width'])),
-						'height' => (string)round(floatval($remote_data['package_dimensions']['height'])),
-						'unit'   => !empty($remote_data['package_dimensions']['unit']) ? (string)$remote_data['package_dimensions']['unit'] : 'CENTIMETER'
+						'length' => (string) round(floatval($remote_data['package_dimensions']['length'])),
+						'width' => (string) round(floatval($remote_data['package_dimensions']['width'])),
+						'height' => (string) round(floatval($remote_data['package_dimensions']['height'])),
+						'unit' => !empty($remote_data['package_dimensions']['unit']) ? (string) $remote_data['package_dimensions']['unit'] : 'CENTIMETER'
 					];
 				}
 
 				$edit_payload = [
-					'category_id'       => $category_id,
-					'brand_id'          => (string)$brand_id,
+					'category_id' => $category_id,
+					'brand_id' => (string) $brand_id,
 					'listing_platforms' => $listing_platforms_arr,
-					'title'             => $save_data['title'],
-					'description'       => $save_data['description'],
-					'package_weight'    => [
-						'value' => (string)$package_weight,
+					'title' => $save_data['title'],
+					'description' => $save_data['description'],
+					'package_weight' => [
+						'value' => (string) $package_weight,
 						'unit' => 'KILOGRAM'
 					],
 					'package_dimensions' => $package_dimensions,
@@ -996,35 +1001,6 @@ class Tiktok_products extends Admin
 					}
 				}
 
-				// 1. Ambil default warehouse ID toko TikTok untuk memastikan semua SKU memiliki gudang yang sah
-				$default_sales_warehouse_id = null;
-				$wh_row = $this->db->get_where('tiktok_warehouses', ['is_default' => 1, 'effect_status' => 'ENABLED'])->row();
-				if (!$wh_row) {
-					$wh_row = $this->db->get_where('tiktok_warehouses', ['warehouse_type' => 'SALES_WAREHOUSE', 'effect_status' => 'ENABLED'])->row();
-				}
-				if (!$wh_row) {
-					$wh_row = $this->db->get('tiktok_warehouses')->row();
-				}
-				if ($wh_row && !empty($wh_row->tiktok_warehouse_id)) {
-					$default_sales_warehouse_id = (string)$wh_row->tiktok_warehouse_id;
-				} else {
-					$wh_res = $this->tiktok_api->get_warehouses($shop_id);
-					if (!empty($wh_res['data']['warehouses'])) {
-						foreach ($wh_res['data']['warehouses'] as $wh) {
-							$wh_type = $wh['type'] ?? ($wh['warehouse_type'] ?? '');
-							$wh_id = $wh['id'] ?? ($wh['warehouse_id'] ?? '');
-							if ($wh_type === 'SALES_WAREHOUSE') {
-								$default_sales_warehouse_id = (string)$wh_id;
-								break;
-							}
-						}
-						if (empty($default_sales_warehouse_id) && !empty($wh_res['data']['warehouses'][0])) {
-							$first_wh = $wh_res['data']['warehouses'][0];
-							$default_sales_warehouse_id = (string)($first_wh['id'] ?? ($first_wh['warehouse_id'] ?? ''));
-						}
-					}
-				}
-
 				// Penanganan SKU dan Sales Attributes (Mendukung Varian dari Seller Center & Database Lokal)
 				$this->db->group_start();
 				$this->db->where('tiktok_product_id', $id);
@@ -1039,57 +1015,24 @@ class Tiktok_products extends Admin
 
 				if (!empty($remote_data['skus']) && is_array($remote_data['skus'])) {
 					foreach ($remote_data['skus'] as $idx => $api_sku) {
-						if (empty($api_sku['id'])) continue;
+						if (empty($api_sku['id']))
+							continue;
 
-						$seller_sku_val = !empty($api_sku['seller_sku']) ? (string)$api_sku['seller_sku'] : '';
+						$seller_sku_val = !empty($api_sku['seller_sku']) ? (string) $api_sku['seller_sku'] : '';
 						if (empty($seller_sku_val)) {
-							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string)$save_data['seller_sku'] : (string)$save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $api_sku['id'];
+							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string) $save_data['seller_sku'] : (string) $save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $api_sku['id'];
 						} elseif ($idx === 0 && !empty($save_data['seller_sku'])) {
-							$seller_sku_val = (string)$save_data['seller_sku'];
+							$seller_sku_val = (string) $save_data['seller_sku'];
 						}
-
-						// Cari warehouse_id untuk SKU ini agar tidak memicu error "unassigned SKU"
-						$sku_warehouse_id = null;
-						if (!empty($api_sku['inventory']) && is_array($api_sku['inventory'])) {
-							foreach ($api_sku['inventory'] as $inv) {
-								if (!empty($inv['warehouse_id'])) {
-									$sku_warehouse_id = (string)$inv['warehouse_id'];
-									break;
-								}
-							}
-						}
-						if (empty($sku_warehouse_id) && !empty($db_skus)) {
-							foreach ($db_skus as $d_sku) {
-								if ($d_sku->sku_id == $api_sku['id'] && !empty($d_sku->warehouse_id)) {
-									$sku_warehouse_id = (string)$d_sku->warehouse_id;
-									break;
-								}
-							}
-						}
-						if (empty($sku_warehouse_id)) {
-							$sku_warehouse_id = $default_sales_warehouse_id;
-						}
-
-						$sku_qty = ($idx === 0) ? intval($save_data['total_stock']) : intval($api_sku['inventory'][0]['quantity'] ?? $save_data['total_stock']);
 
 						$sku_item = [
-							'id' => (string)$api_sku['id'],
+							'id' => (string) $api_sku['id'],
 							'price' => [
-								'amount' => (string)$save_data['price'],
-								'currency' => !empty($api_sku['price']['currency']) ? (string)$api_sku['price']['currency'] : 'IDR'
+								'amount' => (string) $save_data['price'],
+								'currency' => !empty($api_sku['price']['currency']) ? (string) $api_sku['price']['currency'] : 'IDR'
 							],
 							'seller_sku' => $seller_sku_val
 						];
-
-						// Wajib menyertakan inventory & warehouse_id agar TikTok tidak menolak SKU yang belum ter-assign gudang
-						if (!empty($sku_warehouse_id)) {
-							$sku_item['inventory'] = [
-								[
-									'quantity' => $sku_qty,
-									'warehouse_id' => (string)$sku_warehouse_id
-								]
-							];
-						}
 
 						// Pertahankan sales_attributes jika ada
 						if (!empty($api_sku['sales_attributes']) && is_array($api_sku['sales_attributes'])) {
@@ -1097,19 +1040,19 @@ class Tiktok_products extends Admin
 							foreach ($api_sku['sales_attributes'] as $sa) {
 								$attr_entry = [];
 								if (!empty($sa['id'])) {
-									$attr_entry['id'] = (string)$sa['id'];
+									$attr_entry['id'] = (string) $sa['id'];
 								}
 								if (!empty($sa['name'])) {
-									$attr_entry['name'] = (string)$sa['name'];
+									$attr_entry['name'] = (string) $sa['name'];
 								}
 								if (!empty($sa['value_id'])) {
-									$attr_entry['value_id'] = (string)$sa['value_id'];
+									$attr_entry['value_id'] = (string) $sa['value_id'];
 								}
 								if (!empty($sa['value_name'])) {
-									$attr_entry['value_name'] = (string)$sa['value_name'];
+									$attr_entry['value_name'] = (string) $sa['value_name'];
 								}
 								if (!empty($sa['sku_img']['uri'])) {
-									$attr_entry['sku_img'] = ['uri' => (string)$sa['sku_img']['uri']];
+									$attr_entry['sku_img'] = ['uri' => (string) $sa['sku_img']['uri']];
 								}
 								if (!empty($attr_entry)) {
 									$clean_sales_attrs[] = $attr_entry;
@@ -1125,37 +1068,24 @@ class Tiktok_products extends Admin
 				} elseif (!empty($db_skus)) {
 					// Fallback dari database lokal tiktok_product_skus jika remote_data tidak memiliki skus
 					foreach ($db_skus as $idx => $d_sku) {
-						if (empty($d_sku->sku_id)) continue;
+						if (empty($d_sku->sku_id))
+							continue;
 
-						$seller_sku_val = !empty($d_sku->seller_sku) ? (string)$d_sku->seller_sku : '';
+						$seller_sku_val = !empty($d_sku->seller_sku) ? (string) $d_sku->seller_sku : '';
 						if (empty($seller_sku_val)) {
-							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string)$save_data['seller_sku'] : (string)$save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $d_sku->sku_id;
+							$seller_sku_val = !empty($save_data['seller_sku']) ? ($idx === 0 ? (string) $save_data['seller_sku'] : (string) $save_data['seller_sku'] . '-' . ($idx + 1)) : 'SKU-' . $d_sku->sku_id;
 						} elseif ($idx === 0 && !empty($save_data['seller_sku'])) {
-							$seller_sku_val = (string)$save_data['seller_sku'];
+							$seller_sku_val = (string) $save_data['seller_sku'];
 						}
 
-						$sku_warehouse_id = !empty($d_sku->warehouse_id) ? (string)$d_sku->warehouse_id : $default_sales_warehouse_id;
-						$sku_qty = ($idx === 0) ? intval($save_data['total_stock']) : intval($d_sku->stock ?? $save_data['total_stock']);
-
-						$sku_entry = [
-							'id' => (string)$d_sku->sku_id,
+						$edit_skus[] = [
+							'id' => (string) $d_sku->sku_id,
 							'price' => [
-								'amount' => (string)$save_data['price'],
-								'currency' => !empty($d_sku->currency) ? (string)$d_sku->currency : 'IDR'
+								'amount' => (string) $save_data['price'],
+								'currency' => !empty($d_sku->currency) ? (string) $d_sku->currency : 'IDR'
 							],
 							'seller_sku' => $seller_sku_val
 						];
-
-						if (!empty($sku_warehouse_id)) {
-							$sku_entry['inventory'] = [
-								[
-									'quantity' => $sku_qty,
-									'warehouse_id' => (string)$sku_warehouse_id
-								]
-							];
-						}
-
-						$edit_skus[] = $sku_entry;
 					}
 				}
 
@@ -1172,55 +1102,8 @@ class Tiktok_products extends Admin
 
 				$put_res = $this->tiktok_api->update_product($existing_product->product_id, $edit_payload, $shop_id);
 
-				// Auto-recovery jika TikTok mengembalikan error unassigned SKU / requires an assigned warehouse
-				if ((isset($put_res['code']) && $put_res['code'] !== 0) || !empty($put_res['data']['errors'])) {
-					$raw_res_str = json_encode($put_res);
-					if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $raw_res_str, $matches) || stripos($raw_res_str, 'assigned warehouse') !== false) {
-						$unassigned_sku_id = $matches[1] ?? null;
-						$wh_to_assign = $default_sales_warehouse_id;
-
-						if ($wh_to_assign) {
-							// Update inventory untuk menetapkan gudang ke SKU terkait secara langsung
-							$assign_skus = [];
-							if (!empty($unassigned_sku_id)) {
-								$assign_skus[] = [
-									'id' => (string)$unassigned_sku_id,
-									'inventory' => [
-										[
-											'quantity' => intval($save_data['total_stock']),
-											'warehouse_id' => (string)$wh_to_assign
-										]
-									]
-								];
-							}
-							foreach ($edit_skus as $es) {
-								if (!empty($es['id']) && $es['id'] != $unassigned_sku_id) {
-									$assign_skus[] = [
-										'id' => (string)$es['id'],
-										'inventory' => [
-											[
-												'quantity' => intval($es['inventory'][0]['quantity'] ?? $save_data['total_stock']),
-												'warehouse_id' => (string)($es['inventory'][0]['warehouse_id'] ?? $wh_to_assign)
-											]
-										]
-									];
-								}
-							}
-
-							$this->tiktok_api->update_inventory($existing_product->product_id, $assign_skus, $shop_id);
-
-							// Coba ulangi panggilan update_product setelah gudang ditetapkan
-							$put_res = $this->tiktok_api->update_product($existing_product->product_id, $edit_payload, $shop_id);
-						}
-					}
-				}
-
 				if ((isset($put_res['code']) && $put_res['code'] !== 0) || !empty($put_res['data']['errors'])) {
 					$err_msg = $this->parse_tiktok_error($put_res, 'Gagal memperbarui produk di TikTok Shop');
-					if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $err_msg, $matches) || stripos($err_msg, 'assigned warehouse') !== false) {
-						$sku_tag = !empty($matches[1]) ? " (ID SKU: {$matches[1]})" : '';
-						$err_msg = "Varian/SKU produk{$sku_tag} belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan buka TikTok Shop Seller Center > Kelola Produk / Inventaris, lalu tetapkan Gudang untuk SKU tersebut.";
-					}
 					echo json_encode([
 						'success' => false,
 						'message' => 'Ketentuan TikTok belum terpenuhi saat update: ' . $err_msg
@@ -1228,19 +1111,50 @@ class Tiktok_products extends Admin
 					exit;
 				}
 
-				// Update stok di seluruh varian SKU TikTok Shop jika ada inventory
-				$inventory_sync_payload = [];
-				foreach ($edit_skus as $esku) {
-					if (!empty($esku['id']) && !empty($esku['inventory'])) {
-						$inventory_sync_payload[] = [
-							'id' => (string)$esku['id'],
-							'inventory' => $esku['inventory']
-						];
+				// Update stok di TikTok Shop jika ada warehouse
+				$target_sku_id = !empty($edit_skus[0]['id']) ? $edit_skus[0]['id'] : ($sku_row->sku_id ?? null);
+				$target_warehouse_id = null;
+
+				// 1. Cari warehouse_id dari data remote
+				if (!empty($remote_data['skus']) && is_array($remote_data['skus'])) {
+					foreach ($remote_data['skus'] as $r_sku) {
+						if (!empty($r_sku['inventory']) && is_array($r_sku['inventory'])) {
+							foreach ($r_sku['inventory'] as $inv) {
+								if (!empty($inv['warehouse_id'])) {
+									$target_warehouse_id = (string) $inv['warehouse_id'];
+									break 2;
+								}
+							}
+						}
 					}
 				}
 
-				if (!empty($inventory_sync_payload)) {
-					$inv_res = $this->tiktok_api->update_inventory($existing_product->product_id, $inventory_sync_payload, $shop_id);
+				// 2. Cari dari database lokal
+				if (empty($target_warehouse_id) && !empty($sku_row->warehouse_id)) {
+					$target_warehouse_id = (string) $sku_row->warehouse_id;
+				}
+
+				// 3. Fallback ambil dari API warehouse TikTok
+				if (empty($target_warehouse_id)) {
+					$wh_res = $this->tiktok_api->get_warehouses($shop_id);
+					if (!empty($wh_res['data']['warehouses'][0]['id'])) {
+						$target_warehouse_id = (string) $wh_res['data']['warehouses'][0]['id'];
+					}
+				}
+
+				if ($target_sku_id && $target_warehouse_id) {
+					$inv_res = $this->tiktok_api->update_inventory($existing_product->product_id, [
+						[
+							'id' => (string) $target_sku_id,
+							'inventory' => [
+								[
+									'quantity' => intval($save_data['total_stock']),
+									'warehouse_id' => (string) $target_warehouse_id
+								]
+							]
+						]
+					], $shop_id);
+
 					if ((isset($inv_res['code']) && $inv_res['code'] !== 0) || !empty($inv_res['data']['errors'])) {
 						log_message('error', 'Gagal memperbarui stok TikTok Shop untuk produk ' . $existing_product->product_id . ': ' . json_encode($inv_res));
 					}
@@ -1253,13 +1167,13 @@ class Tiktok_products extends Admin
 				if (!empty($db_skus)) {
 					foreach ($db_skus as $idx => $d_sku) {
 						$sku_up = [
-							'price'      => $save_data['price'],
+							'price' => $save_data['price'],
 							'updated_at' => date('Y-m-d H:i:s')
 						];
 						if ($idx === 0) {
 							$sku_up['seller_sku'] = $save_data['seller_sku'];
-							$sku_up['sku_name']   = $save_data['title'];
-							$sku_up['stock']      = $save_data['total_stock'];
+							$sku_up['sku_name'] = $save_data['title'];
+							$sku_up['stock'] = $save_data['total_stock'];
 						}
 						$this->db->where('id', $d_sku->id)->update('tiktok_product_skus', $sku_up);
 					}
@@ -1268,16 +1182,16 @@ class Tiktok_products extends Admin
 					foreach ($remote_data['skus'] as $idx => $r_sku) {
 						$this->db->insert('tiktok_product_skus', [
 							'tiktok_product_id' => $id,
-							'product_id'        => $existing_product->product_id,
-							'sku_id'            => $r_sku['id'],
-							'seller_sku'        => !empty($r_sku['seller_sku']) ? $r_sku['seller_sku'] : ($idx === 0 ? $save_data['seller_sku'] : null),
-							'sku_name'          => $idx === 0 ? $save_data['title'] : null,
-							'price'             => $save_data['price'],
-							'currency'          => 'IDR',
-							'stock'             => $idx === 0 ? $save_data['total_stock'] : 0,
-							'warehouse_id'      => $target_warehouse_id,
-							'created_at'        => date('Y-m-d H:i:s'),
-							'updated_at'        => date('Y-m-d H:i:s')
+							'product_id' => $existing_product->product_id,
+							'sku_id' => $r_sku['id'],
+							'seller_sku' => !empty($r_sku['seller_sku']) ? $r_sku['seller_sku'] : ($idx === 0 ? $save_data['seller_sku'] : null),
+							'sku_name' => $idx === 0 ? $save_data['title'] : null,
+							'price' => $save_data['price'],
+							'currency' => 'IDR',
+							'stock' => $idx === 0 ? $save_data['total_stock'] : 0,
+							'warehouse_id' => $target_warehouse_id,
+							'created_at' => date('Y-m-d H:i:s'),
+							'updated_at' => date('Y-m-d H:i:s')
 						]);
 					}
 				}
@@ -1288,16 +1202,18 @@ class Tiktok_products extends Admin
 			if ($save_tiktok_products) {
 				if ($this->input->post('save_type') == 'stay') {
 					$this->data['success'] = true;
-					$this->data['id'] 	   = $id;
+					$this->data['id'] = $id;
 					$this->data['message'] = cclang('success_update_data_stay', [
 						anchor('administrator/tiktok_products', ' Go back to list')
 					]);
 				} else {
 					set_message(
 						cclang('success_update_data_redirect', [
-					]), 'success');
+						]),
+						'success'
+					);
 
-            		$this->data['success'] = true;
+					$this->data['success'] = true;
 					$this->data['redirect'] = base_url('administrator/tiktok_products');
 				}
 			} else {
@@ -1305,8 +1221,8 @@ class Tiktok_products extends Admin
 					$this->data['success'] = false;
 					$this->data['message'] = cclang('data_not_change');
 				} else {
-            		$this->data['success'] = false;
-            		$this->data['message'] = cclang('data_not_change');
+					$this->data['success'] = false;
+					$this->data['message'] = cclang('data_not_change');
 					$this->data['redirect'] = base_url('administrator/tiktok_products');
 				}
 			}
@@ -1317,12 +1233,12 @@ class Tiktok_products extends Admin
 
 		echo json_encode($this->data);
 	}
-	
+
 	/**
-	* delete Tiktok Productss
-	*
-	* @var $id String
-	*/
+	 * delete Tiktok Productss
+	 *
+	 * @var $id String
+	 */
 	public function delete($id = null)
 	{
 		$this->is_allowed('tiktok_products_delete');
@@ -1367,11 +1283,11 @@ class Tiktok_products extends Admin
 		redirect_back();
 	}
 
-		/**
-	* View view Tiktok Productss
-	*
-	* @var $id String
-	*/
+	/**
+	 * View view Tiktok Productss
+	 *
+	 * @var $id String
+	 */
 	public function view($id)
 	{
 		$this->is_allowed('tiktok_products_view');
@@ -1381,13 +1297,13 @@ class Tiktok_products extends Admin
 		$this->template->title('Katalog Produk Detail');
 		$this->render('backend/standart/administrator/tiktok_products/tiktok_products_view', $this->data);
 	}
-	
+
 	/**
-	* Remove single Tiktok Product from TikTok Shop and database
-	*
-	* @var $id String
-	* @return array
-	*/
+	 * Remove single Tiktok Product from TikTok Shop and database
+	 *
+	 * @var $id String
+	 * @return array
+	 */
 	private function _remove($id)
 	{
 		$tiktok_products = $this->model_tiktok_products->find($id);
@@ -1405,10 +1321,10 @@ class Tiktok_products extends Admin
 			$shop_id = $tiktok_products->tiktok_shop_id;
 
 			// 1. Nonaktifkan terlebih dahulu di TikTok
-			@$this->tiktok_api->deactivate_products([(string)$tiktok_products->product_id], $shop_id);
+			@$this->tiktok_api->deactivate_products([(string) $tiktok_products->product_id], $shop_id);
 
 			// 2. Hapus produk dari TikTok Shop
-			$del_res = $this->tiktok_api->delete_products([(string)$tiktok_products->product_id], $shop_id);
+			$del_res = $this->tiktok_api->delete_products([(string) $tiktok_products->product_id], $shop_id);
 
 			$is_error = false;
 			$err_msg = '';
@@ -1420,7 +1336,7 @@ class Tiktok_products extends Admin
 				$actual_errors = [];
 				foreach ($del_res['data']['errors'] as $err) {
 					$code = $err['code'] ?? 0;
-					$msg  = $err['message'] ?? '';
+					$msg = $err['message'] ?? '';
 					// 12052032 = "The product does not exist" (sudah terhapus di TikTok)
 					if ($code != 12052032 && strpos(strtolower($msg), 'does not exist') === false) {
 						$actual_errors[] = $msg;
@@ -1451,7 +1367,7 @@ class Tiktok_products extends Admin
 				@unlink($path);
 			}
 		}
-		
+
 		$deleted = $this->model_tiktok_products->remove($id);
 
 		return [
@@ -1459,18 +1375,18 @@ class Tiktok_products extends Admin
 			'message' => $deleted ? 'Berhasil dihapus' : 'Gagal menghapus dari database lokal.'
 		];
 	}
-	
+
 	/**
-	* Upload Image Tiktok Products	* 
-	* @return JSON
-	*/
+	 * Upload Image Tiktok Products	* 
+	 * @return JSON
+	 */
 	public function upload_main_image_file()
 	{
 		if (!$this->is_allowed('tiktok_products_add', false) && !$this->is_allowed('tiktok_products_update', false)) {
 			echo json_encode([
 				'success' => false,
 				'message' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 			exit;
 		}
 
@@ -1481,15 +1397,15 @@ class Tiktok_products extends Admin
 		$uuid = $this->input->post('qquuid');
 
 		echo $this->upload_file([
-			'uuid' 		 	=> $uuid,
-			'table_name' 	=> 'tiktok_products',
+			'uuid' => $uuid,
+			'table_name' => 'tiktok_products',
 		]);
 	}
 
 	/**
-	* Delete Image Tiktok Products	* 
-	* @return JSON
-	*/
+	 * Delete Image Tiktok Products	* 
+	 * @return JSON
+	 */
 	public function delete_main_image_file($uuid = '')
 	{
 		if (empty($uuid)) {
@@ -1503,54 +1419,54 @@ class Tiktok_products extends Admin
 			echo json_encode([
 				'success' => false,
 				'error' => cclang('sorry_you_do_not_have_permission_to_access')
-				]);
+			]);
 			exit;
 		}
 
 		echo $this->delete_file([
-            'uuid'              => $uuid, 
-            'delete_by'         => $this->input->get('by'), 
-            'field_name'        => 'main_image', 
-            'upload_path_tmp'   => './uploads/tmp/',
-            'table_name'        => 'tiktok_products',
-            'primary_key'       => 'id',
-            'upload_path'       => 'uploads/tiktok_products/'
-        ]);
+			'uuid' => $uuid,
+			'delete_by' => $this->input->get('by'),
+			'field_name' => 'main_image',
+			'upload_path_tmp' => './uploads/tmp/',
+			'table_name' => 'tiktok_products',
+			'primary_key' => 'id',
+			'upload_path' => 'uploads/tiktok_products/'
+		]);
 	}
 
 	/**
-	* Get Image Tiktok Products	* 
-	* @return JSON
-	*/
+	 * Get Image Tiktok Products	* 
+	 * @return JSON
+	 */
 	public function get_main_image_file($id)
 	{
 		if (!$this->is_allowed('tiktok_products_update', false)) {
 			echo json_encode([
 				'success' => false,
 				'message' => 'Image not loaded, you do not have permission to access'
-				]);
+			]);
 			exit;
 		}
 
 		$tiktok_products = $this->model_tiktok_products->find($id);
 
 		echo $this->get_file([
-            'uuid'              => $id, 
-            'delete_by'         => 'id', 
-            'field_name'        => 'main_image', 
-            'table_name'        => 'tiktok_products',
-            'primary_key'       => 'id',
-            'upload_path'       => 'uploads/tiktok_products/',
-            'delete_endpoint'   => 'administrator/tiktok_products/delete_main_image_file'
-        ]);
+			'uuid' => $id,
+			'delete_by' => 'id',
+			'field_name' => 'main_image',
+			'table_name' => 'tiktok_products',
+			'primary_key' => 'id',
+			'upload_path' => 'uploads/tiktok_products/',
+			'delete_endpoint' => 'administrator/tiktok_products/delete_main_image_file'
+		]);
 	}
-	
-	
+
+
 	/**
-	* Export to excel
-	*
-	* @return Files Excel .xls
-	*/
+	 * Export to excel
+	 *
+	 * @return Files Excel .xls
+	 */
 	public function export()
 	{
 		$this->is_allowed('tiktok_products_export');
@@ -1559,10 +1475,10 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* Export to PDF
-	*
-	* @return Files PDF .pdf
-	*/
+	 * Export to PDF
+	 *
+	 * @return Files PDF .pdf
+	 */
 	public function export_pdf()
 	{
 		$this->is_allowed('tiktok_products_export');
@@ -1577,31 +1493,31 @@ class Tiktok_products extends Admin
 
 		$table = $title = 'tiktok_products';
 		$this->load->library('HtmlPdf');
-      
-        $config = array(
-            'orientation' => 'p',
-            'format' => 'a4',
-            'marges' => array(5, 5, 5, 5)
-        );
 
-        $this->pdf = new HtmlPdf($config);
-        $this->pdf->setDefaultFont('stsongstdlight'); 
+		$config = array(
+			'orientation' => 'p',
+			'format' => 'a4',
+			'marges' => array(5, 5, 5, 5)
+		);
 
-        $result = $this->db->get($table);
-       
-        $data = $this->model_tiktok_products->find($id);
-        $fields = $result->list_fields();
+		$this->pdf = new HtmlPdf($config);
+		$this->pdf->setDefaultFont('stsongstdlight');
 
-        $content = $this->pdf->loadHtmlPdf('core_template/pdf/pdf_single', [
-            'data' => $data,
-            'fields' => $fields,
-            'title' => $title
-        ], TRUE);
+		$result = $this->db->get($table);
 
-        $this->pdf->initialize($config);
-        $this->pdf->pdf->SetDisplayMode('fullpage');
-        $this->pdf->writeHTML($content);
-        $this->pdf->Output($table.'.pdf', 'H');
+		$data = $this->model_tiktok_products->find($id);
+		$fields = $result->list_fields();
+
+		$content = $this->pdf->loadHtmlPdf('core_template/pdf/pdf_single', [
+			'data' => $data,
+			'fields' => $fields,
+			'title' => $title
+		], TRUE);
+
+		$this->pdf->initialize($config);
+		$this->pdf->pdf->SetDisplayMode('fullpage');
+		$this->pdf->writeHTML($content);
+		$this->pdf->Output($table . '.pdf', 'H');
 	}
 
 	/**
@@ -1609,10 +1525,10 @@ class Tiktok_products extends Admin
 	 */
 
 	/**
-	* Activate Product in TikTok Shop and Local DB
-	*
-	* @var $id String
-	*/
+	 * Activate Product in TikTok Shop and Local DB
+	 *
+	 * @var $id String
+	 */
 	public function activate($id)
 	{
 		$this->is_allowed('tiktok_products_update');
@@ -1635,7 +1551,7 @@ class Tiktok_products extends Admin
 
 		$this->load->library('tiktok_api');
 		$shop_id = $product->tiktok_shop_id;
-		$res = $this->tiktok_api->activate_products([(string)$product->product_id], $shop_id);
+		$res = $this->tiktok_api->activate_products([(string) $product->product_id], $shop_id);
 
 		if (!empty($res['code']) && $res['code'] !== 0) {
 			$err_msg = $this->parse_tiktok_error($res, 'Gagal mengaktifkan produk di TikTok Shop');
@@ -1645,7 +1561,7 @@ class Tiktok_products extends Admin
 			// Sesuai alur resmi TikTok Shop Seller Center, reaktivasi produk mengirim produk ke review (PENDING)
 			$new_status = 'PENDING';
 			$this->db->where('id', $product->id)->update('tiktok_products', [
-				'status'     => $new_status,
+				'status' => $new_status,
 				'updated_at' => date('Y-m-d H:i:s'),
 			]);
 			$this->log_product_sync($product->product_id, 'ACTIVATE', 'SUCCESS', ['product_id' => $product->product_id], 'Produk berhasil diaktifkan dan dikirim untuk peninjauan (PENDING)', $shop_id);
@@ -1656,10 +1572,10 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* Deactivate Product in TikTok Shop and Local DB
-	*
-	* @var $id String
-	*/
+	 * Deactivate Product in TikTok Shop and Local DB
+	 *
+	 * @var $id String
+	 */
 	public function deactivate($id)
 	{
 		$this->is_allowed('tiktok_products_update');
@@ -1677,7 +1593,7 @@ class Tiktok_products extends Admin
 
 		$this->load->library('tiktok_api');
 		$shop_id = $product->tiktok_shop_id;
-		$res = $this->tiktok_api->deactivate_products([(string)$product->product_id], $shop_id);
+		$res = $this->tiktok_api->deactivate_products([(string) $product->product_id], $shop_id);
 
 		if (!empty($res['code']) && $res['code'] !== 0) {
 			$err_msg = $this->parse_tiktok_error($res, 'Gagal menonaktifkan produk di TikTok Shop');
@@ -1686,7 +1602,7 @@ class Tiktok_products extends Admin
 		} else {
 			$new_status = 'DEACTIVATED';
 			$this->db->where('id', $product->id)->update('tiktok_products', [
-				'status'     => $new_status,
+				'status' => $new_status,
 				'updated_at' => date('Y-m-d H:i:s'),
 			]);
 			$this->log_product_sync($product->product_id, 'DEACTIVATE', 'SUCCESS', ['product_id' => $product->product_id], 'Produk berhasil dinonaktifkan dari etalase TikTok', $shop_id);
@@ -1697,18 +1613,18 @@ class Tiktok_products extends Admin
 	}
 
 	/**
-	* Catat audit trail perubahan/sinkronisasi produk
-	*/
+	 * Catat audit trail perubahan/sinkronisasi produk
+	 */
 	public function log_product_sync($product_id, $action, $status, $payload = null, $response_message = null, $shop_id = null)
 	{
 		$this->db->insert('tiktok_product_sync_logs', [
-			'tiktok_shop_id'   => $shop_id,
-			'product_id'       => (string)$product_id,
-			'action'           => strtoupper($action),
-			'status'           => strtoupper($status),
-			'payload'          => is_array($payload) ? json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string)$payload,
-			'response_message' => (string)$response_message,
-			'created_at'       => date('Y-m-d H:i:s'),
+			'tiktok_shop_id' => $shop_id,
+			'product_id' => (string) $product_id,
+			'action' => strtoupper($action),
+			'status' => strtoupper($status),
+			'payload' => is_array($payload) ? json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : (string) $payload,
+			'response_message' => (string) $response_message,
+			'created_at' => date('Y-m-d H:i:s'),
 		]);
 	}
 
@@ -1820,7 +1736,7 @@ class Tiktok_products extends Admin
 
 				$brand_name = isset($detail['brand']['name']) ? trim($detail['brand']['name'], " \"'") : null;
 				$description = $detail['description'] ?? null;
-				$package_weight = isset($detail['package_weight']['value']) ? preg_replace('/[^0-9.]/', '', (string)$detail['package_weight']['value']) : null;
+				$package_weight = isset($detail['package_weight']['value']) ? preg_replace('/[^0-9.]/', '', (string) $detail['package_weight']['value']) : null;
 
 				$listing_platforms = 'TIKTOK_SHOP,TOKOPEDIA';
 				if (!empty($detail['listing_platforms']) && is_array($detail['listing_platforms'])) {
@@ -1830,22 +1746,22 @@ class Tiktok_products extends Admin
 				}
 
 				$product_data = [
-					'tiktok_shop_id'    => $shop->id,
-					'product_id'        => $product_id,
-					'title'             => $title,
-					'main_image'        => $main_image,
-					'status'            => $status,
+					'tiktok_shop_id' => $shop->id,
+					'product_id' => $product_id,
+					'title' => $title,
+					'main_image' => $main_image,
+					'status' => $status,
 					'listing_platforms' => $listing_platforms,
-					'category_name'     => $category_name,
-					'brand_name'        => $brand_name,
-					'seller_sku'        => $seller_sku,
-					'price'             => $price,
-					'currency'          => 'IDR',
-					'total_stock'       => $total_stock,
-					'package_weight'    => $package_weight,
-					'description'       => $description,
-					'raw_data'          => json_encode($detail, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-					'updated_at'        => date('Y-m-d H:i:s'),
+					'category_name' => $category_name,
+					'brand_name' => $brand_name,
+					'seller_sku' => $seller_sku,
+					'price' => $price,
+					'currency' => 'IDR',
+					'total_stock' => $total_stock,
+					'package_weight' => $package_weight,
+					'description' => $description,
+					'raw_data' => json_encode($detail, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+					'updated_at' => date('Y-m-d H:i:s'),
 				];
 
 				// Cek apakah produk sudah ada di database dari map pre-fetch
@@ -1874,19 +1790,19 @@ class Tiktok_products extends Admin
 
 						$sku_data = [
 							'tiktok_product_id' => $local_product_id,
-							'product_id'        => $product_id,
-							'sku_id'            => $sku['id'],
-							'seller_sku'        => $sku['seller_sku'] ?? null,
-							'sku_name'          => !empty($sku['sales_attributes']) ? implode(', ', array_map(function($a) {
+							'product_id' => $product_id,
+							'sku_id' => $sku['id'],
+							'seller_sku' => $sku['seller_sku'] ?? null,
+							'sku_name' => !empty($sku['sales_attributes']) ? implode(', ', array_map(function ($a) {
 								$attr = !empty($a['name']) ? $a['name'] : ($a['attribute_name'] ?? '');
 								$val = $a['value_name'] ?? '';
 								return ($attr !== '' ? $attr . ': ' : '') . $val;
 							}, $sku['sales_attributes'])) : null,
-							'price'             => floatval($sku['price']['tax_exclusive_price'] ?? 0),
-							'currency'          => $sku['price']['currency'] ?? 'IDR',
-							'stock'             => $sku_stock,
-							'warehouse_id'      => $warehouse_id,
-							'updated_at'        => date('Y-m-d H:i:s'),
+							'price' => floatval($sku['price']['tax_exclusive_price'] ?? 0),
+							'currency' => $sku['price']['currency'] ?? 'IDR',
+							'stock' => $sku_stock,
+							'warehouse_id' => $warehouse_id,
+							'updated_at' => date('Y-m-d H:i:s'),
 						];
 
 						$existing_sku = $this->db->get_where('tiktok_product_skus', ['sku_id' => $sku['id']])->row();
