@@ -67,7 +67,6 @@ class Web extends Front
                 show_error($this->migration->error_string());
             }
         }
-
     }
 
     public function migrate_cicool()
