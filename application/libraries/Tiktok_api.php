@@ -397,6 +397,17 @@ class Tiktok_api
             return 'Terlalu banyak permintaan ke TikTok Shop. Silakan tunggu beberapa saat lalu coba lagi.';
         }
 
+        // Cek kendala gudang / warehouse belum di-assign untuk SKU
+        if (
+            stripos($raw, 'assigned warehouse') !== false ||
+            stripos($raw, 'unassigned SKU') !== false
+        ) {
+            if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $raw, $m)) {
+                return 'SKU ' . $m[1] . ' belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan buka TikTok Seller Center > Kelola Produk / Inventaris, lalu tentukan gudang untuk SKU tersebut.';
+            }
+            return 'SKU produk belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan tentukan gudang untuk varian produk tersebut.';
+        }
+
         // Cek toko / cipher tidak ditemukan
         if (
             stripos($raw, 'shop cipher is empty') !== false ||

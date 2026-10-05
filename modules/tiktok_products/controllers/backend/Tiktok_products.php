@@ -996,6 +996,35 @@ class Tiktok_products extends Admin
 					}
 				}
 
+				// 1. Ambil default warehouse ID toko TikTok untuk memastikan semua SKU memiliki gudang yang sah
+				$default_sales_warehouse_id = null;
+				$wh_row = $this->db->get_where('tiktok_warehouses', ['is_default' => 1, 'effect_status' => 'ENABLED'])->row();
+				if (!$wh_row) {
+					$wh_row = $this->db->get_where('tiktok_warehouses', ['warehouse_type' => 'SALES_WAREHOUSE', 'effect_status' => 'ENABLED'])->row();
+				}
+				if (!$wh_row) {
+					$wh_row = $this->db->get('tiktok_warehouses')->row();
+				}
+				if ($wh_row && !empty($wh_row->tiktok_warehouse_id)) {
+					$default_sales_warehouse_id = (string)$wh_row->tiktok_warehouse_id;
+				} else {
+					$wh_res = $this->tiktok_api->get_warehouses($shop_id);
+					if (!empty($wh_res['data']['warehouses'])) {
+						foreach ($wh_res['data']['warehouses'] as $wh) {
+							$wh_type = $wh['type'] ?? ($wh['warehouse_type'] ?? '');
+							$wh_id = $wh['id'] ?? ($wh['warehouse_id'] ?? '');
+							if ($wh_type === 'SALES_WAREHOUSE') {
+								$default_sales_warehouse_id = (string)$wh_id;
+								break;
+							}
+						}
+						if (empty($default_sales_warehouse_id) && !empty($wh_res['data']['warehouses'][0])) {
+							$first_wh = $wh_res['data']['warehouses'][0];
+							$default_sales_warehouse_id = (string)($first_wh['id'] ?? ($first_wh['warehouse_id'] ?? ''));
+						}
+					}
+				}
+
 				// Penanganan SKU dan Sales Attributes (Mendukung Varian dari Seller Center & Database Lokal)
 				$this->db->group_start();
 				$this->db->where('tiktok_product_id', $id);
@@ -1019,6 +1048,30 @@ class Tiktok_products extends Admin
 							$seller_sku_val = (string)$save_data['seller_sku'];
 						}
 
+						// Cari warehouse_id untuk SKU ini agar tidak memicu error "unassigned SKU"
+						$sku_warehouse_id = null;
+						if (!empty($api_sku['inventory']) && is_array($api_sku['inventory'])) {
+							foreach ($api_sku['inventory'] as $inv) {
+								if (!empty($inv['warehouse_id'])) {
+									$sku_warehouse_id = (string)$inv['warehouse_id'];
+									break;
+								}
+							}
+						}
+						if (empty($sku_warehouse_id) && !empty($db_skus)) {
+							foreach ($db_skus as $d_sku) {
+								if ($d_sku->sku_id == $api_sku['id'] && !empty($d_sku->warehouse_id)) {
+									$sku_warehouse_id = (string)$d_sku->warehouse_id;
+									break;
+								}
+							}
+						}
+						if (empty($sku_warehouse_id)) {
+							$sku_warehouse_id = $default_sales_warehouse_id;
+						}
+
+						$sku_qty = ($idx === 0) ? intval($save_data['total_stock']) : intval($api_sku['inventory'][0]['quantity'] ?? $save_data['total_stock']);
+
 						$sku_item = [
 							'id' => (string)$api_sku['id'],
 							'price' => [
@@ -1027,6 +1080,16 @@ class Tiktok_products extends Admin
 							],
 							'seller_sku' => $seller_sku_val
 						];
+
+						// Wajib menyertakan inventory & warehouse_id agar TikTok tidak menolak SKU yang belum ter-assign gudang
+						if (!empty($sku_warehouse_id)) {
+							$sku_item['inventory'] = [
+								[
+									'quantity' => $sku_qty,
+									'warehouse_id' => (string)$sku_warehouse_id
+								]
+							];
+						}
 
 						// Pertahankan sales_attributes jika ada
 						if (!empty($api_sku['sales_attributes']) && is_array($api_sku['sales_attributes'])) {
@@ -1071,7 +1134,10 @@ class Tiktok_products extends Admin
 							$seller_sku_val = (string)$save_data['seller_sku'];
 						}
 
-						$edit_skus[] = [
+						$sku_warehouse_id = !empty($d_sku->warehouse_id) ? (string)$d_sku->warehouse_id : $default_sales_warehouse_id;
+						$sku_qty = ($idx === 0) ? intval($save_data['total_stock']) : intval($d_sku->stock ?? $save_data['total_stock']);
+
+						$sku_entry = [
 							'id' => (string)$d_sku->sku_id,
 							'price' => [
 								'amount' => (string)$save_data['price'],
@@ -1079,6 +1145,17 @@ class Tiktok_products extends Admin
 							],
 							'seller_sku' => $seller_sku_val
 						];
+
+						if (!empty($sku_warehouse_id)) {
+							$sku_entry['inventory'] = [
+								[
+									'quantity' => $sku_qty,
+									'warehouse_id' => (string)$sku_warehouse_id
+								]
+							];
+						}
+
+						$edit_skus[] = $sku_entry;
 					}
 				}
 
@@ -1095,8 +1172,55 @@ class Tiktok_products extends Admin
 
 				$put_res = $this->tiktok_api->update_product($existing_product->product_id, $edit_payload, $shop_id);
 
+				// Auto-recovery jika TikTok mengembalikan error unassigned SKU / requires an assigned warehouse
+				if ((isset($put_res['code']) && $put_res['code'] !== 0) || !empty($put_res['data']['errors'])) {
+					$raw_res_str = json_encode($put_res);
+					if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $raw_res_str, $matches) || stripos($raw_res_str, 'assigned warehouse') !== false) {
+						$unassigned_sku_id = $matches[1] ?? null;
+						$wh_to_assign = $default_sales_warehouse_id;
+
+						if ($wh_to_assign) {
+							// Update inventory untuk menetapkan gudang ke SKU terkait secara langsung
+							$assign_skus = [];
+							if (!empty($unassigned_sku_id)) {
+								$assign_skus[] = [
+									'id' => (string)$unassigned_sku_id,
+									'inventory' => [
+										[
+											'quantity' => intval($save_data['total_stock']),
+											'warehouse_id' => (string)$wh_to_assign
+										]
+									]
+								];
+							}
+							foreach ($edit_skus as $es) {
+								if (!empty($es['id']) && $es['id'] != $unassigned_sku_id) {
+									$assign_skus[] = [
+										'id' => (string)$es['id'],
+										'inventory' => [
+											[
+												'quantity' => intval($es['inventory'][0]['quantity'] ?? $save_data['total_stock']),
+												'warehouse_id' => (string)($es['inventory'][0]['warehouse_id'] ?? $wh_to_assign)
+											]
+										]
+									];
+								}
+							}
+
+							$this->tiktok_api->update_inventory($existing_product->product_id, $assign_skus, $shop_id);
+
+							// Coba ulangi panggilan update_product setelah gudang ditetapkan
+							$put_res = $this->tiktok_api->update_product($existing_product->product_id, $edit_payload, $shop_id);
+						}
+					}
+				}
+
 				if ((isset($put_res['code']) && $put_res['code'] !== 0) || !empty($put_res['data']['errors'])) {
 					$err_msg = $this->parse_tiktok_error($put_res, 'Gagal memperbarui produk di TikTok Shop');
+					if (preg_match('/unassigned SKU `?([0-9]+)`?/i', $err_msg, $matches) || stripos($err_msg, 'assigned warehouse') !== false) {
+						$sku_tag = !empty($matches[1]) ? " (ID SKU: {$matches[1]})" : '';
+						$err_msg = "Varian/SKU produk{$sku_tag} belum ditetapkan ke Gudang Pengiriman di TikTok Seller Center. Silakan buka TikTok Shop Seller Center > Kelola Produk / Inventaris, lalu tetapkan Gudang untuk SKU tersebut.";
+					}
 					echo json_encode([
 						'success' => false,
 						'message' => 'Ketentuan TikTok belum terpenuhi saat update: ' . $err_msg
@@ -1104,50 +1228,19 @@ class Tiktok_products extends Admin
 					exit;
 				}
 
-				// Update stok di TikTok Shop jika ada warehouse
-				$target_sku_id = !empty($edit_skus[0]['id']) ? $edit_skus[0]['id'] : ($sku_row->sku_id ?? null);
-				$target_warehouse_id = null;
-
-				// 1. Cari warehouse_id dari data remote
-				if (!empty($remote_data['skus']) && is_array($remote_data['skus'])) {
-					foreach ($remote_data['skus'] as $r_sku) {
-						if (!empty($r_sku['inventory']) && is_array($r_sku['inventory'])) {
-							foreach ($r_sku['inventory'] as $inv) {
-								if (!empty($inv['warehouse_id'])) {
-									$target_warehouse_id = (string)$inv['warehouse_id'];
-									break 2;
-								}
-							}
-						}
+				// Update stok di seluruh varian SKU TikTok Shop jika ada inventory
+				$inventory_sync_payload = [];
+				foreach ($edit_skus as $esku) {
+					if (!empty($esku['id']) && !empty($esku['inventory'])) {
+						$inventory_sync_payload[] = [
+							'id' => (string)$esku['id'],
+							'inventory' => $esku['inventory']
+						];
 					}
 				}
 
-				// 2. Cari dari database lokal
-				if (empty($target_warehouse_id) && !empty($sku_row->warehouse_id)) {
-					$target_warehouse_id = (string)$sku_row->warehouse_id;
-				}
-
-				// 3. Fallback ambil dari API warehouse TikTok
-				if (empty($target_warehouse_id)) {
-					$wh_res = $this->tiktok_api->get_warehouses($shop_id);
-					if (!empty($wh_res['data']['warehouses'][0]['id'])) {
-						$target_warehouse_id = (string)$wh_res['data']['warehouses'][0]['id'];
-					}
-				}
-
-				if ($target_sku_id && $target_warehouse_id) {
-					$inv_res = $this->tiktok_api->update_inventory($existing_product->product_id, [
-						[
-							'id' => (string)$target_sku_id,
-							'inventory' => [
-								[
-									'quantity' => intval($save_data['total_stock']),
-									'warehouse_id' => (string)$target_warehouse_id
-								]
-							]
-						]
-					], $shop_id);
-
+				if (!empty($inventory_sync_payload)) {
+					$inv_res = $this->tiktok_api->update_inventory($existing_product->product_id, $inventory_sync_payload, $shop_id);
 					if ((isset($inv_res['code']) && $inv_res['code'] !== 0) || !empty($inv_res['data']['errors'])) {
 						log_message('error', 'Gagal memperbarui stok TikTok Shop untuk produk ' . $existing_product->product_id . ': ' . json_encode($inv_res));
 					}
