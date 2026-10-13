@@ -18,10 +18,8 @@ class Web extends Front
 
     public function index()
     {
-        // $this->template->title('Vendio | Modern Omnichannel ERP & Commerce Hub');
-        // $this->template->build('home');
-        redirect('administrator/login');
-
+        $this->template->title('Vendio | Modern Omnichannel ERP & Commerce Hub');
+        $this->home();
     }
 
     public function switch_lang($lang = 'english')

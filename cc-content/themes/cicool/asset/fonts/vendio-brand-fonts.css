@@ -1,0 +1,29 @@
+@font-face {
+    font-family: 'Impact BC';
+    src: url('impact-bc/ImpactBC.woff2') format('woff2'),
+         url('impact-bc/ImpactBC.woff') format('woff'),
+         url('impact-bc/ImpactBC.ttf') format('truetype');
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vladivostok';
+    src: url('vladivostok/bold.woff2') format('woff2'),
+         url('vladivostok/bold.woff') format('woff'),
+         url('vladivostok/bold.ttf') format('truetype');
+    font-weight: 600 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vladivostok';
+    src: url('vladivostok/regular.woff2') format('woff2'),
+         url('vladivostok/regular.woff') format('woff'),
+         url('vladivostok/regular.ttf') format('truetype');
+    font-weight: 300 500;
+    font-style: normal;
+    font-display: swap;
+}

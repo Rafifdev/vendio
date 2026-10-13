@@ -32,6 +32,7 @@ class Blog extends Front
 
         $categories_query = $this->db->get('blog_category');
         $this->data['categories'] = $categories_query ? $categories_query->result() : [];
+        $this->data['category_id'] = null;
 
         $config = [
             'base_url'     => 'blog/index/',
@@ -48,23 +49,29 @@ class Blog extends Front
 
     public function category($category_id = 0, $category_name = '', $offset = 0) 
     {
-        $this->limit_page = 5;
+        $this->limit_page = 9;
         
         $filter = $this->input->get('q');
         $field  = $this->input->get('f');
 
         $this->data['blogs'] = $this->model_blog->get($filter, $field, $this->limit_page, $offset, $category_id);
         $this->data['blog_counts'] = $this->model_blog->count_all($filter, $field, $category_id);
+        $this->data['category_id'] = $category_id;
+
+        $categories_query = $this->db->get('blog_category');
+        $this->data['categories'] = $categories_query ? $categories_query->result() : [];
 
         $config = [
-            'base_url'     => 'blog/index/',
-            'total_rows'   => $this->model_blog->count_all($filter, $field),
+            'base_url'     => 'blog/category/' . $category_id . '/' . $category_name . '/',
+            'total_rows'   => $this->model_blog->count_all($filter, $field, $category_id),
             'per_page'     => $this->limit_page,
             'uri_segment'  => 5,
         ];
 
         $this->data['pagination'] = $this->pagination($config);
 
+        $cat_title = $category_name ? ucwords(str_replace('-', ' ', $category_name)) : 'Kategori Blog';
+        $this->template->title('Vendio Tech Insights | ' . $cat_title);
         $this->template->build('blog/blog_index', $this->data);
     }
 
