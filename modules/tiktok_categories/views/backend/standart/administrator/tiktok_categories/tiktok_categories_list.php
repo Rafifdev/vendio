@@ -482,8 +482,8 @@ jQuery(document).ready(domo);
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik Data Kategori dari TikTok Shop">
-                           <i class="fa fa-refresh"></i>
+                        <a class="btn btn-top-action" id="btn_sync" href="<?= site_url('administrator/tiktok_categories/sync'); ?>" title="Tarik Data Kategori dari TikTok Shop">
+                           Tarik Data <i class="fa fa-refresh"></i>
                         </a>
                      </div>
                   </div>

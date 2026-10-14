@@ -296,17 +296,20 @@ class Tiktok_api
     /**
      * Simpan atau update data token toko ke database
      */
-    public function save_token_response(array $token_data, $app_key = null, $app_secret = null, $auth_code = null)
+    public function save_token_response(array $token_data, $app_key = null, $app_secret = null, $auth_code = null, $custom_tenant_id = null)
     {
         $app_key = $app_key ?: $this->default_app_key;
         $app_secret = $app_secret ?: $this->default_app_secret;
 
+        $tenant_id = !empty($custom_tenant_id) ? (int)$custom_tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1);
+
         $existing = null;
         if (!empty($token_data['open_id'])) {
-            $existing = $this->CI->db->get_where('tiktok_shops', ['open_id' => $token_data['open_id']])->row();
+            $existing = $this->CI->db->get_where('tiktok_shops', ['open_id' => $token_data['open_id'], 'tenant_id' => $tenant_id])->row();
         }
 
         $shop_info = [
+            'tenant_id' => $tenant_id,
             'app_key' => $app_key,
             'app_secret' => $app_secret,
             'auth_code' => $auth_code,

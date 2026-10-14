@@ -151,10 +151,10 @@ class Tiktok_products extends Admin
 
 		// Fallback jika API belum terhubung atau limit
 		return [
-			['id' => '601756', 'name' => 'Komputer & Peralatan Kantor > Komputer Desktop, Laptop & Tablet > Laptop'],
-			['id' => '601755', 'name' => 'Komputer & Peralatan Kantor > Komputer Desktop, Laptop & Tablet > Komputer Desktop'],
-			['id' => '600001', 'name' => 'Pakaian & Perlengkapan Fashion > Atasan & Bawahan'],
 			['id' => '601300', 'name' => 'Handphone & Aksesori > Handphone > Smartphone'],
+			['id' => '601755', 'name' => 'Komputer & Peralatan Kantor > Komputer Desktop, Laptop & Tablet > Komputer Desktop'],
+			['id' => '601756', 'name' => 'Komputer & Peralatan Kantor > Komputer Desktop, Laptop & Tablet > Laptop'],
+			['id' => '600001', 'name' => 'Pakaian & Perlengkapan Fashion > Atasan & Bawahan'],
 		];
 	}
 
@@ -199,6 +199,13 @@ class Tiktok_products extends Admin
 		if (file_exists($cache_file) && (time() - filemtime($cache_file) < 86400)) {
 			$cached = @json_decode(file_get_contents($cache_file), true);
 			if (!empty($cached) && is_array($cached)) {
+				$no_brand = array_shift($cached);
+				usort($cached, function ($a, $b) {
+					return strcasecmp($a['name'], $b['name']);
+				});
+				if ($no_brand) {
+					array_unshift($cached, $no_brand);
+				}
 				return $cached;
 			}
 		}
@@ -207,12 +214,17 @@ class Tiktok_products extends Admin
 		$res = $this->tiktok_api->get_brands($category_id, ['page_size' => 100], $shop_id);
 
 		if (!empty($res['data']['brands']) && is_array($res['data']['brands'])) {
+			$brand_list = [];
 			foreach ($res['data']['brands'] as $b) {
-				$brands[] = [
+				$brand_list[] = [
 					'id' => (string) $b['id'],
 					'name' => (string) $b['name']
 				];
 			}
+			usort($brand_list, function ($a, $b) {
+				return strcasecmp($a['name'], $b['name']);
+			});
+			$brands = array_merge($brands, $brand_list);
 			@file_put_contents($cache_file, json_encode($brands, JSON_UNESCAPED_UNICODE));
 		}
 
@@ -1634,11 +1646,14 @@ class Tiktok_products extends Admin
 		$this->load->library('tiktok_api');
 
 		$shop_id = $this->input->get('shop_id');
-		if (!empty($shop_id)) {
-			$shops = $this->db->get_where('tiktok_shops', ['id' => $shop_id, 'is_active' => 1])->result();
-		} else {
-			$shops = $this->db->get_where('tiktok_shops', ['is_active' => 1])->result();
+		$shop_filter = ['is_active' => 1];
+		if (function_exists('get_active_tenant_id')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
 		}
+		if (!empty($shop_id)) {
+			$shop_filter['id'] = $shop_id;
+		}
+		$shops = $this->db->get_where('tiktok_shops', $shop_filter)->result();
 
 		if (empty($shops)) {
 			set_message('Belum ada Toko TikTok yang terhubung atau aktif. Silakan hubungkan toko terlebih dahulu di menu Kelola Toko.', 'error');
@@ -1746,6 +1761,7 @@ class Tiktok_products extends Admin
 				}
 
 				$product_data = [
+					'tenant_id' => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 					'tiktok_shop_id' => $shop->id,
 					'product_id' => $product_id,
 					'title' => $title,
@@ -1789,6 +1805,7 @@ class Tiktok_products extends Admin
 						}
 
 						$sku_data = [
+							'tenant_id' => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 							'tiktok_product_id' => $local_product_id,
 							'product_id' => $product_id,
 							'sku_id' => $sku['id'],

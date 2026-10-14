@@ -21,15 +21,28 @@ class MY_Model extends CI_Model {
         $this->load->database();
     }
 
+    public function apply_tenant_filter()
+    {
+        if (function_exists('get_active_tenant_id')) {
+            $tenant_id = get_active_tenant_id();
+            if ($tenant_id && $this->db->field_exists('tenant_id', $this->table_name)) {
+                $this->db->where($this->table_name . '.tenant_id', $tenant_id);
+            }
+        }
+        return $this;
+    }
+
     public function remove($id = NULL)
     {
         $this->db->where($this->primary_key, $id);
+        $this->apply_tenant_filter();
         return $this->db->delete($this->table_name);
     }
 
     public function change($id = NULL, $data = array())
     {        
         $this->db->where($this->primary_key, $id);
+        $this->apply_tenant_filter();
         $this->db->update($this->table_name, $data);
 
         return $this->db->affected_rows();
@@ -42,6 +55,7 @@ class MY_Model extends CI_Model {
         }
 
         $this->db->where("".$this->table_name.'.'.$this->primary_key,$id);
+        $this->apply_tenant_filter();
         $query = $this->db->get($this->table_name);
 
         if($query->num_rows()>0)
@@ -56,6 +70,7 @@ class MY_Model extends CI_Model {
 
     public function find_all()
     {
+        $this->apply_tenant_filter();
         $this->db->order_by($this->primary_key, 'DESC');
         $query = $this->db->get($this->table_name);
 
@@ -64,6 +79,12 @@ class MY_Model extends CI_Model {
 
     public function store($data = array())
     {
+        if (!isset($data['tenant_id']) && $this->db->field_exists('tenant_id', $this->table_name)) {
+            $tenant_id = function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1;
+            if ($tenant_id) {
+                $data['tenant_id'] = $tenant_id;
+            }
+        }
         $this->db->insert($this->table_name, $data);
         return $this->db->insert_id();
     }

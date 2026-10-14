@@ -42,6 +42,10 @@ class Model_user extends MY_Model {
         	$where .= "(" . $field . " LIKE '%" . $q . "%' )";
         }
 
+        if (function_exists('is_super_admin') && !is_super_admin()) {
+        	$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
+        }
+
         $this->db->where($where);
 		$query = $this->db->get($this->table_name);
 
@@ -69,6 +73,10 @@ class Model_user extends MY_Model {
 	        }
         } else {
         	$where .= "(" . $field . " LIKE '%" . $q . "%' )";
+        }
+
+        if (function_exists('is_super_admin') && !is_super_admin()) {
+        	$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
         }
 
         $this->db->where($where);

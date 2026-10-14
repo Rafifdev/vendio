@@ -236,7 +236,8 @@ class Model_tiktok_orders extends MY_Model {
     }
 
     public function filter_avaiable($shop_id = null, $order_status = null, $tab = null, $substatus = null) {
-        if (!$this->aauth->is_admin()) {
+        if (function_exists('get_active_tenant_id')) {
+            $this->db->where($this->table_name . '.tenant_id', get_active_tenant_id());
         }
 
         if ($tab === null) {

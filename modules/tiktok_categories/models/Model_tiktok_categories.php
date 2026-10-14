@@ -78,8 +78,8 @@ class Model_tiktok_categories extends MY_Model {
         $this->join_avaiable()->filter_avaiable();
         $this->db->where($where);
         $this->db->limit($limit, $offset);
-                $this->db->order_by('tiktok_categories.'.$this->primary_key, "DESC");
-                $query = $this->db->get($this->table_name);
+        $this->db->order_by('tiktok_categories.local_name', "ASC");
+        $query = $this->db->get($this->table_name);
 
         return $query->result();
     }
@@ -93,10 +93,7 @@ class Model_tiktok_categories extends MY_Model {
     }
 
     public function filter_avaiable() {
-
-        if (!$this->aauth->is_admin()) {
-            }
-
+        // Kategori resmi TikTok Shop adalah Master Data Global yang dapat diakses oleh semua tenant
         return $this;
     }
 

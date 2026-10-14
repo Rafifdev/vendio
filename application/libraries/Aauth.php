@@ -150,23 +150,27 @@ class Aauth {
 				return FALSE;
 			}
 		}
- 		if( $this->config_vars['login_with_name'] == TRUE){
+		if( empty($identifier) OR strlen($pass) < $this->config_vars['min'] OR strlen($pass) > $this->config_vars['max'] )
+		{
+			$this->error($this->CI->lang->line('aauth_error_login_failed_email'));
+			return FALSE;
+		}
 
-			if( !$identifier OR strlen($pass) < $this->config_vars['min'] OR strlen($pass) > $this->config_vars['max'] )
-			{
-				$this->error($this->CI->lang->line('aauth_error_login_failed_name'));
-				return FALSE;
-			}
-			$db_identifier = 'username';
- 		}else{
-			$this->CI->load->helper('email');
-			if( !valid_email($identifier) OR strlen($pass) < $this->config_vars['min'] OR strlen($pass) > $this->config_vars['max'] )
-			{
-				$this->error($this->CI->lang->line('aauth_error_login_failed_email'));
-				return FALSE;
-			}
-			$db_identifier = 'email';
- 		}
+		// Mendukung login menggunakan Email maupun Username
+		$matched_user = $this->aauth_db->group_start()
+			->where('email', $identifier)
+			->or_where('username', $identifier)
+			->group_end()
+			->get($this->config_vars['users'])
+			->row();
+
+		if ($matched_user) {
+			$db_identifier = 'id';
+			$identifier = $matched_user->id;
+		} else {
+			$this->error($this->CI->lang->line('aauth_error_no_user'));
+			return FALSE;
+		}
 
 		// if user is not verified
 		$query = null;
@@ -268,6 +272,7 @@ class Aauth {
 				'id' => $row->id,
 				'username' => $row->username,
 				'email' => $row->email,
+				'tenant_id' => !empty($row->tenant_id) ? (int)$row->tenant_id : 1,
 				'loggedin' => TRUE
 			);
 

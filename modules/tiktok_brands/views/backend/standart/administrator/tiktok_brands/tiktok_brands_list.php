@@ -470,8 +470,8 @@
                      </div>
 
                      <div class="header-right">
-                        <a class="btn btn-top-action" id="btn_sync" style="width: 34px !important; padding: 0 !important; justify-content: center !important;" href="<?= site_url('administrator/tiktok_brands/sync'); ?>" title="Tarik Data Merek dari TikTok Shop">
-                           <i class="fa fa-refresh"></i>
+                        <a class="btn btn-top-action" id="btn_sync" href="<?= site_url('administrator/tiktok_brands/sync'); ?>" title="Tarik Data Merek dari TikTok Shop">
+                           Tarik Data <i class="fa fa-refresh"></i>
                         </a>
                      </div>
                   </div>

@@ -212,7 +212,6 @@ if(!function_exists('display_menu_admin')) {
 	    		$ret = '';
 	    	}
 		   	foreach ($result as $row) {
-				
 				$row->link = parse_nav_url($row->link);		   
 
 		   		$perms = 'menu_'.strtolower(str_replace(' ', '_', $row->label));
@@ -1009,6 +1008,20 @@ if (!function_exists('get_current_initial_lang'))
     	}
     }
 } 
+
+if (!function_exists('get_current_lang_name'))
+{
+    function get_current_lang_name()
+    {
+    	$current_lang = get_current_lang();
+    	foreach (get_langs() as $lang) {
+    		if ($current_lang == $lang['folder_name']) {
+    			return $lang['name'];
+    		}
+    	}
+    	return ucfirst($current_lang);
+    }
+}
 
 
 

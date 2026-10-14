@@ -58,18 +58,17 @@ class Tiktok_unsettled_transactions extends Admin
 
 		$this->load->library('tiktok_api');
 		$shop_id = $this->input->get('shop_id');
+		$shop_filter = ['is_active' => 1];
+		if (function_exists('get_active_tenant_id')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
 		if (!empty($shop_id)) {
-			$shops = $this->db->get_where('tiktok_shops', ['id' => $shop_id, 'is_active' => 1])->result();
-		} else {
-			$shops = $this->db->get_where('tiktok_shops', ['is_active' => 1])->result();
+			$shop_filter['id'] = $shop_id;
 		}
+		$shops = $this->db->get_where('tiktok_shops', $shop_filter)->result();
 
 		if (empty($shops)) {
-			$shops = $this->db->get('tiktok_shops')->result();
-		}
-
-		if (empty($shops)) {
-			set_message('Belum ada Toko TikTok yang terhubung. Silakan hubungkan toko terlebih dahulu di menu Kelola Toko.', 'error');
+			set_message('Belum ada Toko TikTok yang terhubung atau aktif. Silakan hubungkan toko terlebih dahulu di menu Kelola Toko.', 'error');
 			redirect('administrator/tiktok_unsettled_transactions');
 			return;
 		}
@@ -116,6 +115,7 @@ class Tiktok_unsettled_transactions extends Admin
 				}
 
 				$save_data = [
+					'tenant_id'                   => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 					'tiktok_shop_id'              => $shop->id,
 					'order_id'                    => $order_id,
 					'settlement_status'           => $settlement_status,

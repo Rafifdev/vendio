@@ -26,7 +26,7 @@ class Blog extends Admin
 	*/
 	public function index($offset = 0)
 	{
-		//$this->is_allowed('blog_list');
+		$this->is_allowed('blog_list');
 
 		$filter = $this->input->get('q');
 		$field 	= $this->input->get('f');

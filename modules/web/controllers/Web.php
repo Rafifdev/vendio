@@ -22,7 +22,7 @@ class Web extends Front
         $this->home();
     }
 
-    public function switch_lang($lang = 'english')
+    public function switch_lang($lang = 'indonesian')
     {
         $this->load->helper(['cookie']);
 

@@ -63,6 +63,10 @@ $route['translate_uri_dashes'] = FALSE;
 $route['administrator/login'] = 'auth/backend/auth/login';
 $route['administrator/register'] = 'auth/backend/auth/register';
 $route['administrator/forgot-password'] = 'auth/backend/auth/forgot_password';
+$route['administrator/verify-otp'] = 'auth/backend/auth/verify_otp';
+$route['administrator/verify_otp'] = 'auth/backend/auth/verify_otp';
+$route['administrator/resend-otp'] = 'auth/backend/auth/resend_otp';
+$route['administrator/resend_otp'] = 'auth/backend/auth/resend_otp';
 
 $route['page/chart/pie_chart'] = 'page/chart/pie_chart';
 $route['page/(:any)'] = 'page/detail/$1';

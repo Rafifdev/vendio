@@ -162,6 +162,7 @@ class Cron extends MY_Controller
                 $full_address = $recipient_address['full_address'] ?? ($recipient_address['address_line1'] ?? '');
 
                 $order_data = [
+                    'tenant_id'            => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                     'tiktok_shop_id'       => $shop->id,
                     'order_id'             => $order_id,
                     'order_status'         => $order_status,
@@ -197,6 +198,7 @@ class Cron extends MY_Controller
                     $this->db->where('tiktok_order_id', $local_order_id)->delete('tiktok_order_items');
                     foreach ($line_items as $item) {
                         $this->db->insert('tiktok_order_items', [
+                            'tenant_id'       => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                             'tiktok_order_id' => $local_order_id,
                             'order_id'        => $order_id,
                             'product_id'      => $item['product_id'] ?? '',
@@ -276,6 +278,7 @@ class Cron extends MY_Controller
                 $existing = $this->db->get_where('tiktok_returns', ['return_id' => $return_id])->row();
 
                 $save_data = [
+                    'tenant_id'           => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                     'tiktok_shop_id'      => $shop->id,
                     'return_id'           => $return_id,
                     'order_id'            => $order_id,
@@ -344,6 +347,7 @@ class Cron extends MY_Controller
                 $existing = $this->db->get_where('tiktok_cancellations', ['cancel_id' => $cancel_id])->row();
 
                 $save_data = [
+                    'tenant_id'          => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                     'tiktok_shop_id'     => $shop->id,
                     'cancel_id'          => $cancel_id,
                     'order_id'           => $order_id,
@@ -462,6 +466,7 @@ class Cron extends MY_Controller
                     $currency = $st['currency'] ?? 'IDR';
 
                     $save_data = [
+                        'tenant_id'           => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                         'tiktok_shop_id'      => $shop->id,
                         'statement_id'        => $statement_id,
                         'statement_time'      => $statement_time,
@@ -499,6 +504,7 @@ class Cron extends MY_Controller
                                 $p_time = date('Y-m-d H:i:s', $ts);
                             }
                             $this->db->insert('tiktok_statement_transactions', [
+                                'tenant_id'         => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                                 'tiktok_finance_id' => $local_finance_id,
                                 'statement_id'      => $statement_id,
                                 'order_id'          => $tx['order_id'] ?? null,
@@ -536,6 +542,7 @@ class Cron extends MY_Controller
                     }
 
                     $w_data = [
+                        'tenant_id'      => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                         'tiktok_shop_id' => $shop->id,
                         'withdrawal_id'  => $withdrawal_id,
                         'amount'         => floatval($w['amount'] ?? 0),
@@ -577,6 +584,7 @@ class Cron extends MY_Controller
                     }
 
                     $u_data = [
+                        'tenant_id'                   => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                         'tiktok_shop_id'              => $shop->id,
                         'order_id'                    => $order_id,
                         'settlement_status'           => $u['settlement_status'] ?? ($u['status'] ?? 'UNSETTLED'),
@@ -703,6 +711,7 @@ class Cron extends MY_Controller
                 }
 
                 $save_data = [
+                    'tenant_id'      => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                     'tiktok_shop_id' => $shop->id,
                     'product_id'     => $product_id,
                     'title'          => $title,
@@ -755,6 +764,7 @@ class Cron extends MY_Controller
                         }
 
                         $this->db->insert('tiktok_product_skus', [
+                            'tenant_id'         => !empty($shop->tenant_id) ? $shop->tenant_id : 1,
                             'tiktok_product_id' => $local_product_id,
                             'product_id'        => $product_id,
                             'sku_id'            => $s['id'] ?? '',

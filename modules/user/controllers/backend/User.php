@@ -79,6 +79,14 @@ class User extends Admin
 		$this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[6]');
 
 		if ($this->form_validation->run()) {
+			$quota = function_exists('tenant_quota_check') ? tenant_quota_check('users') : ['allowed' => true];
+			if (!$quota['allowed']) {
+				return $this->response([
+					'success' => false,
+					'message' => $quota['message']
+				]);
+			}
+
 			$user_avatar_uuid = $this->input->post('user_avatar_uuid');
 			$user_avatar_name = $this->input->post('user_avatar_name');
 
@@ -98,6 +106,9 @@ class User extends Admin
 			$save_user = $this->aauth->create_user($this->input->post('email'), $this->input->post('password'), $this->input->post('username'), $save_data);
 
 			if ($save_user) {
+				$tenant_id = function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1;
+				$this->db->where('id', $save_user)->update('aauth_users', ['tenant_id' => $tenant_id]);
+
 				//add user to group
 				if (count($this->input->post('group'))) {
 					$user_id = $save_user;
@@ -284,7 +295,9 @@ class User extends Admin
 	*/
 	public function profile()
 	{
-		$this->is_allowed('user_profile');
+		if (!$this->aauth->is_loggedin()) {
+			redirect('administrator/login', 'refresh');
+		}
 
 		$this->data['user'] = $this->model_user->find($this->aauth->get_user()->id);
 

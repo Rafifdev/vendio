@@ -326,11 +326,14 @@ class Tiktok_orders extends Admin
 		$this->load->library('tiktok_api');
 
 		$shop_id = $this->input->get('shop_id');
-		if (!empty($shop_id)) {
-			$shops = $this->db->get_where('tiktok_shops', ['id' => $shop_id, 'is_active' => 1])->result();
-		} else {
-			$shops = $this->db->get_where('tiktok_shops', ['is_active' => 1])->result();
+		$shop_filter = ['is_active' => 1];
+		if (function_exists('get_active_tenant_id')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
 		}
+		if (!empty($shop_id)) {
+			$shop_filter['id'] = $shop_id;
+		}
+		$shops = $this->db->get_where('tiktok_shops', $shop_filter)->result();
 
 		if (empty($shops)) {
 			set_message('Belum ada Toko TikTok yang terhubung atau aktif. Silakan hubungkan toko terlebih dahulu di menu Kelola Toko.', 'error');
@@ -436,6 +439,7 @@ class Tiktok_orders extends Admin
 				}
 
 				$order_data = [
+					'tenant_id'           => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 					'tiktok_shop_id'      => $shop->id,
 					'order_id'            => $order_id,
 					'order_status'        => $status,
@@ -463,12 +467,15 @@ class Tiktok_orders extends Admin
 				$existing = $existing_orders[$order_id] ?? null;
 				$prev_status = $existing ? $existing->order_status : null;
 
+				$target_tenant_id = !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1);
+
 				if ($existing) {
 					$this->db->where('id', $existing->id)->update('tiktok_orders', $order_data);
 					$local_order_id = $existing->id;
 
 					if ($prev_status !== $status) {
 						$this->db->insert('tiktok_order_status_logs', [
+							'tenant_id'       => $target_tenant_id,
 							'tiktok_order_id' => $local_order_id,
 							'order_id'        => $order_id,
 							'previous_status' => $prev_status,
@@ -484,6 +491,7 @@ class Tiktok_orders extends Admin
 					$local_order_id = $this->db->insert_id();
 
 					$this->db->insert('tiktok_order_status_logs', [
+						'tenant_id'       => $target_tenant_id,
 						'tiktok_order_id' => $local_order_id,
 						'order_id'        => $order_id,
 						'previous_status' => null,
@@ -509,6 +517,7 @@ class Tiktok_orders extends Admin
 				$seller_revenue = max(0, $orig_product_price - $seller_discount);
 
 				$price_data = [
+					'tenant_id'                     => $target_tenant_id,
 					'tiktok_order_id'               => $local_order_id,
 					'order_id'                      => $order_id,
 					'currency'                      => $currency,
@@ -542,6 +551,7 @@ class Tiktok_orders extends Admin
 						$sku_id = $item['sku_id'] ?? null;
 
 						$item_data = [
+							'tenant_id'       => $target_tenant_id,
 							'tiktok_order_id' => $local_order_id,
 							'order_id'        => $order_id,
 							'order_line_id'   => $line_id,

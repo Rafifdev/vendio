@@ -116,10 +116,10 @@ class Model_tiktok_products extends MY_Model {
     }
 
     public function filter_avaiable() {
-        $this->db->where('tiktok_products.status !=', 'DELETED');
-
-        if (!$this->aauth->is_admin()) {
+        if (function_exists('get_active_tenant_id')) {
+            $this->db->where($this->table_name . '.tenant_id', get_active_tenant_id());
         }
+        $this->db->where('tiktok_products.status !=', 'DELETED');
 
         return $this;
     }

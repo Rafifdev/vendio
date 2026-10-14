@@ -48,9 +48,10 @@ class Tiktok_shops extends Admin
 		$this->data['auth_url'] = $this->tiktok_api->get_auth_url();
 
 		$this->_ensure_oauth_table();
-		// Cek apakah ada otorisasi link aktif yang belum digunakan dan belum expired
+		// Cek apakah ada otorisasi link aktif yang belum digunakan dan belum expired milik user ini
 		$active_state = $this->db->where('is_used', 0)
 			->where('expires_at >', date('Y-m-d H:i:s'))
+			->where('created_by', get_user_data('id'))
 			->order_by('id', 'DESC')
 			->get('tiktok_oauth_states')
 			->row();
@@ -105,6 +106,14 @@ class Tiktok_shops extends Admin
 		
 
 		if ($this->form_validation->run()) {
+			$quota = function_exists('tenant_quota_check') ? tenant_quota_check('shops') : ['allowed' => true];
+			if (!$quota['allowed']) {
+				echo json_encode([
+					'success' => false,
+					'message' => $quota['message']
+				]);
+				exit;
+			}
 			$this->load->library('tiktok_api');
 			$cfg = $this->config->item('tiktok');
 
@@ -637,17 +646,38 @@ class Tiktok_shops extends Admin
 		}
 
 		// 2. Validasi Parameter State (One-Time Link Protection)
+		$state_row = null;
 		if (empty($state)) {
+			// Fallback: Jika TikTok tidak mengembalikan parameter state di callback URL,
+			// cari state aktif terbaru yang belum digunakan dan belum kedaluwarsa
 			if ($this->aauth->is_loggedin()) {
-				set_message('Gagal: Parameter keamanan (state) tidak ditemukan di URL callback. Silakan buat tautan otorisasi baru.', 'error');
-				redirect('administrator/tiktok_shops');
-			} else {
-				redirect('administrator/tiktok_shops/auth_status?status=invalid');
+				$state_row = $this->db->where('created_by', get_user_data('id'))
+					->where('is_used', 0)
+					->where('expires_at >', date('Y-m-d H:i:s'))
+					->order_by('id', 'DESC')
+					->get('tiktok_oauth_states')
+					->row();
 			}
-			return;
-		}
+			if (!$state_row) {
+				$state_row = $this->db->where('is_used', 0)
+					->where('expires_at >', date('Y-m-d H:i:s'))
+					->order_by('id', 'DESC')
+					->get('tiktok_oauth_states')
+					->row();
+			}
 
-		$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
+			if (!$state_row) {
+				if ($this->aauth->is_loggedin()) {
+					set_message('Gagal: Parameter keamanan (state) tidak ditemukan di URL callback. Silakan buat tautan otorisasi baru.', 'error');
+					redirect('administrator/tiktok_shops');
+				} else {
+					redirect('administrator/tiktok_shops/auth_status?status=invalid');
+				}
+				return;
+			}
+			$state = $state_row->state;
+		} else {
+			$state_row = $this->db->get_where('tiktok_oauth_states', ['state' => $state])->row();
 
 			// Jika state tidak ada di database kita
 			if (!$state_row) {
@@ -666,6 +696,7 @@ class Tiktok_shops extends Admin
 				redirect('administrator/tiktok_shops/auth_status?status=expired');
 				return;
 			}
+		}
 
 		// Kunci state seketika (Atomic burn) agar tidak bisa dipakai oleh request lain bersamaan
 		$this->db->where('id', $state_row->id)->update('tiktok_oauth_states', [
@@ -673,11 +704,23 @@ class Tiktok_shops extends Admin
 			'used_at' => date('Y-m-d H:i:s'),
 		]);
 
+		// Tentukan tenant target berdasarkan user pembuat state atau active tenant saat ini
+		$target_tenant_id = null;
+		if (!empty($state_row->created_by)) {
+			$creator_user = $this->db->get_where('aauth_users', ['id' => $state_row->created_by])->row();
+			if ($creator_user && !empty($creator_user->tenant_id)) {
+				$target_tenant_id = (int)$creator_user->tenant_id;
+			}
+		}
+		if (!$target_tenant_id) {
+			$target_tenant_id = function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1;
+		}
+
 		// 3. Tukar auth_code ke TikTok API untuk mendapatkan access_token & refresh_token
 		$res = $this->tiktok_api->get_access_token($auth_code, $app_key, $app_secret);
 
 		if ($res['success'] && !empty($res['data']['access_token'])) {
-			$saved_shop_id = $this->tiktok_api->save_token_response($res['data'], $app_key, $app_secret, $auth_code);
+			$saved_shop_id = $this->tiktok_api->save_token_response($res['data'], $app_key, $app_secret, $auth_code, $target_tenant_id);
 			$shop_name = $res['data']['seller_name'] ?? 'TikTok Shop';
 
 			// Update id toko yang berhasil dihubungkan ke record state

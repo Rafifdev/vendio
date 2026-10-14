@@ -136,7 +136,7 @@
       }
       ?>
 
-    <a href="<?= site_url('/'); ?>" class="logo">
+    <a href="#" class="logo" onclick="return false;">
       <span class="logo-mini"><b><img src="<?= BASE_ASSET ?>img/icon-small.png" height="40px"></b></span>
       <span class="logo-lg"><b><img src="<?= base_url($logo) ?>" height="40px"></b></span>
     </a>
@@ -145,6 +145,41 @@
       <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
         <span class="sr-only">Toggle navigation</span>
       </a>
+
+      <?php 
+        $active_tenant = function_exists('get_active_tenant') ? get_active_tenant() : null;
+      ?>
+      <?php if ($active_tenant && function_exists('is_super_admin') && !is_super_admin()): ?>
+        <?php
+          $badge_text = 'Free Trial';
+          $badge_class = 'label-warning';
+
+          if ($active_tenant->status == 'trial' || !empty($active_tenant->trial_ends_at)) {
+              $now = time();
+              $trial_end = !empty($active_tenant->trial_ends_at) ? strtotime($active_tenant->trial_ends_at) : 0;
+              if ($trial_end > $now) {
+                  $days_left = (int) ceil(($trial_end - $now) / 86400);
+                  if ($days_left <= 1) {
+                      $badge_text = 'Free Trial • Hari Terakhir';
+                  } else {
+                      $badge_text = 'Free Trial • ' . $days_left . ' Hari Tersisa';
+                  }
+                  $badge_class = $days_left <= 3 ? 'label-danger' : 'label-warning';
+              } else {
+                  $badge_text = 'Masa Free Trial Berakhir';
+                  $badge_class = 'label-danger';
+              }
+          } elseif (!empty($active_tenant->plan_name)) {
+              $badge_text = 'Paket ' . $active_tenant->plan_name;
+              $badge_class = 'label-success';
+          }
+        ?>
+        <div style="float: left; padding: 15px 12px;">
+          <span class="label <?= $badge_class; ?>" style="font-size: 11px; padding: 4px 8px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; display: inline-block;">
+            <?= _ent($badge_text); ?>
+          </span>
+        </div>
+      <?php endif; ?>
 
       <?php if ($this->aauth->get_user()): ?>
       <div class="navbar-custom-menu">
@@ -177,7 +212,7 @@
           </li>
           <li class="dropdown ">
              <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-             <span class="flag-icon <?= get_current_initial_lang(); ?>"></span> <?= get_current_lang(); ?> </a>
+             <span class="flag-icon <?= get_current_initial_lang(); ?>"></span> <?= function_exists('get_current_lang_name') ? get_current_lang_name() : ucfirst(get_current_lang()); ?> </a>
              <ul class="dropdown-menu" role="menu">
              <?php foreach (get_langs() as $lang): ?>
                 <li><a href="<?= site_url('web/switch_lang/'.$lang['folder_name']); ?>"><span class="flag-icon <?= $lang['icon_name']; ?>"></span> <?= $lang['name']; ?></a></li>
