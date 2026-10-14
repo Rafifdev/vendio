@@ -274,6 +274,13 @@ $('#form-campaign').on('submit', function(e) {
                 msg = 'Sesi atau token keamanan (CSRF) tidak valid / kedaluwarsa. Silakan refresh halaman (F5).';
             } else if (xhr.responseJSON && xhr.responseJSON.message) {
                 msg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+                try {
+                    var parsed = JSON.parse(xhr.responseText);
+                    if (parsed && parsed.message) msg = parsed.message;
+                } catch (_) {
+                    if (xhr.responseText.length < 200 && !xhr.responseText.includes('<html')) msg = xhr.responseText;
+                }
             }
             swal('Error', msg, 'error');
         },

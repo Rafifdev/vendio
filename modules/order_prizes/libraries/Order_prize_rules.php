@@ -99,10 +99,11 @@ class Order_prize_rules
             'active'=>self::integer($d['active'], 'Aktif', 0, 1),
             'weight'=>self::integer($d['weight'], 'Bobot peluang', 1, 1000000),
             'stock'=>self::integer($d['stock'], 'Sisa stok', 0, 1000000, true),
-            'auto_metric'=>self::choice($d['auto_metric'], 'Threshold otomatis', ['none','revenue','profit']),
-            'allocation_percent'=>self::integer($d['allocation_percent'], 'Alokasi (%)', 1, 100)];
+            'auto_metric'=>self::choice($d['auto_metric'] ?? 'none', 'Threshold otomatis', ['none','revenue','profit']),
+            'allocation_percent'=>self::integer(($d['allocation_percent'] ?? '') === '' ? 10 : $d['allocation_percent'], 'Alokasi (%)', 1, 100)];
         foreach (['cost','threshold_spins','threshold_revenue','threshold_profit'] as $key) {
-            $out[$key] = self::integer($d[$key], $key, 0, $key === 'threshold_spins' ? 1000000 : 1000000000);
+            $val = ($d[$key] ?? '') === '' ? 0 : $d[$key];
+            $out[$key] = self::integer($val, $key, 0, $key === 'threshold_spins' ? 1000000 : 1000000000);
         }
         if ($out['kind'] === 'none' && $out['cost'] !== 0) throw new Order_prize_error('Hadiah none harus berbiaya nol.');
         if ($out['auto_metric'] !== 'none' && $out['cost'] === 0) throw new Order_prize_error('Threshold otomatis perlu cost > 0.');

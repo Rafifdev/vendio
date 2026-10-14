@@ -19,15 +19,17 @@ trait Order_prize_http
             $data = ['success'=>true, 'data'=>$work()];
             $status = 200;
         } catch (Order_prize_error $e) {
-            $status = $e->http_status;
             $data = ['success'=>false, 'message'=>$e->getMessage()];
-            if ($status === 429) $this->output->set_header('Retry-After: 900');
+            $status = 200;
         } catch (Throwable $e) {
-            log_message('error', 'Order Prizes request failed: ' . get_class($e));
-            $status = 500;
-            $data = ['success'=>false, 'message'=>'Proses belum berhasil. Coba ulang; hasil spin yang tersimpan tidak akan berubah.'];
+            log_message('error', 'Order Prizes request failed: ' . get_class($e) . ' - ' . $e->getMessage());
+            $data = ['success'=>false, 'message'=>'Terjadi kesalahan sistem: ' . $e->getMessage()];
+            $status = 200;
         }
         $data['csrf'] = ['name'=>$this->security->get_csrf_token_name(), 'hash'=>$this->security->get_csrf_hash()];
+        if (ob_get_length()) {
+            ob_clean();
+        }
         $this->output->set_status_header($status)->set_content_type('application/json', 'utf-8')->set_output(json_encode($data, JSON_UNESCAPED_UNICODE));
     }
 

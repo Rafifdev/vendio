@@ -207,7 +207,7 @@ class Model_order_prizes extends CI_Model
     {
         // Audit never stores raw bearer tokens; PII remains admin-only.
         $this->insert('order_prize_audit', ['actor_id'=>$actor, 'action'=>$action, 'entity'=>$entity,
-            'entity_id'=>$id, 'detail_json'=>json_encode($detail, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 'created_at'=>$this->now()]);
+            'entity_id'=>$id, 'detail_json'=>json_encode($detail, JSON_UNESCAPED_UNICODE), 'created_at'=>$this->now()]);
     }
 
     private function active(array $c)
@@ -221,7 +221,24 @@ class Model_order_prizes extends CI_Model
         foreach ($this->q('SELECT * FROM order_prize_items WHERE campaign_id = ?', [$campaignId])->result_array() as $p) {
             if (Order_prize_rules::fallback($p)) return;
         }
-        throw new Order_prize_error('Campaign aktif wajib punya hadiah fallback: aktif, stok unlimited, cost 0, tanpa threshold.');
+        $this->insert('order_prize_items', [
+            'campaign_id' => $campaignId,
+            'name' => 'Belum Beruntung (Coba Lagi)',
+            'description' => 'Terima kasih telah berbelanja dan berpartisipasi dalam undian pesanan.',
+            'kind' => 'none',
+            'active' => 1,
+            'weight' => 50,
+            'stock' => null,
+            'cost' => 0,
+            'threshold_spins' => 0,
+            'threshold_revenue' => 0,
+            'threshold_profit' => 0,
+            'auto_metric' => 'none',
+            'allocation_percent' => 10,
+            'awarded_count' => 0,
+            'created_at' => $this->now(),
+            'updated_at' => $this->now(),
+        ]);
     }
 
     public function save_campaign(array $input, $id, $actor)
@@ -432,7 +449,7 @@ class Model_order_prizes extends CI_Model
                 'claim_status'=>$none ? 'not_required' : 'pending', 'prize_status'=>$none ? 'not_required' : 'reserved',
                 'follow_up_status'=>$none ? 'closed' : 'pending', 'broadcast_status'=>'not_sent',
                 'marketing_consent'=>$t['marketing_consent'], 'notes'=>'',
-                'decision_json'=>json_encode($decision, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                'decision_json'=>json_encode($decision, JSON_UNESCAPED_UNICODE),
                 'spun_at'=>$this->now(), 'claim_deadline'=>date('Y-m-d H:i:s', time() + (int)$c['claim_days'] * 86400), 'updated_at'=>$this->now(),
             ]);
             $this->q('UPDATE order_prize_items SET stock = IF(stock IS NULL,NULL,stock-1), awarded_count=awarded_count+1, updated_at=? WHERE id=?', [$this->now(), $winner['id']]);
