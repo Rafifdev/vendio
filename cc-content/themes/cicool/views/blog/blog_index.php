@@ -1222,11 +1222,20 @@ if (!empty($category_id)) {
                                 </h2>
 
                                 <p class="blog-card-excerpt">
-                                    <?= function_exists('character_limiter') ? character_limiter(strip_tags($item->content), 120) : (strlen(strip_tags($item->content)) > 120 ? substr(strip_tags($item->content), 0, 120) . '...' : strip_tags($item->content)); ?>
+                                    <?= !empty($item->excerpt) ? _ent($item->excerpt) : (function_exists('character_limiter') ? character_limiter(strip_tags($item->content), 120) : (strlen(strip_tags($item->content)) > 120 ? substr(strip_tags($item->content), 0, 120) . '...' : strip_tags($item->content))); ?>
                                 </p>
 
-                                <div class="blog-card-footer">
-                                    <span><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i> <?= date('d M Y', strtotime($item->created_at ?: 'now')); ?></span>
+                                <div class="blog-card-footer" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <span><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i> <?= date('d M Y', strtotime(!empty($item->published_at) ? $item->published_at : ($item->created_at ?: 'now'))); ?></span>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <?php 
+                                            $card_read_time = !empty($item->read_time) ? $item->read_time : max(1, ceil(str_word_count(strip_tags($item->content)) / 200));
+                                        ?>
+                                        <span title="Estimasi waktu baca"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i> <?= $card_read_time; ?> mnt</span>
+                                        <?php if (!empty($item->viewers)): ?>
+                                            <span title="Jumlah pembaca"><i class="fa-regular fa-eye" style="margin-right: 4px;"></i> <?= number_format($item->viewers); ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </article>

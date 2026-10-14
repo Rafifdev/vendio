@@ -60,12 +60,26 @@ foreach ($toc_tree as $h2) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= _ent($blog->title); ?> | Vendio Tech Insights</title>
-    <meta name="description" content="<?= (strlen(strip_tags($blog->content)) > 160 ? substr(strip_tags($blog->content), 0, 160) . '...' : strip_tags($blog->content)); ?>">
-    <meta name="author" content="<?= _ent($blog->author); ?>">
+    <?php
+        $seo_desc = !empty($blog->meta_description) 
+            ? $blog->meta_description 
+            : (!empty($blog->excerpt) ? $blog->excerpt : character_limiter(strip_tags($blog->content), 160));
+        $seo_desc_clean = _ent(trim(preg_replace('/\s+/', ' ', strip_tags($seo_desc))));
+    ?>
+    <meta name="description" content="<?= $seo_desc_clean; ?>">
+    <?php if (!empty($blog->meta_keywords)): ?>
+    <meta name="keywords" content="<?= _ent($blog->meta_keywords); ?>">
+    <?php endif; ?>
+    <meta name="author" content="<?= _ent($blog->author ?: 'Vendio'); ?>">
     
     <!-- OpenGraph -->
     <meta property="og:title" content="<?= _ent($blog->title); ?>">
-    <meta property="og:description" content="<?= character_limiter(strip_tags($blog->content), 160); ?>">
+    <meta property="og:description" content="<?= $seo_desc_clean; ?>">
+    <?php if (!empty($image_url)): ?>
+        <meta property="og:image" content="<?= $image_url; ?>">
+    <?php endif; ?>
+    <meta property="og:type" content="article">
+    <meta property="article:published_time" content="<?= date('c', strtotime(!empty($blog->published_at) ? $blog->published_at : ($blog->created_at ?: 'now'))); ?>">
     <?php if (!empty($image_url)): ?>
         <meta property="og:image" content="<?= $image_url; ?>">
     <?php endif; ?>
@@ -2082,16 +2096,26 @@ foreach ($toc_tree as $h2) {
                             </div>
                             <div>
                                 <div style="font-weight: 700; color: var(--text-title);"><?= _ent($blog->author ?: 'Tim Vendio'); ?></div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);"><?= date('d F Y', strtotime($blog->created_at ?: 'now')); ?></div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-regular fa-calendar" style="margin-right: 4px;"></i><?= date('d F Y', strtotime(!empty($blog->published_at) ? $blog->published_at : ($blog->created_at ?: 'now'))); ?></div>
                             </div>
                         </div>
 
                         <div style="display: flex; align-items: center; gap: 18px; font-weight: 500;">
                             <span><i class="fa-regular fa-eye" style="color: var(--primary-purple); margin-right: 4px;"></i> <?= intval($blog->viewers); ?> pembaca</span>
-                            <span><i class="fa-regular fa-clock" style="color: var(--primary-purple); margin-right: 4px;"></i> <?= max(2, ceil(str_word_count(strip_tags($blog->content)) / 180)); ?> menit baca</span>
+                            <?php 
+                                $article_read_time = !empty($blog->read_time) ? intval($blog->read_time) : max(1, ceil(str_word_count(strip_tags($blog->content)) / 200));
+                            ?>
+                            <span><i class="fa-regular fa-clock" style="color: var(--primary-purple); margin-right: 4px;"></i> <?= $article_read_time; ?> menit baca</span>
                         </div>
                     </div>
                 </header>
+
+                <!-- Excerpt / Ringkasan Singkat jika diisi -->
+                <?php if (!empty($blog->excerpt)): ?>
+                    <div class="article-lead-box" style="margin: 22px 0 28px 0; padding: 18px 22px; background: rgba(139, 154, 110, 0.08); border-left: 4px solid var(--primary-purple); border-radius: 0 12px 12px 0; font-size: 1.1rem; line-height: 1.7; color: var(--text-heading); font-weight: 500;">
+                        <?= nl2br(_ent($blog->excerpt)); ?>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Cover Image -->
                 <?php if (!empty($image_url) && file_exists(FCPATH . 'uploads/blog/' . $first_image)): ?>

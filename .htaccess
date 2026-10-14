@@ -1,14 +1,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Prioritaskan index.php agar tidak membuka index.html default bawaan cPanel/IDWebhost
     DirectoryIndex index.php index.html index.htm
 
-    # Jangan rewrite jika file atau direktori fisik benar-benar ada (assets, css, js, gambar)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Rewrite semua request ke index.php
     RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
 </IfModule>
 

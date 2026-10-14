@@ -86,49 +86,94 @@ class Blog extends Admin
 		}
 
 		$this->form_validation->set_rules('title', 'Title', 'trim|required|max_length[200]');
+		$this->form_validation->set_rules('slug', 'Slug', 'trim|max_length[200]');
 		$this->form_validation->set_rules('content', 'Content', 'trim|required');
+		$this->form_validation->set_rules('excerpt', 'Excerpt', 'trim');
 		$this->form_validation->set_rules('blog_image_name[]', 'Image', 'trim');
 		$this->form_validation->set_rules('category', 'Category', 'trim|required|max_length[200]');
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|max_length[10]');
+		$this->form_validation->set_rules('meta_description', 'Meta Description', 'trim|max_length[255]');
+		$this->form_validation->set_rules('meta_keywords', 'Meta Keywords', 'trim|max_length[255]');
+		$this->form_validation->set_rules('read_time', 'Read Time', 'trim|numeric');
+		$this->form_validation->set_rules('published_at', 'Published At', 'trim');
 		
 
 		if ($this->form_validation->run()) {
-			$slug = url_title(substr($this->input->post('title'), 0, 100));
+			$raw_slug = trim((string)$this->input->post('slug'));
+			if ($raw_slug === '') {
+				$raw_slug = (string)$this->input->post('title');
+			}
+			$slug = url_title(substr($raw_slug, 0, 150), '-', true);
+
+			$content = (string)$this->input->post('content');
+			$excerpt = trim((string)$this->input->post('excerpt'));
+			if ($excerpt === '') {
+				$excerpt = character_limiter(strip_tags($content), 160);
+			}
+
+			$read_time = (int)$this->input->post('read_time');
+			if ($read_time <= 0) {
+				$words = str_word_count(strip_tags($content));
+				$read_time = max(1, (int)ceil($words / 200));
+			}
+
+			$post_published = $this->input->post('published_at');
+			$published_at = !empty($post_published) ? date('Y-m-d H:i:s', strtotime($post_published)) : date('Y-m-d H:i:s');
+
+			$meta_desc = trim((string)$this->input->post('meta_description'));
+			if ($meta_desc === '') {
+				$meta_desc = substr(strip_tags($excerpt), 0, 160);
+			}
+
 			$save_data = [
 				'title' => $this->input->post('title'),
 				'slug' => $slug,
-				'content' => $this->input->post('content'),
+				'content' => $content,
+				'excerpt' => $excerpt,
 				'tags' => $this->input->post('tags'),
+				'meta_description' => $meta_desc,
+				'meta_keywords' => $this->input->post('meta_keywords') ?: $this->input->post('tags'),
 				'category' => $this->input->post('category'),
 				'author' => get_user_data('username'),
 				'status' => $this->input->post('status'),
+				'read_time' => $read_time,
+				'published_at' => $published_at,
 				'created_at' => date('Y-m-d H:i:s'),
 			];
 
-
-			if (!is_dir(FCPATH . '/uploads/blog/')) {
-				mkdir(FCPATH . '/uploads/blog/');
+			if (!is_dir(FCPATH . 'uploads/blog/')) {
+				@mkdir(FCPATH . 'uploads/blog/', 0777, true);
 			}
 
+			$listed_image = [];
 			if (count((array) $this->input->post('blog_image_name'))) {
 				foreach ((array) $_POST['blog_image_name'] as $idx => $file_name) {
-					$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
+					if (!empty($file_name)) {
+						if (isset($_POST['blog_image_uuid'][$idx]) && !empty($_POST['blog_image_uuid'][$idx])) {
+							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
+							$src_file = FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' . $file_name;
+							$dest_file = FCPATH . 'uploads/blog/' . $blog_image_name_copy;
 
-					rename(FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' .  $file_name, 
-							FCPATH . 'uploads/blog/' . $blog_image_name_copy);
+							if (is_file($src_file)) {
+								@rename($src_file, $dest_file);
+							}
 
-					$listed_image[] = $blog_image_name_copy;
+							$listed_image[] = $blog_image_name_copy;
 
-					if (!is_file(FCPATH . '/uploads/blog/' . $blog_image_name_copy)) {
-						echo json_encode([
-							'success' => false,
-							'message' => 'Error uploading file'
-							]);
-						exit;
+							if (!is_file($dest_file)) {
+								echo json_encode([
+									'success' => false,
+									'message' => 'Error uploading file'
+								]);
+								exit;
+							}
+						} else {
+							$listed_image[] = $file_name;
+						}
 					}
 				}
 
-				$save_data['image'] = implode($listed_image, ',');
+				$save_data['image'] = implode(',', $listed_image);
 			}
 		
 			
@@ -201,50 +246,95 @@ class Blog extends Admin
 		}
 		
 		$this->form_validation->set_rules('title', 'Title', 'trim|required|max_length[200]');
+		$this->form_validation->set_rules('slug', 'Slug', 'trim|max_length[200]');
 		$this->form_validation->set_rules('content', 'Content', 'trim|required');
+		$this->form_validation->set_rules('excerpt', 'Excerpt', 'trim');
 		$this->form_validation->set_rules('blog_image_name[]', 'Image', 'trim');
 		$this->form_validation->set_rules('category', 'Category', 'trim|required|max_length[200]');
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|max_length[10]');
+		$this->form_validation->set_rules('meta_description', 'Meta Description', 'trim|max_length[255]');
+		$this->form_validation->set_rules('meta_keywords', 'Meta Keywords', 'trim|max_length[255]');
+		$this->form_validation->set_rules('read_time', 'Read Time', 'trim|numeric');
+		$this->form_validation->set_rules('published_at', 'Published At', 'trim');
 		
 		if ($this->form_validation->run()) {
 		
-			$slug = url_title(substr($this->input->post('slug'), 0, 100));
+			$raw_slug = trim((string)$this->input->post('slug'));
+			if ($raw_slug === '') {
+				$raw_slug = (string)$this->input->post('title');
+			}
+			$slug = url_title(substr($raw_slug, 0, 150), '-', true);
+
+			$content = (string)$this->input->post('content');
+			$excerpt = trim((string)$this->input->post('excerpt'));
+			if ($excerpt === '') {
+				$excerpt = character_limiter(strip_tags($content), 160);
+			}
+
+			$read_time = (int)$this->input->post('read_time');
+			if ($read_time <= 0) {
+				$words = str_word_count(strip_tags($content));
+				$read_time = max(1, (int)ceil($words / 200));
+			}
+
+			$post_published = $this->input->post('published_at');
+			$published_at = !empty($post_published) ? date('Y-m-d H:i:s', strtotime($post_published)) : date('Y-m-d H:i:s');
+
+			$meta_desc = trim((string)$this->input->post('meta_description'));
+			if ($meta_desc === '') {
+				$meta_desc = substr(strip_tags($excerpt), 0, 160);
+			}
+
 			$save_data = [
 				'title' => $this->input->post('title'),
 				'slug' => $slug,
-				'content' => $this->input->post('content'),
+				'content' => $content,
+				'excerpt' => $excerpt,
 				'tags' => $this->input->post('tags'),
+				'meta_description' => $meta_desc,
+				'meta_keywords' => $this->input->post('meta_keywords') ?: $this->input->post('tags'),
 				'category' => $this->input->post('category'),
 				'author' => get_user_data('username'),
 				'status' => $this->input->post('status'),
+				'read_time' => $read_time,
+				'published_at' => $published_at,
 				'updated_at' => date('Y-m-d H:i:s'),
 			];
+
+			if (!is_dir(FCPATH . 'uploads/blog/')) {
+				@mkdir(FCPATH . 'uploads/blog/', 0777, true);
+			}
 
 			$listed_image = [];
 			if (count((array) $this->input->post('blog_image_name'))) {
 				foreach ((array) $_POST['blog_image_name'] as $idx => $file_name) {
-					if (isset($_POST['blog_image_uuid'][$idx]) AND !empty($_POST['blog_image_uuid'][$idx])) {
-						$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
+					if (!empty($file_name)) {
+						if (isset($_POST['blog_image_uuid'][$idx]) && !empty($_POST['blog_image_uuid'][$idx])) {
+							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
+							$src_file = FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' . $file_name;
+							$dest_file = FCPATH . 'uploads/blog/' . $blog_image_name_copy;
 
-						rename(FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' .  $file_name, 
-								FCPATH . 'uploads/blog/' . $blog_image_name_copy);
+							if (is_file($src_file)) {
+								@rename($src_file, $dest_file);
+							}
 
-						$listed_image[] = $blog_image_name_copy;
+							$listed_image[] = $blog_image_name_copy;
 
-						if (!is_file(FCPATH . '/uploads/blog/' . $blog_image_name_copy)) {
-							echo json_encode([
-								'success' => false,
-								'message' => 'Error uploading file'
+							if (!is_file($dest_file)) {
+								echo json_encode([
+									'success' => false,
+									'message' => 'Error uploading file'
 								]);
-							exit;
+								exit;
+							}
+						} else {
+							$listed_image[] = $file_name;
 						}
-					} else {
-						$listed_image[] = $file_name;
 					}
 				}
 			}
 			
-			$save_data['image'] = implode($listed_image, ',');
+			$save_data['image'] = implode(',', $listed_image);
 		
 			
 			$save_blog = $this->model_blog->change($id, $save_data);

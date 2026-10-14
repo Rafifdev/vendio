@@ -92,8 +92,9 @@ class Model_blog extends MY_Model {
         if ($where) {
             $this->db->where($where);
         }
+        $this->db->select('blog.*, blog_category.category_name, blog_category.category_desc');
         $this->db->limit($limit, $offset);
-        $this->db->order_by('blog.'.$this->primary_key, "DESC");
+        $this->db->order_by('COALESCE(blog.published_at, blog.created_at) DESC, blog.id DESC', '', FALSE);
 		$query = $this->db->get($this->table_name);
 
 		return $query ? $query->result() : [];
@@ -106,14 +107,16 @@ class Model_blog extends MY_Model {
     }
 
     public function filter_avaiable() {
-      	$this->db->where('status', 'publish');  
+      	$this->db->where('blog.status', 'publish');  
+      	$this->db->where('(blog.published_at IS NULL OR blog.published_at <= NOW())');
         return $this;
     }
 
     public function find_by_slug($slug = null)
     {
     	$this->join_avaiable()->filter_avaiable();
-    	return $this->db->get_where($this->table_name, ['slug' => $slug])->row();
+    	$this->db->select('blog.*, blog_category.category_name, blog_category.category_desc');
+    	return $this->db->get_where($this->table_name, ['blog.slug' => $slug])->row();
     }
 
     public function add_viewers($blog_id, $current_view)
@@ -123,7 +126,7 @@ class Model_blog extends MY_Model {
     	return $viewers;
     }
 
-    public function bidding_exist()
+    public function bidding_exist($customer_id = 0, $product_id = 0)
     {
     	return $this->db->get_where($this->table_name, ['customer_id' => $customer_id, 'product_id' => $product_id])->num_rows();
     }

@@ -460,7 +460,13 @@ class Admin extends MY_Controller
         
         if (!installation_complete()) {
             redirect('');
-        }      
+        }
+
+        if ($this->aauth->is_loggedin()) {
+            if (!isset($_SESSION['username'])) {
+                $_SESSION['username'] = get_user_data('username');
+            }
+        }
     }
 
 
@@ -563,7 +569,7 @@ class Admin extends MY_Controller
 
         $dir = FCPATH . $default['upload_path'] . $default['uuid'];
         if (!is_dir($dir)) {
-            mkdir($dir);
+            @mkdir($dir, 0777, true);
         }
 
         if (empty($default['file_name'])) {
@@ -732,6 +738,8 @@ class Admin extends MY_Controller
 
                 return json_encode($result);
             }
+
+            return json_encode([]);
         }
     }
 }

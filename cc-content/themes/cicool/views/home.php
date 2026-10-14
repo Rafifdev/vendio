@@ -2887,18 +2887,23 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
                     }
                     $h_has_file = !empty($h_img) && file_exists(FCPATH . 'uploads/blog/' . $h_img);
                     $h_img_url = $h_has_file ? BASE_URL . 'uploads/blog/' . $h_img : 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=700&q=80';
-                    $h_excerpt = function_exists('character_limiter') 
-                        ? character_limiter(strip_tags($headline_blog->content), 140) 
-                        : (strlen(strip_tags($headline_blog->content)) > 140 ? substr(strip_tags($headline_blog->content), 0, 140) . '...' : strip_tags($headline_blog->content));
+                    $h_excerpt = !empty($headline_blog->excerpt)
+                        ? (strlen($headline_blog->excerpt) > 160 ? substr($headline_blog->excerpt, 0, 160) . '...' : $headline_blog->excerpt)
+                        : (function_exists('character_limiter') 
+                            ? character_limiter(strip_tags($headline_blog->content), 140) 
+                            : (strlen(strip_tags($headline_blog->content)) > 140 ? substr(strip_tags($headline_blog->content), 0, 140) . '...' : strip_tags($headline_blog->content)));
+                    $h_date = date('d M Y', strtotime(!empty($headline_blog->published_at) ? $headline_blog->published_at : ($headline_blog->created_at ?: 'now')));
+                    $h_read_time = !empty($headline_blog->read_time) ? intval($headline_blog->read_time) : max(1, ceil(str_word_count(strip_tags($headline_blog->content)) / 200));
                 ?>
                     <div class="news-big-card reveal-left">
                         <a href="<?= site_url('blog/' . $headline_blog->slug); ?>" class="news-big-img" style="text-decoration: none;">
                             <img src="<?= $h_img_url; ?>" alt="<?= _ent($headline_blog->title); ?>" style="width: 100%; height: 100%; object-fit: cover;">
                         </a>
                         <div class="news-card-inner">
-                            <div class="news-meta-row">
+                            <div class="news-meta-row" style="flex-wrap: wrap; gap: 8px;">
                                 <span class="news-badge"><?= !empty($headline_blog->category_name) ? _ent(strtoupper($headline_blog->category_name)) : 'HEADLINE BLOG'; ?></span>
-                                <span class="news-date"><i class="fa-regular fa-calendar"></i> <?= date('d M Y', strtotime($headline_blog->created_at ?: 'now')); ?></span>
+                                <span class="news-date"><i class="fa-regular fa-calendar"></i> <?= $h_date; ?></span>
+                                <span class="news-date"><i class="fa-regular fa-clock"></i> <?= $h_read_time; ?> mnt</span>
                             </div>
                             <h4 class="news-card-title">
                                 <a href="<?= site_url('blog/' . $headline_blog->slug); ?>" style="color: inherit; text-decoration: none;">
@@ -2946,6 +2951,8 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
                             }
                             $s_has_file = !empty($s_img) && file_exists(FCPATH . 'uploads/blog/' . $s_img);
                             $s_img_url = $s_has_file ? BASE_URL . 'uploads/blog/' . $s_img : '';
+                            $s_date = date('d M Y', strtotime(!empty($s_item->published_at) ? $s_item->published_at : ($s_item->created_at ?: 'now')));
+                            $s_read_time = !empty($s_item->read_time) ? intval($s_item->read_time) : max(1, ceil(str_word_count(strip_tags($s_item->content)) / 200));
                         ?>
                             <div class="news-small-card">
                                 <a href="<?= site_url('blog/' . $s_item->slug); ?>" class="news-small-thumb <?= ($idx % 2 == 1) ? 'thumb-cyan' : ''; ?>" style="text-decoration: none;">
@@ -2956,9 +2963,10 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
                                     <?php endif; ?>
                                 </a>
                                 <div class="news-small-content">
-                                    <div class="news-meta-row">
+                                    <div class="news-meta-row" style="flex-wrap: wrap; gap: 6px;">
                                         <span class="news-badge"><?= !empty($s_item->category_name) ? _ent(strtoupper($s_item->category_name)) : 'ARTIKEL'; ?></span>
-                                        <span class="news-date"><i class="fa-regular fa-calendar"></i> <?= date('d M Y', strtotime($s_item->created_at ?: 'now')); ?></span>
+                                        <span class="news-date"><i class="fa-regular fa-calendar"></i> <?= $s_date; ?></span>
+                                        <span class="news-date"><i class="fa-regular fa-clock"></i> <?= $s_read_time; ?> mnt</span>
                                     </div>
                                     <h5 class="news-small-title">
                                         <a href="<?= site_url('blog/' . $s_item->slug); ?>" style="color: inherit; text-decoration: none;">

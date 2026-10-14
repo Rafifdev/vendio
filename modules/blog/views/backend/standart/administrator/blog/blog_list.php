@@ -368,10 +368,29 @@
       display: inline-block;
    }
 
+   .badge-viewer {
+      background-color: #f8fafc;
+      color: #1e293b;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.2;
+   }
+
+   .badge-viewer i {
+      font-size: 12px;
+      color: #1e293b;
+   }
+
 
    .chip-slug {
       font-family: Menlo, Monaco, Consolas, "Courier New", monospace !important;
-      font-size: 12px !important;
+      font-size: 11.5px !important;
       color: #0284c7 !important;
       background-color: #f0f9ff !important;
       border: 1px solid #bae6fd !important;
@@ -380,16 +399,20 @@
       display: inline-flex !important;
       align-items: center !important;
       align-self: flex-start !important;
+      max-width: 100% !important;
       width: fit-content !important;
       gap: 6px !important;
       text-decoration: none !important;
       font-weight: 600 !important;
-      line-height: 1.3 !important;
+      line-height: 1.35 !important;
       vertical-align: middle;
-      white-space: nowrap;
+      white-space: normal !important;
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
       cursor: pointer !important;
       user-select: none;
       transition: all 0.15s ease;
+      box-sizing: border-box !important;
    }
 
    .chip-slug:hover {
@@ -398,10 +421,18 @@
       border-color: #7dd3fc !important;
    }
 
+   .chip-slug .slug-text {
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+      line-height: 1.35 !important;
+   }
+
    .chip-slug .slug-icon {
       font-size: 11px !important;
       color: #0284c7 !important;
       opacity: 0.75;
+      flex-shrink: 0 !important;
       transition: all 0.15s ease;
    }
 
@@ -410,18 +441,34 @@
       color: #0369a1 !important;
    }
 
+   .col-title-slug {
+      width: 340px !important;
+      min-width: 260px !important;
+      max-width: 360px !important;
+      box-sizing: border-box !important;
+   }
+
    .blog-title-cell {
       display: flex;
       flex-direction: column;
       align-items: flex-start !important;
-      gap: 5px;
+      gap: 6px;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
    }
 
    .blog-title-text {
       font-weight: 600;
       color: #1e293b;
       font-size: 13.5px;
-      line-height: 1.35;
+      line-height: 1.4;
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      overflow-wrap: break-word !important;
+      max-width: 100% !important;
+      display: block !important;
    }
 
    .blog-author-tag {
@@ -691,11 +738,11 @@
                                        title="<?= cclang('check_all'); ?>">
                                  </th>
                                  <th style="width: 65px; text-align: center;">Gambar</th>
-                                 <th style="width: 36%;">Judul & Slug</th>
+                                 <th class="col-title-slug" style="width: 340px; max-width: 360px;">Judul & Slug</th>
                                  <th style="width: 140px;">Kategori</th>
                                  <th style="width: 110px; text-align: center;">Status</th>
                                  <th style="width: 120px;">Penulis</th>
-                                 <th style="width: 140px;">Dibuat</th>
+                                 <th style="width: 110px; text-align: center;">Viewer</th>
                                  <th style="width: 48px; text-align: center;">Aksi</th>
                               </tr>
                            </thead>
@@ -729,12 +776,12 @@
                                           </div>
                                        <?php endif; ?>
                                     </td>
-                                    <td>
+                                    <td class="col-title-slug">
                                        <div class="blog-title-cell">
                                           <span class="blog-title-text"><?= _ent($blog->title); ?></span>
                                           <a href="<?= site_url('blog/' . $blog->slug); ?>" target="_blank"
                                              class="chip-slug" title="<?= site_url('blog/' . $blog->slug); ?>">
-                                             /<?= _ent($blog->slug); ?>
+                                             <span class="slug-text">/<?= _ent($blog->slug); ?></span>
                                              <i class="fa fa-link slug-icon"></i>
                                           </a>
                                        </div>
@@ -746,9 +793,16 @@
                                     <td style="text-align: center;">
                                        <?php
                                        $status = strtolower(trim((string) $blog->status));
-                                       if ($status == 'publish' || $status == 'published'): ?>
+                                       $is_scheduled = !empty($blog->published_at) && (strtotime($blog->published_at) > time());
+                                        if ($status == 'publish' || $status == 'published'): ?>
+                                           <?php if ($is_scheduled): ?>
+                                              <span class="label label-primary" title="Terjadwal: <?= date('d M Y H:i', strtotime($blog->published_at)); ?>"><i class="fa fa-clock-o"></i> Terjadwal</span>
+                                           <?php else: ?>
+                                              <span class="label label-success">Publish</span>
+                                           <?php endif; ?>
+                                        <?php /*
                                           <span class="label label-success">Publish</span>
-                                       <?php elseif ($status == 'draft'): ?>
+                                       */ ?><?php elseif ($status == 'draft'): ?>
                                           <span class="label label-info">Draft</span>
                                        <?php elseif ($status == 'archive' || $status == 'archived'): ?>
                                           <span class="label label-default">Archive</span>
@@ -761,9 +815,9 @@
                                           <i class="fa fa-user-circle-o text-muted"></i> <?= _ent($blog->author); ?>
                                        </span>
                                     </td>
-                                    <td>
-                                       <span style="color: #64748b; font-size: 12.5px;">
-                                          <?= !empty($blog->created_at) ? date('d M Y, H:i', strtotime($blog->created_at)) : '-'; ?>
+                                    <td style="text-align: center;">
+                                       <span class="badge-viewer" title="<?= number_format($blog->viewers ?? 0, 0, ',', '.'); ?> kali dibaca">
+                                          <i class="fa fa-eye"></i> <?= number_format($blog->viewers ?? 0, 0, ',', '.'); ?>
                                        </span>
                                     </td>
                                     <td style="text-align: center; white-space: nowrap;">
