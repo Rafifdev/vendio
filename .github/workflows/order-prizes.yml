@@ -1,0 +1,40 @@
+name: Order Prizes tests
+on:
+  push:
+    paths: ['modules/order_prizes/**', 'asset/order_prizes/**', 'database/create_order_prizes.sql', 'application/config/routes.php', 'tests/order_prizes/**', '.github/workflows/order-prizes.yml']
+  pull_request:
+    paths: ['modules/order_prizes/**', 'asset/order_prizes/**', 'database/create_order_prizes.sql', 'application/config/routes.php', 'tests/order_prizes/**', '.github/workflows/order-prizes.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.2']
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test-only
+          MYSQL_DATABASE: order_prizes_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -ptest-only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '${{ matrix.php }}'
+          extensions: pdo_mysql, pcntl
+          coverage: none
+      - run: find modules/order_prizes tests/order_prizes -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: node --check asset/order_prizes/admin.js && node --check asset/order_prizes/customer.js
+      - run: php tests/order_prizes/rules_test.php
+      - run: php tests/order_prizes/http_test.php
+      - run: php tests/order_prizes/integration_test.php
+        env:
+          OP_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=order_prizes_test;charset=utf8mb4'
+          OP_TEST_USER: root
+          OP_TEST_PASSWORD: test-only

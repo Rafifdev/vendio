@@ -71,6 +71,11 @@ $route['blog/(:any)'] = 'blog/detail/$1';
 $route['administrator/web-page'] = 'page/backend/page/admin';
 
 
+// Order Prizes: keep multi-argument admin endpoints ahead of generic HMVC routes.
+$route[ADMIN_NAMESPACE_URL.'/order_prizes/save/(:any)/(:num)'] = 'order_prizes/backend/order_prizes/save/$1/$2';
+$route[ADMIN_NAMESPACE_URL.'/order_prizes/records/(:any)'] = 'order_prizes/backend/order_prizes/records/$1';
+$route[ADMIN_NAMESPACE_URL.'/order_prizes/fulfill/(:num)'] = 'order_prizes/backend/order_prizes/fulfill/$1';
+
 $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)'] = 'form/backend/$1';
 $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)/(:any)'] = 'form/backend/$1/$2';
 $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)/(:any)/(:any)'] = 'form/backend/$1/$2/$3';
