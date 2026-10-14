@@ -19,7 +19,18 @@ class Order_prizes extends MX_Controller
 
     public function index()
     {
-        $this->load->view('order_prizes/customer');
+        $slug = $this->input->get('campaign', true);
+        $active_campaigns = $this->prizes->get_active_campaigns_public();
+
+        // If no slug provided, auto-select the latest active campaign if available
+        if (empty($slug) && !empty($active_campaigns)) {
+            $slug = $active_campaigns[0]['slug'];
+        }
+
+        $this->load->view('order_prizes/customer', [
+            'slug' => $slug ?: '',
+            'active_campaigns' => $active_campaigns,
+        ]);
     }
 
     public function campaign()
@@ -36,8 +47,12 @@ class Order_prizes extends MX_Controller
             $this->prizes->rate_limit('verify.ip', $this->input->ip_address(), 30);
             $in = $this->prize_input();
             if (($in['accept_terms'] ?? '') !== '1') throw new Order_prize_error('Setujui syarat & ketentuan terlebih dahulu.');
-            return $this->prizes->verify(Order_prize_rules::text($in['slug'] ?? '', 'Campaign slug', 80),
-                $in['order_number'] ?? '', $in['phone'] ?? '', $in['marketing_consent'] ?? 0);
+            return $this->prizes->verify(
+                Order_prize_rules::text($in['slug'] ?? '', 'Campaign slug', 80),
+                $in['order_number'] ?? '',
+                $in['phone'] ?? '',
+                $in['marketing_consent'] ?? 0
+            );
         }, 'POST');
     }
 

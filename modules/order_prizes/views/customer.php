@@ -2,47 +2,198 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="referrer" content="no-referrer"><title>Klaim Hadiah Pesanan · Vendio</title>
-  <link rel="stylesheet" href="<?= base_url('asset/order_prizes/customer.css') ?>">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Vendio Rewards · Putar Roda Hadiah Pesanan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="<?= base_url('asset/order_prizes/customer.css'); ?>">
 </head>
 <body>
+<div class="glow-bg"></div>
+
 <main>
-  <header><a class="brand" href="<?= site_url('order_prizes') ?>">VENDIO <span>REWARDS</span></a><span class="tag">Hadiah untuk pesananmu</span></header>
-  <div class="layout">
-    <section class="intro"><p class="eyebrow">BELANJA. PUTAR. DAPAT HADIAH.</p><h1>Pesanan sampai.<br>Kejutan <em>menanti.</em></h1><p class="lead">Cek nomor pesananmu, putar roda, dan temukan hadiah dari toko favoritmu.</p>
-      <ol class="steps"><li><b>01</b><span>Verifikasi nomor pesanan & HP</span></li><li><b>02</b><span>Putar satu kali untuk setiap pesanan</span></li><li><b>03</b><span>Klaim hadiah sebelum batas waktunya</span></li></ol>
-      <details><summary>Syarat & ketentuan campaign</summary><p id="op-terms">Buka link campaign dari toko untuk melihat ketentuan.</p></details>
-      <p class="fine">Hasil dipilih oleh server berdasarkan peluang, ketersediaan, dan threshold campaign. Ukuran bagian roda tidak menggambarkan peluang menang. Tidak semua spin harus mendapat hadiah.</p>
-    </section>
-    <section class="card" aria-labelledby="op-title">
-      <p class="eyebrow">ORDER PRIZES</p><h2 id="op-title">Cek pesananmu</h2><p id="op-subtitle">Gunakan nomor HP yang terdaftar pada pesanan.</p>
-      <form id="op-verify">
-        <label>Campaign <input name="slug" id="op-slug" autocomplete="off" placeholder="Kode campaign dari toko" maxlength="80" required></label>
-        <button class="secondary" id="op-load" type="button">Lihat campaign</button>
-        <label>Nomor pesanan <input name="order_number" autocomplete="off" placeholder="Contoh: 261014ABC123" maxlength="80" required></label>
-        <label>Nomor HP <input name="phone" type="tel" autocomplete="tel" placeholder="08xxxxxxxxxx" maxlength="32" required></label>
-        <label class="check"><input type="checkbox" name="accept_terms" value="1" required><span>Saya menyetujui syarat campaign dan penggunaan data untuk verifikasi serta pengurusan hadiah.</span></label>
-        <label class="check"><input type="checkbox" name="marketing_consent" value="1"><span>Saya bersedia menerima promo/broadcast. <small>Opsional, tidak memengaruhi peluang.</small></span></label>
-        <button type="submit" id="op-verify-button" disabled>Verifikasi pesanan →</button>
-      </form>
-      <div id="op-play" hidden>
-        <div class="wheel-wrap"><span class="pointer" aria-hidden="true">▼</span><canvas id="op-wheel" width="600" height="600" aria-label="Roda hadiah, hasil akan diumumkan di bawah"></canvas><span class="wheel-center" aria-hidden="true">V</span></div>
-        <button id="op-spin" type="button">Putar roda hadiah</button>
-        <div id="op-result" hidden><p class="eyebrow">HASIL PESANANMU</p><h3 id="op-prize"></h3><p id="op-status"></p><button id="op-claim" type="button" hidden>Klaim hadiah</button></div>
-        <button class="secondary" id="op-reset" type="button">Cek pesanan lain / verifikasi ulang</button>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo">V</div>
+      <div class="brand-text">
+        <strong>VENDIO</strong>
+        <span>REWARDS</span>
       </div>
-      <p id="op-message" class="message" role="status" aria-live="polite"></p>
-      <p class="fine">Data pesanan tidak cocok? Hubungi toko. Nomor HP tersamarkan perlu diverifikasi terlebih dahulu oleh admin toko.</p>
+    </div>
+    <div class="header-tag">
+      <span class="status-dot"></span>
+      <span id="op-channel-badge">Hadiah Pembeli Terverifikasi</span>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Left Hero Information -->
+    <section class="hero-section">
+      <div class="pill-badge">
+        <span class="sparkle">✨</span> PROMO SPESIAL PEMBELI
+      </div>
+      <h1 class="hero-title">
+        Terima kasih sudah belanja.<br>
+        Saatnya <em>bawa pulang hadiah!</em>
+      </h1>
+      <p class="hero-desc">
+        Masukkan nomor pesanan dari marketplace favoritmu dan putar roda keberuntungan untuk memenangkan hadiah langsung.
+      </p>
+
+      <div class="steps-flow">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-info">
+            <strong>Input Pesanan & HP</strong>
+            <span>Nomor pesanan & HP yang terdaftar di marketplace.</span>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-info">
+            <strong>Putar Roda Keberuntungan</strong>
+            <span>Satu pesanan mendapatkan 1 kali kesempatan spin.</span>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-info">
+            <strong>Klaim Hadiahmu</strong>
+            <span>Konfirmasi klaim sebelum batas masa penukaran habis.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="terms-card">
+        <details>
+          <summary>Syarat & Ketentuan Campaign</summary>
+          <div id="op-terms" class="terms-content">
+            Memuat syarat & ketentuan campaign...
+          </div>
+        </details>
+      </div>
+
+      <p class="disclaimer-text">
+        * Hadiah dipilih transparan oleh sistem berdasarkan ketersediaan kuota stok dan aturan promo yang sah. Keputusan undian bersifat final.
+      </p>
+    </section>
+
+    <!-- Right Interaction Card -->
+    <section class="action-card">
+      <div class="card-header-inner">
+        <span class="eyebrow" id="op-campaign-badge">LUCKY DRAW</span>
+        <h2 id="op-title" class="card-title">Cek Hadiah Pesanan</h2>
+        <p id="op-subtitle" class="card-subtitle">Gunakan nomor HP yang terdaftar pada pesananmu.</p>
+      </div>
+
+      <!-- Multiple Campaigns Selector (If applicable) -->
+      <?php if (!empty($active_campaigns) && count($active_campaigns) > 1): ?>
+        <div class="campaign-selector-box">
+          <label for="select-campaign">Pilih Event Promo:</label>
+          <select id="select-campaign" class="styled-select">
+            <?php foreach ($active_campaigns as $ac): ?>
+              <option value="<?= html_escape($ac['slug']); ?>" <?= $slug === $ac['slug'] ? 'selected' : ''; ?>>
+                <?= html_escape($ac['name']); ?> (<?= strtoupper($ac['channel']); ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      <?php endif; ?>
+
+      <!-- Verification Form -->
+      <form id="op-verify" class="verify-form">
+        <input type="hidden" name="slug" id="op-slug" value="<?= html_escape($slug); ?>">
+        
+        <div class="form-item">
+          <label for="op-order-number">Nomor Pesanan</label>
+          <div class="input-wrapper">
+            <span class="input-icon">#</span>
+            <input type="text" name="order_number" id="op-order-number" autocomplete="off" placeholder="Contoh: 261014ABC123" maxlength="80" required>
+          </div>
+          <span class="field-hint">Dapat dilihat di rincian pesanan marketplace kamu.</span>
+        </div>
+
+        <div class="form-item">
+          <label for="op-phone">Nomor WhatsApp / HP</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📞</span>
+            <input type="tel" name="phone" id="op-phone" autocomplete="tel" placeholder="08xxxxxxxxxx / 628xxxxxxxxxx" maxlength="25" required>
+          </div>
+          <span class="field-hint">Nomor telepon penerima yang tertera pada pesanan.</span>
+        </div>
+
+        <div class="consent-group">
+          <label class="custom-checkbox">
+            <input type="checkbox" name="accept_terms" value="1" required checked>
+            <span class="checkmark"></span>
+            <span class="label-text">Saya menyetujui syarat & ketentuan campaign undian serta verifikasi data pesanan.</span>
+          </label>
+          <label class="custom-checkbox">
+            <input type="checkbox" name="marketing_consent" value="1" checked>
+            <span class="checkmark"></span>
+            <span class="label-text">Bersedia menerima info voucher diskon & update promo menarik via WhatsApp.</span>
+          </label>
+        </div>
+
+        <button type="submit" id="op-verify-button" class="btn-primary-action" disabled>
+          <span>Verifikasi Pesanan Saya</span> →
+        </button>
+      </form>
+
+      <!-- Wheel Playground Box -->
+      <div id="op-play" class="wheel-box" hidden>
+        <div class="wheel-container">
+          <div class="pointer-wrapper">
+            <div class="wheel-pointer">▼</div>
+          </div>
+          <canvas id="op-wheel" width="600" height="600" aria-label="Roda Undian Berhadiah"></canvas>
+          <div class="wheel-hub">
+            <span class="hub-icon">★</span>
+          </div>
+        </div>
+
+        <button id="op-spin" type="button" class="btn-spin-action">
+          <span class="spin-text">PUTAR RODA SEKARANG!</span>
+        </button>
+
+        <!-- Result Box -->
+        <div id="op-result" class="winner-card" hidden>
+          <div class="win-crown">👑</div>
+          <p class="win-eyebrow">SELAMAT! KAMU MEMENANGKAN</p>
+          <h3 id="op-prize" class="prize-title"></h3>
+          <p id="op-status" class="prize-status-note"></p>
+          <button id="op-claim" type="button" class="btn-claim-action" hidden>
+            🎁 Klaim Hadiah Saya Sekarang
+          </button>
+        </div>
+
+        <button class="btn-reset-action" id="op-reset" type="button">
+          ← Cek Pesanan Lain / Verifikasi Ulang
+        </button>
+      </div>
+
+      <div id="op-message" class="system-message" role="status" aria-live="polite"></div>
     </section>
   </div>
-  <footer>Vendio Rewards · Satu pesanan, satu kesempatan.</footer>
+
+  <footer class="app-footer">
+    <div>&copy; <?= date('Y'); ?> Vendio Rewards. Program loyalty & hadiah pembeli terpercaya.</div>
+  </footer>
 </main>
+
+<!-- Confetti Canvas for Celebrations -->
+<canvas id="confetti-canvas"></canvas>
+
 <script>
 window.orderPrizesCustomer = <?= json_encode([
-    'base'=>site_url('order_prizes'),
-    'csrf'=>['name'=>$this->security->get_csrf_token_name(), 'hash'=>$this->security->get_csrf_hash()],
-], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    'base' => site_url('order_prizes'),
+    'slug' => $slug,
+    'csrf' => ['name' => $this->security->get_csrf_token_name(), 'hash' => $this->security->get_csrf_hash()],
+], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 </script>
-<script src="<?= base_url('asset/order_prizes/customer.js') ?>" defer></script>
-</body></html>
+<script src="<?= base_url('asset/order_prizes/customer.js'); ?>" defer></script>
+</body>
+</html>

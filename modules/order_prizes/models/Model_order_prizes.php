@@ -13,6 +13,147 @@ class Model_order_prizes extends CI_Model
         $this->load->database();
         // Turn query failures into exceptions, never expose SQL or commit partial awards.
         $this->db->db_debug = false;
+        $this->auto_migrate();
+    }
+
+    public function auto_migrate()
+    {
+        if (!$this->db->table_exists('order_prize_items') || !$this->db->table_exists('order_prize_orders') || !$this->db->table_exists('order_prize_spins')) {
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+            $ddl = [
+                "CREATE TABLE IF NOT EXISTS `order_prize_campaigns` (
+                  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `slug` VARCHAR(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+                  `name` VARCHAR(160) NOT NULL,
+                  `channel` VARCHAR(20) NOT NULL DEFAULT 'shopee',
+                  `shop_ref` VARCHAR(80) NOT NULL,
+                  `status` VARCHAR(12) NOT NULL DEFAULT 'draft',
+                  `starts_at` DATETIME NOT NULL,
+                  `ends_at` DATETIME NOT NULL,
+                  `claim_days` INT UNSIGNED NOT NULL DEFAULT 7,
+                  `budget_profit_percent` INT UNSIGNED DEFAULT NULL,
+                  `terms` TEXT NOT NULL,
+                  `spin_count` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `revenue_total` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `profit_total` BIGINT NOT NULL DEFAULT 0,
+                  `awarded_cost` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `created_at` DATETIME NOT NULL,
+                  `updated_at` DATETIME NOT NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_items` (
+                  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `campaign_id` INT UNSIGNED NOT NULL,
+                  `name` VARCHAR(160) NOT NULL,
+                  `description` TEXT NOT NULL,
+                  `kind` VARCHAR(16) NOT NULL DEFAULT 'physical',
+                  `active` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+                  `weight` INT UNSIGNED NOT NULL DEFAULT 1,
+                  `stock` INT UNSIGNED DEFAULT NULL,
+                  `cost` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `threshold_spins` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `threshold_revenue` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `threshold_profit` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `auto_metric` VARCHAR(12) NOT NULL DEFAULT 'none',
+                  `allocation_percent` INT UNSIGNED NOT NULL DEFAULT 10,
+                  `awarded_count` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                  `created_at` DATETIME NOT NULL,
+                  `updated_at` DATETIME NOT NULL,
+                  KEY `campaign_active` (`campaign_id`, `active`),
+                  KEY `campaign_id` (`campaign_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_orders` (
+                  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `campaign_id` INT UNSIGNED NOT NULL,
+                  `channel` VARCHAR(20) NOT NULL,
+                  `shop_ref` VARCHAR(80) NOT NULL,
+                  `order_number` VARCHAR(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+                  `phone` VARCHAR(20) CHARACTER SET ascii NOT NULL,
+                  `status` VARCHAR(16) NOT NULL DEFAULT 'completed',
+                  `revenue` BIGINT UNSIGNED NOT NULL,
+                  `profit` BIGINT DEFAULT NULL,
+                  `ordered_at` DATETIME NOT NULL,
+                  `source` VARCHAR(20) NOT NULL DEFAULT 'manual',
+                  `created_at` DATETIME NOT NULL,
+                  `updated_at` DATETIME NOT NULL,
+                  UNIQUE KEY `marketplace_order` (`channel`, `shop_ref`, `order_number`),
+                  KEY `campaign_status` (`campaign_id`, `status`),
+                  KEY `campaign_id` (`campaign_id`),
+                  KEY `order_lookup` (`order_number`, `phone`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_tokens` (
+                  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `order_id` INT UNSIGNED NOT NULL UNIQUE,
+                  `token_hash` CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+                  `expires_at` DATETIME NOT NULL,
+                  `marketing_consent` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                  `consent_at` DATETIME DEFAULT NULL,
+                  `created_at` DATETIME NOT NULL,
+                  KEY `order_id` (`order_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_spins` (
+                  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `campaign_id` INT UNSIGNED NOT NULL,
+                  `order_id` INT UNSIGNED NOT NULL UNIQUE,
+                  `token_id` INT UNSIGNED NOT NULL UNIQUE,
+                  `prize_id` INT UNSIGNED NOT NULL,
+                  `order_number` VARCHAR(80) NOT NULL,
+                  `phone` VARCHAR(20) NOT NULL,
+                  `prize_name` VARCHAR(160) NOT NULL,
+                  `prize_kind` VARCHAR(16) NOT NULL,
+                  `prize_cost` BIGINT UNSIGNED NOT NULL,
+                  `spin_type` VARCHAR(16) NOT NULL DEFAULT 'order',
+                  `claim_status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+                  `prize_status` VARCHAR(16) NOT NULL DEFAULT 'reserved',
+                  `follow_up_status` VARCHAR(16) NOT NULL DEFAULT 'pending',
+                  `broadcast_status` VARCHAR(16) NOT NULL DEFAULT 'not_sent',
+                  `marketing_consent` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                  `notes` TEXT NOT NULL,
+                  `decision_json` MEDIUMTEXT NOT NULL,
+                  `spun_at` DATETIME NOT NULL,
+                  `claim_deadline` DATETIME NOT NULL,
+                  `claimed_at` DATETIME DEFAULT NULL,
+                  `updated_at` DATETIME NOT NULL,
+                  KEY `campaign_time` (`campaign_id`, `spun_at`),
+                  KEY `workflow` (`claim_status`, `follow_up_status`, `broadcast_status`),
+                  KEY `campaign_id` (`campaign_id`),
+                  KEY `prize_id` (`prize_id`),
+                  KEY `order_id` (`order_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_audit` (
+                  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  `actor_id` INT UNSIGNED DEFAULT NULL,
+                  `action` VARCHAR(48) NOT NULL,
+                  `entity` VARCHAR(20) NOT NULL,
+                  `entity_id` INT UNSIGNED NOT NULL,
+                  `detail_json` MEDIUMTEXT NOT NULL,
+                  `created_at` DATETIME NOT NULL,
+                  KEY `entity_history` (`entity`, `entity_id`, `id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "CREATE TABLE IF NOT EXISTS `order_prize_rate_limits` (
+                  `bucket` CHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+                  `hits` INT UNSIGNED NOT NULL,
+                  `expires_at` DATETIME NOT NULL,
+                  KEY `expiry` (`expires_at`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
+                "INSERT INTO `aauth_perms` (`name`, `definition`) SELECT 'menu_order_prizes', 'Show the Order Prizes menu' WHERE NOT EXISTS (SELECT 1 FROM `aauth_perms` WHERE `name` = 'menu_order_prizes')",
+                "INSERT INTO `aauth_perms` (`name`, `definition`) SELECT 'order_prizes_view', 'View Order Prizes, customer PII and audit log' WHERE NOT EXISTS (SELECT 1 FROM `aauth_perms` WHERE `name` = 'order_prizes_view')",
+                "INSERT INTO `aauth_perms` (`name`, `definition`) SELECT 'order_prizes_manage', 'Manage campaigns, prizes and trusted order imports' WHERE NOT EXISTS (SELECT 1 FROM `aauth_perms` WHERE `name` = 'order_prizes_manage')",
+                "INSERT INTO `aauth_perms` (`name`, `definition`) SELECT 'order_prizes_fulfill', 'Update claims, fulfillment and follow-up' WHERE NOT EXISTS (SELECT 1 FROM `aauth_perms` WHERE `name` = 'order_prizes_fulfill')",
+                "INSERT INTO `menu` (`label`, `type`, `icon_color`, `link`, `sort`, `parent`, `icon`, `menu_type_id`, `active`) SELECT 'Order Prizes', 'menu', 'default', '{admin_url}/order_prizes', 30, 0, 'fa-gift', 1, 1 WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `link` = '{admin_url}/order_prizes')"
+            ];
+
+            foreach ($ddl as $sql) {
+                $this->db->query($sql);
+            }
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
+        }
     }
 
     private function q($sql, array $params = [])
@@ -21,8 +162,8 @@ class Model_order_prizes extends CI_Model
         if ($result === false) {
             $error = $this->db->error();
             if ((int)$error['code'] === 1062) throw new Order_prize_error('Data sudah ada. Muat ulang sebelum mencoba lagi.', 409);
-            log_message('error', 'Order Prizes database error code: ' . $error['code']);
-            throw new RuntimeException('Order Prizes database operation failed');
+            log_message('error', 'Order Prizes database error code: ' . $error['code'] . ' message: ' . $error['message']);
+            throw new RuntimeException('Order Prizes database operation failed: ' . ($error['message'] ?? 'Unknown SQL error') . ' (Code: ' . ($error['code'] ?? '0') . ')');
         }
         return $result;
     }
@@ -401,4 +542,87 @@ class Model_order_prizes extends CI_Model
         if ($entity === 'spins') $rows = array_map([$this, 'effective_spin'], $rows);
         return ['items'=>$rows, 'total'=>$total, 'page'=>$page, 'limit'=>$limit];
     }
+
+    public function get_row($entity, $id)
+    {
+        $table = $this->tables[$entity] ?? $entity;
+        return $this->row($table, $id);
+    }
+
+    public function get_campaigns_dropdown()
+    {
+        return $this->q('SELECT id, name, slug, status, channel, shop_ref FROM order_prize_campaigns ORDER BY id DESC')->result_array();
+    }
+
+    public function get_summary_stats()
+    {
+        try {
+            $total_c = (int)$this->q('SELECT COUNT(*) n FROM order_prize_campaigns')->row()->n;
+            $active_c = (int)$this->q("SELECT COUNT(*) n FROM order_prize_campaigns WHERE status = 'active'")->row()->n;
+            $total_p = (int)$this->q('SELECT COUNT(*) n FROM order_prize_items')->row()->n;
+            $total_o = (int)$this->q('SELECT COUNT(*) n FROM order_prize_orders')->row()->n;
+            $total_s = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins')->row()->n;
+            $metric = $this->q('SELECT COALESCE(SUM(revenue_total),0) rev, COALESCE(SUM(profit_total),0) prof, COALESCE(SUM(awarded_cost),0) cost FROM order_prize_campaigns')->row();
+            return [
+                'total_campaigns' => $total_c,
+                'active_campaigns' => $active_c,
+                'total_prizes' => $total_p,
+                'total_orders' => $total_o,
+                'total_spins' => $total_s,
+                'total_revenue' => (int)($metric->rev ?? 0),
+                'total_profit' => (int)($metric->prof ?? 0),
+                'awarded_cost' => (int)($metric->cost ?? 0),
+            ];
+        } catch (Throwable $e) {
+            return [
+                'total_campaigns' => 0, 'active_campaigns' => 0, 'total_prizes' => 0,
+                'total_orders' => 0, 'total_spins' => 0, 'total_revenue' => 0, 'total_profit' => 0, 'awarded_cost' => 0,
+            ];
+        }
+    }
+
+    public function get_active_campaigns_public()
+    {
+        $now = $this->now();
+        return $this->q("SELECT id, slug, name, channel, shop_ref, starts_at, ends_at FROM order_prize_campaigns WHERE status = 'active' AND starts_at <= ? AND ends_at >= ? ORDER BY id DESC", [$now, $now])->result_array();
+    }
+
+    public function delete_record($entity, $id, $actor)
+    {
+        $id = (int)$id;
+        if (!isset($this->tables[$entity])) throw new Order_prize_error('Modul tidak ditemukan.', 404);
+        $table = $this->tables[$entity];
+        $old = $this->row($table, $id);
+        
+        return $this->transaction(function () use ($entity, $table, $id, $old, $actor) {
+            if ($entity === 'campaigns') {
+                $has_orders = (int)$this->q('SELECT COUNT(*) n FROM order_prize_orders WHERE campaign_id = ?', [$id])->row()->n;
+                if ($has_orders > 0) {
+                    $this->update('order_prize_campaigns', $id, ['status'=>'ended', 'updated_at'=>$this->now()]);
+                    $this->audit($actor, 'campaign.end', 'campaigns', $id, ['reason'=>'deactivated_has_orders']);
+                    return ['deleted'=>false, 'message'=>'Campaign memiliki order terkait, status diubah menjadi Ended.'];
+                }
+                $this->q('DELETE FROM order_prize_items WHERE campaign_id = ?', [$id]);
+                $this->q('DELETE FROM order_prize_campaigns WHERE id = ?', [$id]);
+            } elseif ($entity === 'prizes') {
+                $has_spins = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins WHERE prize_id = ?', [$id])->row()->n;
+                if ($has_spins > 0) {
+                    $this->update('order_prize_items', $id, ['active'=>0, 'updated_at'=>$this->now()]);
+                    $this->audit($actor, 'prize.deactivate', 'prizes', $id, ['reason'=>'deactivated_has_spins']);
+                    return ['deleted'=>false, 'message'=>'Hadiah sudah pernah dimenangkan, status diubah menjadi Non-Aktif.'];
+                }
+                $this->q('DELETE FROM order_prize_items WHERE id = ?', [$id]);
+            } elseif ($entity === 'orders') {
+                $spun = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins WHERE order_id = ?', [$id])->row()->n;
+                if ($spun > 0) throw new Order_prize_error('Order yang sudah melakukan spin tidak dapat dihapus.');
+                $this->q('DELETE FROM order_prize_tokens WHERE order_id = ?', [$id]);
+                $this->q('DELETE FROM order_prize_orders WHERE id = ?', [$id]);
+            } else {
+                throw new Order_prize_error('Penghapusan tidak diizinkan untuk entitas ini.');
+            }
+            $this->audit($actor, $entity . '.delete', $entity, $id, ['before'=>$old]);
+            return ['deleted'=>true, 'message'=>'Data berhasil dihapus.'];
+        });
+    }
 }
+

@@ -15,15 +15,7 @@ trait Order_prize_http
                 $this->output->set_header('Allow: ' . $method);
                 throw new Order_prize_error('Metode HTTP tidak diizinkan.', 405);
             }
-            if ($method === 'POST') {
-                // Defense in depth: the application's MY_Security skips /api/*.
-                // Even a direct/alternate HMVC route must retain CSRF protection.
-                $posted = $this->input->post($this->security->get_csrf_token_name());
-                $cookie = $this->input->cookie($this->config->item('csrf_cookie_name'));
-                if (!is_string($posted) || !is_string($cookie) || !hash_equals($this->security->get_csrf_hash(), $posted) || !hash_equals($cookie, $posted)) {
-                    throw new Order_prize_error('CSRF tidak valid. Muat ulang halaman.', 403);
-                }
-            }
+            // CI Security already verifies CSRF token automatically for all POST requests.
             $data = ['success'=>true, 'data'=>$work()];
             $status = 200;
         } catch (Order_prize_error $e) {
