@@ -536,8 +536,7 @@ if (!empty($category_id)) {
             opacity: 0;
             transform: translateY(24px);
             transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-                        transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-                        border-color 0.25s ease;
+                        transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             transition-delay: calc(var(--card-col, 0) * 0.08s);
             will-change: opacity, transform;
             animation: blogCardSafeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards;
@@ -547,14 +546,6 @@ if (!empty($category_id)) {
             animation: none;
             opacity: 1;
             transform: translateY(0);
-        }
-
-        .blog-card:hover {
-            opacity: 1;
-            transform: translateY(-4px);
-            box-shadow: none;
-            border-bottom-color: #475569;
-            transition-delay: 0s !important;
         }
 
         @keyframes blogCardSafeReveal {
@@ -598,12 +589,7 @@ if (!empty($category_id)) {
             aspect-ratio: 16 / 9;
             object-fit: cover;
             border-radius: 16px;
-            transition: transform 0.4s ease;
             display: block;
-        }
-
-        .blog-card:hover .blog-card-img {
-            transform: scale(1.04);
         }
 
         .blog-card-placeholder {

@@ -1608,14 +1608,7 @@ foreach ($toc_tree as $h2) {
             display: flex;
             flex-direction: column;
             padding: 0 0 22px 0;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                        border-color 0.25s ease;
             box-shadow: none;
-        }
-        .related-card:hover {
-            transform: translateY(-4px);
-            box-shadow: none;
-            border-bottom-color: #475569;
         }
         .related-card-img-wrap {
             width: 100%;
@@ -1635,10 +1628,6 @@ foreach ($toc_tree as $h2) {
             object-fit: cover;
             border-radius: 16px;
             display: block;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .related-card:hover .related-card-img {
-            transform: scale(1.04);
         }
         .related-card-placeholder {
             width: 100%;
