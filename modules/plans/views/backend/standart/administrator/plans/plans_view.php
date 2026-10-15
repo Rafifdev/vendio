@@ -480,8 +480,7 @@
 
                      <!-- SECTION 5: METADATA -->
                      <div class="view-section-title">
-                        <i class="fa fa-clock-o"></i>
-                        <span>5. Informasi Waktu</span>
+                        <span>Informasi Waktu</span>
                      </div>
 
                      <div class="form-group">
