@@ -482,12 +482,12 @@ jQuery(document).ready(domo);
                      <!-- Footer Action Buttons -->
                      <div class="view-nav">
                         <?php is_allowed('plans_update', function() use ($plans){ ?>
-                           <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" data-stype="back" title="Edit Paket (Ctrl+e)" href="<?= site_url('administrator/plans/edit/' . $plans->id); ?>">
-                              <i class="fa fa-edit"></i> Edit Paket
+                           <a class="btn btn-flat btn-info btn_edit btn_action" id="btn_edit" title="<?= cclang('update_button'); ?> (Ctrl+e)" href="<?= site_url('administrator/plans/edit/' . $plans->id); ?>">
+                              <i class="fa fa-pencil-square-o"></i> <?= cclang('update_button'); ?>
                            </a>
                         <?php }) ?>
-                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="Kembali ke Daftar (Ctrl+x)" href="<?= site_url('administrator/plans'); ?>">
-                           <i class="fa fa-undo"></i> Kembali ke Daftar
+                        <a class="btn btn-flat btn-default btn_action" id="btn_back" title="<?= cclang('go_list_button', [cclang('plans')]); ?> (Ctrl+x)" href="<?= site_url('administrator/plans'); ?>">
+                           <i class="fa fa-undo"></i> <?= cclang('go_list_button', [cclang('plans')]); ?>
                         </a>
                      </div>
                   </div>
