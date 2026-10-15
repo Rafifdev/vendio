@@ -1602,17 +1602,20 @@ foreach ($toc_tree as $h2) {
         .related-card {
             background: transparent;
             border: none;
+            border-bottom: 1px solid #e2e8f0;
             border-radius: 0;
             overflow: visible;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 0 0 22px 0;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-color 0.25s ease;
             box-shadow: none;
         }
         .related-card:hover {
             transform: translateY(-4px);
             box-shadow: none;
-            border-color: transparent;
+            border-bottom-color: #cbd5e1;
         }
         .related-card-img-wrap {
             width: 100%;
@@ -1622,7 +1625,7 @@ foreach ($toc_tree as $h2) {
             overflow: hidden;
             display: block;
             text-decoration: none;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
             position: relative;
         }
         .related-card-img {
@@ -1651,23 +1654,23 @@ foreach ($toc_tree as $h2) {
             border-radius: 16px;
         }
         .related-card-category {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #4b5563;
             background: none;
             border: none;
             padding: 0;
-            margin: 0 0 6px 0;
+            margin: 0 0 10px 0;
             display: block;
             letter-spacing: 0.01em;
             line-height: 1.4;
         }
         .related-card-title {
-            font-size: 1.15rem;
+            font-size: 1.35rem;
             font-family: var(--font-heading);
-            font-weight: 700;
-            line-height: 1.36;
-            margin: 0 0 8px 0;
+            font-weight: 600;
+            line-height: 1.35;
+            margin: 0 0 14px 0;
             letter-spacing: -0.01em;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -1686,24 +1689,25 @@ foreach ($toc_tree as $h2) {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.82rem;
+            font-size: 0.95rem;
             color: #6b7280;
-            margin: 0 0 14px 0;
+            margin: 0 0 24px 0;
             line-height: 1.4;
         }
         .related-card-meta .meta-dot {
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: #9ca3af;
+            margin: 0 2px;
         }
         .related-card-author {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin-top: auto;
         }
         .related-card-author-avatar {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
             display: block;
@@ -1711,7 +1715,7 @@ foreach ($toc_tree as $h2) {
             flex-shrink: 0;
         }
         .related-card-author-name {
-            font-size: 0.88rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #2563eb;
             line-height: 1.2;
