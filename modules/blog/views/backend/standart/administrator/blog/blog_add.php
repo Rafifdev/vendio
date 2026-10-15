@@ -162,8 +162,10 @@
    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.box-form-modern textarea.form-control {
+.box-form-modern textarea.form-control,
+.box-form-modern textarea {
    height: auto !important;
+   resize: vertical !important;
 }
 
 .box-form-modern .form-control:focus {
@@ -434,7 +436,8 @@
     });
       
     CKEDITOR.replace('content', {
-      width: '100%'
+      width: '100%',
+      resize_dir: 'vertical'
     }); 
     var content = CKEDITOR.instances.content;
                    
