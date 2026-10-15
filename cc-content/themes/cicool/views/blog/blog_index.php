@@ -525,7 +525,7 @@ if (!empty($category_id)) {
         .blog-card {
             background: transparent;
             border: none;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #94a3b8;
             border-radius: 0;
             overflow: visible;
             display: flex;
@@ -553,7 +553,7 @@ if (!empty($category_id)) {
             opacity: 1;
             transform: translateY(-4px);
             box-shadow: none;
-            border-bottom-color: #cbd5e1;
+            border-bottom-color: #475569;
             transition-delay: 0s !important;
         }
 

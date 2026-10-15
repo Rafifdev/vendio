@@ -1602,7 +1602,7 @@ foreach ($toc_tree as $h2) {
         .related-card {
             background: transparent;
             border: none;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #94a3b8;
             border-radius: 0;
             overflow: visible;
             display: flex;
@@ -1615,7 +1615,7 @@ foreach ($toc_tree as $h2) {
         .related-card:hover {
             transform: translateY(-4px);
             box-shadow: none;
-            border-bottom-color: #cbd5e1;
+            border-bottom-color: #475569;
         }
         .related-card-img-wrap {
             width: 100%;
@@ -2145,6 +2145,18 @@ foreach ($toc_tree as $h2) {
 
                         $author_display_name = !empty($blog->author_name) ? $blog->author_name : (!empty($blog->author) ? $blog->author : 'Tim Vendio');
                     ?>
+
+                    <div class="article-breadcrumbs">
+                        <a href="<?= site_url(); ?>"><i class="fa-solid fa-house"></i> Home</a>
+                        <span>/</span>
+                        <a href="<?= site_url('blog'); ?>">Blog</a>
+                        <span>/</span>
+                        <?php if (!empty($blog->category_name)): ?>
+                            <a href="<?= site_url('blog/category/' . (!empty($blog->category) ? $blog->category : url_title($blog->category_name, '-', true))); ?>"><?= _ent($blog->category_name); ?></a>
+                        <?php else: ?>
+                            <span>Ritel & Omnichannel</span>
+                        <?php endif; ?>
+                    </div>
 
                     <div class="article-read-estimate"><?= $article_read_time; ?> mins read</div>
 
