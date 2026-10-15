@@ -613,52 +613,19 @@
                                           <span class="text-muted" style="font-size: 11px;">/ bulan</span>
                                        </td>
                                        <td>
-                                          <div style="display: flex; flex-direction: column; gap: 3px;">
-                                             <div class="duration-pill">
-                                                <span style="font-weight: 600; color: #334155; width: 45px;">3 Bulan:</span>
-                                                <span>Rp <?= number_format($plans->price_3_months, 0, ',', '.'); ?></span>
-                                                <?php if ((float) $plans->discount_3_months > 0): ?>
-                                                   <span class="discount-tag"
-                                                      style="background: #e0f2fe; color: #0369a1;">-<?= (float) $plans->discount_3_months; ?>%</span>
-                                                <?php endif; ?>
-                                             </div>
-                                             <div class="duration-pill">
-                                                <span style="font-weight: 600; color: #334155; width: 45px;">6 Bulan:</span>
-                                                <span>Rp <?= number_format($plans->price_6_months, 0, ',', '.'); ?></span>
-                                                <?php if ((float) $plans->discount_6_months > 0): ?>
-                                                   <span class="discount-tag"
-                                                      style="background: #dbeafe; color: #1d4ed8;">-<?= (float) $plans->discount_6_months; ?>%</span>
-                                                <?php endif; ?>
-                                             </div>
-                                             <div class="duration-pill">
-                                                <span style="font-weight: 600; color: #334155; width: 45px;">12 Bulan:</span>
-                                                <span>Rp <?= number_format($plans->price_12_months, 0, ',', '.'); ?></span>
-                                                <?php if ((float) $plans->discount_12_months > 0): ?>
-                                                   <span class="discount-tag"
-                                                      style="background: #fef3c7; color: #b45309;">-<?= (float) $plans->discount_12_months; ?>%</span>
-                                                <?php endif; ?>
-                                             </div>
-                                          </div>
+                                          <ul style="list-style: none; padding-left: 0; margin-bottom: 0; color: #1e293b; font-size: 13px; line-height: 1.6;">
+                                             <li>- 3 Bulan: Rp <?= number_format($plans->price_3_months, 0, ',', '.'); ?><?= ((float) $plans->discount_3_months > 0) ? ' -' . (float) $plans->discount_3_months . '%' : ''; ?></li>
+                                             <li>- 6 Bulan: Rp <?= number_format($plans->price_6_months, 0, ',', '.'); ?><?= ((float) $plans->discount_6_months > 0) ? ' -' . (float) $plans->discount_6_months . '%' : ''; ?></li>
+                                             <li>- 12 Bulan: Rp <?= number_format($plans->price_12_months, 0, ',', '.'); ?><?= ((float) $plans->discount_12_months > 0) ? ' -' . (float) $plans->discount_12_months . '%' : ''; ?></li>
+                                          </ul>
                                        </td>
                                        <td>
-                                          <div style="display: flex; flex-wrap: wrap; gap: 4px 10px;">
-                                             <span class="quota-spec" title="Maksimal Toko Terhubung">
-                                                <i class="fa fa-shopping-bag text-muted"></i>
-                                                <?= $plans->max_shops > 0 ? '<b>' . $plans->max_shops . '</b> Toko' : '<span style="color: #059669; font-weight: 600;">Unlimited Toko</span>'; ?>
-                                             </span>
-                                             <span class="quota-spec" title="Maksimal Pengguna / Staf">
-                                                <i class="fa fa-users text-muted"></i>
-                                                <?= $plans->max_users > 0 ? '<b>' . $plans->max_users . '</b> Staf' : '<span style="color: #059669; font-weight: 600;">Unlimited Staf</span>'; ?>
-                                             </span>
-                                             <span class="quota-spec" title="Maksimal Gudang">
-                                                <i class="fa fa-cubes text-muted"></i>
-                                                <?= $plans->max_warehouses > 0 ? '<b>' . $plans->max_warehouses . '</b> Gudang' : '<span style="color: #059669; font-weight: 600;">Unlimited Gudang</span>'; ?>
-                                             </span>
-                                             <span class="quota-spec" title="Maksimal Produk">
-                                                <i class="fa fa-tags text-muted"></i>
-                                                <?= $plans->max_products > 0 ? '<b>' . number_format($plans->max_products, 0, ',', '.') . '</b> Prod' : '<span style="color: #059669; font-weight: 600;">Unlimited Prod</span>'; ?>
-                                             </span>
-                                          </div>
+                                          <ul style="list-style: none; padding-left: 0; margin-bottom: 0; color: #1e293b; font-size: 13px; line-height: 1.6;">
+                                             <li>- <?= $plans->max_shops > 0 ? $plans->max_shops . ' Toko' : 'Unlimited Toko'; ?></li>
+                                             <li>- <?= $plans->max_users > 0 ? $plans->max_users . ' Staf' : 'Unlimited Staf'; ?></li>
+                                             <li>- <?= $plans->max_warehouses > 0 ? $plans->max_warehouses . ' Gudang' : 'Unlimited Gudang'; ?></li>
+                                             <li>- <?= $plans->max_products > 0 ? number_format($plans->max_products, 0, ',', '.') . ' Produk' : 'Unlimited Produk'; ?></li>
+                                          </ul>
                                        </td>
                                        <td style="text-align: center;">
                                           <span class="badge"

@@ -511,7 +511,7 @@
                      <label for="max_shops" class="control-label">Maks. Toko Terhubung</label>
                      <div class="col-sm-8">
                         <div class="input-group" style="max-width:240px;">
-                           <input type="number" class="form-control" name="max_shops" id="max_shops" placeholder="1" value="<?= set_value('max_shops', 1); ?>">
+                           <input type="number" class="form-control" name="max_shops" id="max_shops" placeholder="2" value="<?= set_value('max_shops', 2); ?>">
                            <span class="input-group-addon" style="background:#f8fafc;">Toko / Cabang</span>
                         </div>
                         <small class="info help-block">Jumlah maksimal toko/marketplace terhubung. Isi <code>0</code> untuk Unlimited.</small>
