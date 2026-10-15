@@ -270,7 +270,7 @@ jQuery(document).ready(domo);
                         <h3 class="widget-user-username"><?= html_escape($plans->name); ?></h3>
                         <h5 class="widget-user-desc">
                            <?php if (!empty($plans->is_special)): ?>
-                              <span class="label bg-yellow"><?= html_escape($plans->special_badge ?: 'Paling Populer'); ?></span>
+                              <span class="label bg-yellow"><i class="fa fa-star" style="margin-right: 3px;"></i> <?= html_escape($plans->special_badge ?: 'Paling Populer'); ?></span>
                            <?php else: ?>
                               Detail Paket Langganan
                            <?php endif; ?>

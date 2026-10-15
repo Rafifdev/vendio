@@ -590,7 +590,7 @@
                                              <strong
                                                 style="color: #1e293b; font-size: 13.5px;"><?= _ent($plans->name); ?></strong>
                                              <?php if (!empty($plans->is_special)): ?>
-                                                 <span class="label bg-yellow"><?= _ent($plans->special_badge ?: 'Paling Populer'); ?></span>
+                                                 <span class="label bg-yellow"><i class="fa fa-star" style="margin-right: 3px;"></i> <?= _ent($plans->special_badge ?: 'Paling Populer'); ?></span>
                                               <?php endif; ?>
                                           </div>
                                           <?php if (!empty($plans->description)): ?>
