@@ -590,12 +590,8 @@
                                              <strong
                                                 style="color: #1e293b; font-size: 13.5px;"><?= _ent($plans->name); ?></strong>
                                              <?php if (!empty($plans->is_special)): ?>
-                                                <span class="badge"
-                                                   style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 12px;">
-                                                   <i class="fa fa-star text-yellow" style="color: #d97706 !important;"></i>
-                                                   <?= _ent($plans->special_badge ?: 'Paling Populer'); ?>
-                                                </span>
-                                             <?php endif; ?>
+                                                 <span class="label bg-yellow"><?= _ent($plans->special_badge ?: 'Paling Populer'); ?></span>
+                                              <?php endif; ?>
                                           </div>
                                           <?php if (!empty($plans->description)): ?>
                                              <div class="text-muted"
@@ -631,12 +627,10 @@
                                        </td>
                                        <td style="text-align: center;">
                                           <?php if ($plans->status == 'active'): ?>
-                                             <span class="label bg-green"
-                                                style="border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 600;">Active</span>
-                                          <?php else: ?>
-                                             <span class="label bg-gray"
-                                                style="border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 600;">Inactive</span>
-                                          <?php endif; ?>
+                                              <span class="label bg-green">Active</span>
+                                           <?php else: ?>
+                                              <span class="label bg-gray">Inactive</span>
+                                           <?php endif; ?>
                                        </td>
                                        <td style="text-align: center; white-space: nowrap;">
                                           <?= render_table_action([
