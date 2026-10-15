@@ -1613,12 +1613,12 @@ foreach ($toc_tree as $h2) {
         .related-card-img-wrap {
             width: 100%;
             aspect-ratio: 16 / 9;
-            background: #f1f5f9;
+            background: #ffffff;
             border-radius: 16px;
             overflow: hidden;
             display: block;
             text-decoration: none;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
             position: relative;
         }
         .related-card-img {
@@ -1628,6 +1628,10 @@ foreach ($toc_tree as $h2) {
             object-fit: cover;
             border-radius: 16px;
             display: block;
+            transition: opacity 0.2s ease;
+        }
+        .related-card-img-wrap:hover .related-card-img {
+            opacity: 0.82;
         }
         .related-card-placeholder {
             width: 100%;
@@ -1669,10 +1673,11 @@ foreach ($toc_tree as $h2) {
         .related-card-title a {
             color: var(--text-title);
             text-decoration: none;
-            transition: color 0.2s ease;
+            transition: color 0.1s ease;
         }
         .related-card-title a:hover {
             color: var(--primary-purple);
+            text-decoration: underline;
         }
         .related-card-meta {
             display: flex;
@@ -1680,7 +1685,7 @@ foreach ($toc_tree as $h2) {
             gap: 6px;
             font-size: 0.95rem;
             color: #6b7280;
-            margin: 0 0 24px 0;
+            margin: 0 0 28px 0;
             line-height: 1.4;
         }
         .related-card-meta .meta-dot {
