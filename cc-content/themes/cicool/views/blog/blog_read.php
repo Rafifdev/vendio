@@ -2153,12 +2153,6 @@ foreach ($toc_tree as $h2) {
                     </div>
                 </header>
 
-                <!-- Excerpt / Ringkasan Singkat jika diisi -->
-                <?php if (!empty($blog->excerpt)): ?>
-                    <div class="article-lead-box" style="margin: 22px 0 28px 0; padding: 18px 22px; background: rgba(139, 154, 110, 0.08); border-left: 4px solid var(--primary-purple); border-radius: 0 12px 12px 0; font-size: 1.1rem; line-height: 1.7; color: var(--text-heading); font-weight: 500;">
-                        <?= nl2br(_ent($blog->excerpt)); ?>
-                    </div>
-                <?php endif; ?>
 
                 <!-- Cover Image -->
                 <?php if (!empty($image_url) && file_exists(FCPATH . 'uploads/blog/' . $first_image)): ?>
