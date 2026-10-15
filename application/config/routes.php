@@ -57,6 +57,7 @@ $route_path = APPPATH . 'routes/';
 
 $route['default_controller'] = 'web';
 $route['home'] = 'web/home';
+$route['spinwheel'] = 'web/spinwheel';
 $route['404_override'] = 'not_found';
 $route['translate_uri_dashes'] = FALSE;
 

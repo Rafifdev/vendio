@@ -40,6 +40,12 @@ class Web extends Front
         }
     }
 
+    public function spinwheel()
+    {
+        $this->template->title('Vendio Lucky Wheel | Hadiah & Reward Eksklusif Mitra');
+        $this->template->build('spinwheel');
+    }
+
     public function set_full_group_sql()
     {
         $this->db->query(" 
