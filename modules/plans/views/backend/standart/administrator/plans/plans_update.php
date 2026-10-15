@@ -334,14 +334,6 @@
                   </div>
 
                   <div class="form-group">
-                     <label for="code" class="control-label">Kode Paket <i class="required">*</i></label>
-                     <div class="col-sm-8">
-                        <input type="text" class="form-control" name="code" id="code" placeholder="Contoh: starter, growth, enterprise..." value="<?= set_value('code', $plans->code); ?>">
-                        <small class="info help-block">Kode unik sistem (huruf kecil & tanda hubung, misal: <code>starter</code>, <code>growth-pro</code>).</small>
-                     </div>
-                  </div>
-
-                  <div class="form-group">
                      <label for="description" class="control-label">Deskripsi Ringkas</label>
                      <div class="col-sm-8">
                         <textarea class="form-control" name="description" id="description" rows="3" placeholder="Jelaskan secara ringkas peruntukan paket ini..."><?= set_value('description', $plans->description); ?></textarea>

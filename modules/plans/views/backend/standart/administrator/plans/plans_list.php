@@ -589,11 +589,9 @@
                                           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                              <strong
                                                 style="color: #1e293b; font-size: 13.5px;"><?= _ent($plans->name); ?></strong>
-                                             <code
-                                                style="font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 600;"><?= _ent($plans->code); ?></code>
                                              <?php if (!empty($plans->is_special)): ?>
                                                 <span class="badge"
-                                                   style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 11px; padding: 3px 7px;">
+                                                   style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 12px;">
                                                    <i class="fa fa-star text-yellow" style="color: #d97706 !important;"></i>
                                                    <?= _ent($plans->special_badge ?: 'Paling Populer'); ?>
                                                 </span>

@@ -73,7 +73,6 @@ class Plans extends Admin
 		}
 
 		$this->form_validation->set_rules('name', 'Nama Paket', 'trim|required|max_length[100]');
-		$this->form_validation->set_rules('code', 'Kode Paket', 'trim|required|max_length[50]|is_unique[plans.code]');
 		$this->form_validation->set_rules('price_monthly', 'Harga 1 Bulan', 'trim|required|numeric');
 
 		if ($this->form_validation->run()) {
@@ -124,7 +123,7 @@ class Plans extends Admin
 
 			$save_data = [
 				'name' => $this->input->post('name'),
-				'code' => url_title($this->input->post('code'), '-', true),
+				'code' => url_title($this->input->post('name'), '-', true),
 				'description' => $this->input->post('description'),
 				'price_monthly' => $price_monthly,
 				'discount_3_months' => $discount_3,
@@ -225,13 +224,6 @@ class Plans extends Admin
 		}
 
 		$this->form_validation->set_rules('name', 'Nama Paket', 'trim|required|max_length[100]');
-		
-		// If code changed, check uniqueness
-		$code_rule = 'trim|required|max_length[50]';
-		if ($this->input->post('code') != $plan->code) {
-			$code_rule .= '|is_unique[plans.code]';
-		}
-		$this->form_validation->set_rules('code', 'Kode Paket', $code_rule);
 		$this->form_validation->set_rules('price_monthly', 'Harga 1 Bulan', 'trim|required|numeric');
 
 		if ($this->form_validation->run()) {
@@ -280,7 +272,7 @@ class Plans extends Admin
 
 			$save_data = [
 				'name' => $this->input->post('name'),
-				'code' => url_title($this->input->post('code'), '-', true),
+				'code' => url_title($this->input->post('name'), '-', true),
 				'description' => $this->input->post('description'),
 				'price_monthly' => $price_monthly,
 				'discount_3_months' => $discount_3,
