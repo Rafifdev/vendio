@@ -320,9 +320,7 @@
 
                   <!-- SECTION 1: INFORMASI DASAR -->
                   <div class="form-section-title">
-                     <i class="fa fa-info-circle"></i>
-                     <span>1. Informasi Dasar Paket</span>
-                     <span class="section-hint">Nama, kode identitas, status dan tombol CTA</span>
+                     <span>Informasi Dasar Paket</span>
                   </div>
 
                   <div class="form-group">
@@ -370,9 +368,7 @@
 
                   <!-- SECTION 2: PENAWARAN SPESIAL -->
                   <div class="form-section-title">
-                     <i class="fa fa-star text-yellow" style="color:#d97706 !important;"></i>
-                     <span>2. Penawaran Spesial (Highlight Card)</span>
-                     <span class="section-hint">Tandai paket rekomendasi / paling laris</span>
+                     <span>Penawaran Spesial (Highlight Card)</span>
                   </div>
 
                   <div class="form-group">
@@ -398,9 +394,7 @@
 
                   <!-- SECTION 3: KALKULATOR HARGA & DISKON BERTINGKAT -->
                   <div class="form-section-title">
-                     <i class="fa fa-calculator text-primary"></i>
-                     <span>3. Kalkulator Harga & Opsi Durasi Langganan (1, 3, 6, 12 Bulan)</span>
-                     <span class="section-hint">Kalkulasi diskon otomatis secara real-time</span>
+                     <span>Kalkulator Harga & Opsi Durasi Langganan (1, 3, 6, 12 Bulan)</span>
                   </div>
 
                   <div class="form-group">
@@ -494,9 +488,7 @@
 
                   <!-- SECTION 4: BATASAN KUOTA & LIMITS -->
                   <div class="form-section-title">
-                     <i class="fa fa-sliders text-warning"></i>
-                     <span>4. Batasan Kuota / Limits Paket</span>
-                     <span class="section-hint">Isi angka 0 untuk kuota tidak terbatas (Unlimited)</span>
+                     <span>Batasan Kuota / Limits Paket</span>
                   </div>
 
                   <div class="form-group">
@@ -556,9 +548,7 @@
 
                   <!-- SECTION 5: DAFTAR FITUR -->
                   <div class="form-section-title">
-                     <i class="fa fa-list-ul text-success"></i>
-                     <span>5. Daftar Fitur Unggulan Paket</span>
-                     <span class="section-hint">Fitur-fitur yang dicentang pada pricing card</span>
+                     <span>Daftar Fitur Unggulan Paket</span>
                   </div>
 
                   <div class="form-group">
