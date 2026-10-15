@@ -89,19 +89,6 @@
         <p id="op-subtitle" class="card-subtitle">Gunakan nomor HP yang terdaftar pada pesananmu.</p>
       </div>
 
-      <!-- Multiple Campaigns Selector (If applicable) -->
-      <?php if (!empty($active_campaigns) && count($active_campaigns) > 1): ?>
-        <div class="campaign-selector-box">
-          <label for="select-campaign">Pilih Event Promo:</label>
-          <select id="select-campaign" class="styled-select">
-            <?php foreach ($active_campaigns as $ac): ?>
-              <option value="<?= html_escape($ac['slug']); ?>" <?= $slug === $ac['slug'] ? 'selected' : ''; ?>>
-                <?= html_escape($ac['name']); ?> (<?= strtoupper($ac['channel']); ?>)
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      <?php endif; ?>
 
       <!-- Verification Form -->
       <form id="op-verify" class="verify-form">
@@ -165,9 +152,6 @@
           <p class="win-eyebrow">SELAMAT! KAMU MEMENANGKAN</p>
           <h3 id="op-prize" class="prize-title"></h3>
           <p id="op-status" class="prize-status-note"></p>
-          <button id="op-claim" type="button" class="btn-claim-action" hidden>
-            🎁 Klaim Hadiah Saya Sekarang
-          </button>
         </div>
 
         <button class="btn-reset-action" id="op-reset" type="button">

@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS `order_prize_campaigns` (
   `name` VARCHAR(160) NOT NULL,
   `channel` VARCHAR(20) NOT NULL DEFAULT 'shopee',
   `shop_ref` VARCHAR(80) NOT NULL,
+  `created_by` INT UNSIGNED DEFAULT NULL,
   `status` VARCHAR(12) NOT NULL DEFAULT 'draft',
+  `verification_mode` VARCHAR(12) NOT NULL DEFAULT 'auto',
   `starts_at` DATETIME NOT NULL,
   `ends_at` DATETIME NOT NULL,
   `claim_days` INT UNSIGNED NOT NULL DEFAULT 7,
@@ -18,12 +20,14 @@ CREATE TABLE IF NOT EXISTS `order_prize_campaigns` (
   `profit_total` BIGINT NOT NULL DEFAULT 0,
   `awarded_cost` BIGINT UNSIGNED NOT NULL DEFAULT 0,
   `created_at` DATETIME NOT NULL,
-  `updated_at` DATETIME NOT NULL
+  `updated_at` DATETIME NOT NULL,
+  KEY `idx_campaigns_created_by` (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `order_prize_items` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  `campaign_id` INT UNSIGNED NOT NULL,
+  `campaign_id` INT UNSIGNED NOT NULL DEFAULT 0,
+  `created_by` INT UNSIGNED DEFAULT NULL,
   `name` VARCHAR(160) NOT NULL,
   `description` TEXT NOT NULL,
   `kind` VARCHAR(16) NOT NULL DEFAULT 'physical',
@@ -40,7 +44,18 @@ CREATE TABLE IF NOT EXISTS `order_prize_items` (
   `created_at` DATETIME NOT NULL,
   `updated_at` DATETIME NOT NULL,
   KEY `campaign_active` (`campaign_id`, `active`),
-  KEY `campaign_id` (`campaign_id`)
+  KEY `campaign_id` (`campaign_id`),
+  KEY `idx_prizes_created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `order_prize_campaign_prizes` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `campaign_id` INT UNSIGNED NOT NULL,
+  `prize_id` INT UNSIGNED NOT NULL,
+  `created_at` DATETIME NOT NULL,
+  UNIQUE KEY `campaign_prize` (`campaign_id`, `prize_id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `prize_id` (`prize_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `order_prize_orders` (

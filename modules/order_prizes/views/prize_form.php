@@ -108,20 +108,26 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Pilih Target Campaign <span class="text-danger">*</span></label>
-                            <select name="campaign_id" id="prize-campaign-id" class="form-control" required <?= $mode === 'edit' ? 'disabled' : ''; ?>>
-                                <?php foreach ($campaigns_dropdown as $c): ?>
-                                    <option value="<?= $c['id']; ?>" <?= $prize['campaign_id'] == $c['id'] ? 'selected' : ''; ?>>
-                                        #<?= $c['id']; ?> - <?= html_escape($c['name']); ?> (<?= strtoupper($c['channel']); ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <?php if ($mode === 'edit'): ?>
-                                <input type="hidden" name="campaign_id" value="<?= $prize['campaign_id']; ?>">
-                                <span class="help-block text-muted">Hadiah tidak dapat dipindahkan ke campaign lain setelah dibuat.</span>
-                            <?php else: ?>
-                                <span class="help-block">Hadiah ini akan dimasukkan ke dalam roda spin campaign yang dipilih.</span>
-                            <?php endif; ?>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label style="margin-bottom: 0;">Hubungkan ke Campaign <span class="text-danger">*</span></label>
+                                <button type="button" class="btn btn-xs btn-default" id="btn-toggle-campaigns">
+                                    <i class="fa fa-check-square-o"></i> Pilih Semua
+                                </button>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; max-height: 140px; overflow-y: auto;">
+                                <?php if (empty($campaigns_dropdown)): ?>
+                                    <div class="text-muted" style="font-size: 12px;">Belum ada campaign dibuat. Hadiah tetap bisa disimpan sebagai master hadiah.</div>
+                                <?php else: foreach ($campaigns_dropdown as $c): ?>
+                                    <?php $isLinked = in_array((int)$c['id'], $linked_campaign_ids ?? [$prize['campaign_id']]); ?>
+                                    <div style="margin-bottom: 6px;">
+                                        <label style="font-weight: normal; cursor: pointer; margin-bottom: 0; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                                            <input type="checkbox" name="campaign_ids[]" class="campaign-item-checkbox" value="<?= $c['id']; ?>" <?= $isLinked ? 'checked' : ''; ?>>
+                                            <span><strong>#<?= $c['id']; ?></strong> - <?= html_escape($c['name']); ?> <span class="badge" style="font-size: 10px; background: #e2e8f0; color: #475569;"><?= strtoupper($c['channel']); ?></span></span>
+                                        </label>
+                                    </div>
+                                <?php endforeach; endif; ?>
+                            </div>
+                            <span class="help-block" style="font-size: 11.5px;">Satu hadiah ini bisa dihubungkan ke beberapa campaign sekaligus.</span>
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -186,68 +192,51 @@
                             <label>Biaya Internal Hadiah (Cost IDR) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-addon">Rp</span>
-                                <input type="number" name="cost" id="prize-cost" class="form-control" min="0" max="1000000000" placeholder="0" value="<?= html_escape($prize['cost']); ?>" required>
+                                <input type="text" inputmode="numeric" name="cost" id="prize-cost" class="form-control input-nominal" placeholder="0" value="<?= !empty($prize['cost']) ? number_format((int)$prize['cost'], 0, ',', '.') : '0'; ?>" required>
                             </div>
                             <span class="help-block">Biaya riil toko untuk menyediakan hadiah ini (untuk hadiah zonk/voucher tanpa biaya: isi <code>0</code>).</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- THRESHOLD RULES BOX -->
+                <!-- THRESHOLD RULES BOX (MURNI MANUAL) -->
+                <input type="hidden" name="auto_metric" value="none">
+                <input type="hidden" name="allocation_percent" value="0">
+
                 <div class="threshold-card">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                         <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">
-                            <i class="fa fa-sliders text-green"></i> Aturan Threshold (Kapan Hadiah Boleh Keluar?)
+                            <i class="fa fa-sliders text-green"></i> Aturan Threshold / Batas Aman (Kapan Hadiah Berpeluang Keluar?)
                         </h4>
-                        <span class="text-muted" style="font-size: 12px;">Semua syarat yang diisi harus terpenuhi (AND).</span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Threshold Otomatis (Auto Metric)</label>
-                                <select name="auto_metric" id="prize-auto-metric" class="form-control">
-                                    <option value="none" <?= $prize['auto_metric'] === 'none' ? 'selected' : ''; ?>>None (Gunakan Threshold Manual di bawah)</option>
-                                    <option value="profit" <?= $prize['auto_metric'] === 'profit' ? 'selected' : ''; ?>>Auto Profit (Kunci berdasarkan profit terkumpul)</option>
-                                    <option value="revenue" <?= $prize['auto_metric'] === 'revenue' ? 'selected' : ''; ?>>Auto Revenue (Kunci berdasarkan omset terkumpul)</option>
-                                </select>
-                                <span class="help-block">Jika memilih Auto, gate otomatis dihitung dari <code>Biaya × 100 / Alokasi %</code>.</span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Alokasi Biaya (%) untuk Auto Gate</label>
-                                <input type="number" name="allocation_percent" id="prize-allocation" class="form-control" min="1" max="100" value="<?= $prize['allocation_percent'] ?: 10; ?>">
-                                <span class="help-block">Contoh <code>10%</code>: Hadiah Rp100.000 baru boleh keluar setelah profit mencapai Rp1.000.000.</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr style="margin: 12px 0 18px; border-color: #e2e8f0;">
-                    <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px;">
-                        Aturan Manual Tambahan (Isi <code>0</code> jika tidak ingin membatasi):
+                        <span class="text-muted" style="font-size: 12px;">Kosongkan jika hadiah boleh keluar kapan saja tanpa syarat.</span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Setiap Kelipatan N Spin</label>
-                                <input type="number" name="threshold_spins" id="prize-thresh-spins" class="form-control" min="0" value="<?= $prize['threshold_spins'] ?: 0; ?>">
-                                <span class="help-block">Contoh <code>100</code>: Hadiah unit ke-1 eligible di spin ke-100, unit ke-2 di spin ke-200.</span>
+                                <label>Threshold Total Spin (Minimum Spin)</label>
+                                <input type="number" name="threshold_spins" id="prize-thresh-spins" class="form-control" min="0" placeholder="cth: 100" value="<?= !empty($prize['threshold_spins']) ? (int)$prize['threshold_spins'] : ''; ?>">
+                                <span class="help-block">Hadiah baru berpeluang keluar setelah campaign mencapai total spin ini.</span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Setiap Kelipatan Omset (Rp)</label>
-                                <input type="number" name="threshold_revenue" id="prize-thresh-revenue" class="form-control" min="0" value="<?= $prize['threshold_revenue'] ?: 0; ?>">
-                                <span class="help-block">Omset pesanan yang sudah spin.</span>
+                                <label>Threshold Omset (Minimum Omset)</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon">Rp</span>
+                                    <input type="text" inputmode="numeric" name="threshold_revenue" id="prize-thresh-revenue" class="form-control input-nominal" placeholder="cth: 10.000.000" value="<?= !empty($prize['threshold_revenue']) ? number_format((int)$prize['threshold_revenue'], 0, ',', '.') : ''; ?>">
+                                </div>
+                                <span class="help-block">Saat customer spin, omset toko harus sudah mencapai batas minimum ini agar hadiah berpeluang keluar.</span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Setiap Kelipatan Profit (Rp)</label>
-                                <input type="number" name="threshold_profit" id="prize-thresh-profit" class="form-control" min="0" value="<?= $prize['threshold_profit'] ?: 0; ?>">
-                                <span class="help-block">Profit pesanan yang sudah spin.</span>
+                                <label>Threshold Profit (Minimum Profit)</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon">Rp</span>
+                                    <input type="text" inputmode="numeric" name="threshold_profit" id="prize-thresh-profit" class="form-control input-nominal" placeholder="cth: 5.000.000" value="<?= !empty($prize['threshold_profit']) ? number_format((int)$prize['threshold_profit'], 0, ',', '.') : ''; ?>">
+                                </div>
+                                <span class="help-block">Saat customer spin, laba toko harus sudah mencapai batas minimum ini agar hadiah berpeluang keluar.</span>
                             </div>
                         </div>
                     </div>
@@ -293,10 +282,9 @@ $('#btn-preset-fallback').on('click', function() {
     $('#prize-unlimited').prop('checked', true);
     $('#prize-stock').val('').prop('disabled', true);
     $('#prize-cost').val('0');
-    $('#prize-auto-metric').val('none');
-    $('#prize-thresh-spins').val('0');
-    $('#prize-thresh-revenue').val('0');
-    $('#prize-thresh-profit').val('0');
+    $('#prize-thresh-spins').val('');
+    $('#prize-thresh-revenue').val('');
+    $('#prize-thresh-profit').val('');
 
     swal('Preset Diterapkan', 'Formulir hadiah Fallback (Zonk) telah diisi otomatis. Silakan klik Simpan.', 'info');
 });
@@ -305,10 +293,30 @@ $('#btn-preset-fallback').on('click', function() {
 $('#prize-kind').on('change', function() {
     if ($(this).val() === 'none') {
         $('#prize-cost').val('0');
-        $('#prize-auto-metric').val('none');
         $('#prize-unlimited').prop('checked', true);
         $('#prize-stock').val('').prop('disabled', true);
     }
+});
+
+// Realtime Rupiah / Nominal formatting per type
+$(document).on('input', '.input-nominal', function() {
+    var input = this;
+    var cursorPosition = input.selectionStart;
+    var originalLength = input.value.length;
+    var rawDigits = input.value.replace(/\D/g, '');
+
+    if (rawDigits === '') {
+        input.value = '';
+        return;
+    }
+
+    var formatted = rawDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    input.value = formatted;
+
+    var newLength = formatted.length;
+    var diff = newLength - originalLength;
+    var newPos = Math.max(0, cursorPosition + diff);
+    input.setSelectionRange(newPos, newPos);
 });
 
 // Save via AJAX
@@ -316,6 +324,13 @@ $('#form-prize').on('submit', function(e) {
     e.preventDefault();
     var formData = new FormData(this);
     formData.set(CSRF_NAME, CSRF_HASH);
+
+    // Bersihkan titik pemisah ribuan agar terkirim sebagai angka integer murni
+    formData.set('cost', ($('#prize-cost').val() || '').replace(/\D/g, '') || '0');
+    var threshRev = $('#prize-thresh-revenue').val();
+    formData.set('threshold_revenue', threshRev ? threshRev.replace(/\D/g, '') : '0');
+    var threshProf = $('#prize-thresh-profit').val();
+    formData.set('threshold_profit', threshProf ? threshProf.replace(/\D/g, '') : '0');
 
     if ($('#prize-unlimited').is(':checked')) {
         formData.set('stock', '');
@@ -367,6 +382,12 @@ $('#form-prize').on('submit', function(e) {
             $('#btn-save-prize').prop('disabled', false).html('<i class="fa fa-check"></i> Simpan Data Hadiah');
         }
     });
+});
+
+$('#btn-toggle-campaigns').on('click', function() {
+    var cbs = $('.campaign-item-checkbox');
+    var allChecked = cbs.length === cbs.filter(':checked').length;
+    cbs.prop('checked', !allChecked);
 });
 
 // Keyboard shortcuts

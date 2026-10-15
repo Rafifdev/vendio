@@ -144,7 +144,7 @@
                             <label>Nilai Omset / Belanja (IDR) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-addon">Rp</span>
-                                <input type="number" name="revenue" class="form-control" min="0" max="1000000000" placeholder="Contoh: 150000" value="<?= html_escape($order['revenue']); ?>" required>
+                                <input type="text" inputmode="numeric" name="revenue" id="order-revenue" class="form-control input-nominal" placeholder="Contoh: 150.000" value="<?= !empty($order['revenue']) ? number_format((int)$order['revenue'], 0, ',', '.') : ''; ?>" required>
                             </div>
                             <span class="help-block">Total pembayaran pesanan ini.</span>
                         </div>
@@ -154,9 +154,9 @@
                             <label>Estimasi Profit Bersih (IDR)</label>
                             <div class="input-group">
                                 <span class="input-group-addon">Rp</span>
-                                <input type="number" name="profit" class="form-control" placeholder="Kosongkan jika belum dihitung" value="<?= html_escape($order['profit']); ?>">
+                                <input type="text" inputmode="numeric" name="profit" id="order-profit" class="form-control input-nominal" placeholder="Contoh: 25.000 (Kosongkan jika belum ada)" value="<?= !empty($order['profit']) ? number_format((int)$order['profit'], 0, ',', '.') : ''; ?>">
                             </div>
-                            <span class="help-block">Opsional. Digunakan untuk perhitungan auto budget & gate profit.</span>
+                            <span class="help-block">Opsional. Digunakan jika ada hadiah dengan threshold minimum profit.</span>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -204,11 +204,37 @@ $('#order-phone').on('input', function() {
     $('#phone-preview').text(norm || '628...');
 });
 
+// Realtime Rupiah / Nominal formatting per type
+$(document).on('input', '.input-nominal', function() {
+    var input = this;
+    var cursorPosition = input.selectionStart;
+    var originalLength = input.value.length;
+    var rawDigits = input.value.replace(/\D/g, '');
+
+    if (rawDigits === '') {
+        input.value = '';
+        return;
+    }
+
+    var formatted = rawDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    input.value = formatted;
+
+    var newLength = formatted.length;
+    var diff = newLength - originalLength;
+    var newPos = Math.max(0, cursorPosition + diff);
+    input.setSelectionRange(newPos, newPos);
+});
+
 // Save via AJAX
 $('#form-order').on('submit', function(e) {
     e.preventDefault();
     var formData = new FormData(this);
     formData.set(CSRF_NAME, CSRF_HASH);
+
+    // Bersihkan titik pemisah ribuan agar terkirim sebagai angka integer murni
+    formData.set('revenue', ($('#order-revenue').val() || '').replace(/\D/g, '') || '0');
+    var profitVal = $('#order-profit').val();
+    formData.set('profit', profitVal ? profitVal.replace(/\D/g, '') : '');
 
     $('#btn-save-order').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan...');
 

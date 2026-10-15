@@ -38,9 +38,13 @@ class Order_prizes extends Admin
         $filters['page'] = $page;
         $filters['limit'] = 20;
 
-        $records = $this->prizes->listing($tab, $filters);
-        $stats = $this->prizes->get_summary_stats();
-        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown();
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        $records = $this->prizes->listing($tab, $filters, $userId, $isAdmin);
+        $stats = $this->prizes->get_summary_stats($userId, $isAdmin);
+        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
 
         $this->template->title('Order Prizes · Hadiah Pesanan');
         $this->render('order_prizes/admin_list', [
@@ -67,20 +71,41 @@ class Order_prizes extends Admin
     {
         $this->is_allowed('order_prizes_manage');
         $this->template->title('Tambah Campaign Baru · Order Prizes');
+
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        $tiktok_shops = $this->prizes->get_seller_tiktok_shops($userId, $isAdmin);
+
+        $query = $this->db->order_by('id', 'ASC')->where('active', 1);
+        if (!$isAdmin && !empty($userId)) {
+            $query->group_start()
+                ->where('created_by', $userId)
+                ->or_where('created_by IS NULL', null, false)
+                ->group_end();
+        }
+        $all_prizes = $query->get('order_prize_items')->result_array();
+        $selected_prize_ids = array_map('intval', array_column($all_prizes, 'id'));
+
         $this->render('order_prizes/campaign_form', [
             'mode' => 'add',
+            'tiktok_shops' => $tiktok_shops,
+            'all_prizes' => $all_prizes,
+            'selected_prize_ids' => $selected_prize_ids,
             'campaign' => [
                 'id' => 0,
                 'name' => '',
                 'slug' => '',
-                'channel' => 'shopee',
-                'shop_ref' => '',
-                'status' => 'draft',
+                'channel' => !empty($tiktok_shops) ? 'tiktok' : 'shopee',
+                'shop_ref' => $tiktok_shops[0]['shop_name'] ?? '',
+                'status' => 'active',
+                'verification_mode' => 'auto',
                 'starts_at' => date('Y-m-d H:i:s'),
                 'ends_at' => date('Y-m-d H:i:s', strtotime('+30 days')),
                 'claim_days' => 7,
                 'budget_profit_percent' => '',
-                'terms' => "1. Khusus pesanan terverifikasi yang telah berstatus Selesai/Paid.\n2. Satu nomor pesanan hanya berhak memutar 1 kali spin.\n3. Hadiah yang didapat wajib diklaim sebelum batas masa klaim berakhir.\n4. Keputusan hasil pengundian bersifat mutlak dan ditentukan secara transparan oleh sistem.",
+                'terms' => "1. Khusus pesanan terverifikasi yang telah berstatus Selesai/Paid.\n2. Satu nomor pesanan hanya berhak memutar 1 kali spin.\n3. Kesempatan spin berlaku maksimal sesuai batas hari sejak pesanan selesai.\n4. Hadiah yang didapat saat spin otomatis tercatat & langsung diklaim untuk diproses toko.\n5. Keputusan hasil pengundian bersifat mutlak dan ditentukan secara transparan oleh sistem.",
             ],
         ]);
     }
@@ -96,9 +121,37 @@ class Order_prizes extends Admin
             redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/campaigns');
         }
 
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        if (!$isAdmin && !empty($campaign['created_by']) && (int)$campaign['created_by'] !== $userId) {
+            set_message('Anda tidak memiliki akses ke campaign ini.', 'error');
+            redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/campaigns');
+        }
+
+        $tiktok_shops = $this->prizes->get_seller_tiktok_shops($userId, $isAdmin);
+
+        if (!isset($campaign['verification_mode'])) {
+            $campaign['verification_mode'] = 'auto';
+        }
+
+        $query = $this->db->order_by('id', 'ASC');
+        if (!$isAdmin && !empty($userId)) {
+            $query->group_start()
+                ->where('created_by', $userId)
+                ->or_where('created_by IS NULL', null, false)
+                ->group_end();
+        }
+        $all_prizes = $query->get('order_prize_items')->result_array();
+        $selected_prize_ids = $this->prizes->get_campaign_prize_ids($id);
+
         $this->template->title('Edit Campaign: ' . html_escape($campaign['name']));
         $this->render('order_prizes/campaign_form', [
             'mode' => 'edit',
+            'tiktok_shops' => $tiktok_shops,
+            'all_prizes' => $all_prizes,
+            'selected_prize_ids' => $selected_prize_ids,
             'campaign' => $campaign,
         ]);
     }
@@ -110,18 +163,20 @@ class Order_prizes extends Admin
     public function prize_add()
     {
         $this->is_allowed('order_prizes_manage');
-        $campaign_id = (int)$this->input->get('campaign_id');
-        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown();
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
 
-        if (empty($campaigns_dropdown)) {
-            set_message('Buat campaign terlebih dahulu sebelum menambahkan hadiah.', 'warning');
-            redirect(ADMIN_NAMESPACE_URL . '/order_prizes/campaign_add');
-        }
+        $campaign_id = (int)$this->input->get('campaign_id');
+        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
+
+        $linked_campaign_ids = $campaign_id ? [$campaign_id] : array_map('intval', array_column($campaigns_dropdown, 'id'));
 
         $this->template->title('Tambah Hadiah & Threshold · Order Prizes');
         $this->render('order_prizes/prize_form', [
             'mode' => 'add',
             'campaigns_dropdown' => $campaigns_dropdown,
+            'linked_campaign_ids' => $linked_campaign_ids,
             'default_campaign_id' => $campaign_id ?: ($campaigns_dropdown[0]['id'] ?? 0),
             'prize' => [
                 'id' => 0,
@@ -153,12 +208,23 @@ class Order_prizes extends Admin
             redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/prizes');
         }
 
-        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown();
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        if (!$isAdmin && !empty($prize['created_by']) && (int)$prize['created_by'] !== $userId) {
+            set_message('Anda tidak memiliki akses ke hadiah ini.', 'error');
+            redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/prizes');
+        }
+
+        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
+        $linked_campaign_ids = $this->prizes->get_prize_campaign_ids($id);
 
         $this->template->title('Edit Hadiah: ' . html_escape($prize['name']));
         $this->render('order_prizes/prize_form', [
             'mode' => 'edit',
             'campaigns_dropdown' => $campaigns_dropdown,
+            'linked_campaign_ids' => $linked_campaign_ids,
             'default_campaign_id' => $prize['campaign_id'],
             'prize' => $prize,
         ]);
@@ -171,8 +237,12 @@ class Order_prizes extends Admin
     public function order_add()
     {
         $this->is_allowed('order_prizes_manage');
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
         $campaign_id = (int)$this->input->get('campaign_id');
-        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown();
+        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
 
         if (empty($campaigns_dropdown)) {
             set_message('Buat campaign terlebih dahulu sebelum menambahkan pesanan.', 'warning');
@@ -208,7 +278,19 @@ class Order_prizes extends Admin
             redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/orders');
         }
 
-        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown();
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        if (!$isAdmin) {
+            $campaign = $this->prizes->get_row('campaigns', (int)$order['campaign_id']);
+            if (!empty($campaign['created_by']) && (int)$campaign['created_by'] !== $userId) {
+                set_message('Anda tidak memiliki akses ke pesanan ini.', 'error');
+                redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/orders');
+            }
+        }
+
+        $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
 
         $this->template->title('Edit Order #' . html_escape($order['order_number']));
         $this->render('order_prizes/order_form', [
@@ -254,7 +336,10 @@ class Order_prizes extends Admin
         $this->prize_json(function () use ($entity) {
             $this->authorize('order_prizes_view');
             $filters = $this->input->get(null, false);
-            return $this->prizes->listing($entity, is_array($filters) ? $filters : []);
+            $user = $this->aauth->get_user();
+            $userId = (int)($user->id ?? 0);
+            $isAdmin = (bool)$this->aauth->is_admin();
+            return $this->prizes->listing($entity, is_array($filters) ? $filters : [], $userId, $isAdmin);
         });
     }
 
@@ -262,10 +347,21 @@ class Order_prizes extends Admin
     {
         $this->prize_json(function () use ($id) {
             $this->authorize('order_prizes_fulfill');
+            $id = Order_prize_rules::integer($id, 'ID', 1, 4294967295);
+            $user = $this->aauth->get_user();
+            $userId = (int)($user->id ?? 0);
+            $isAdmin = (bool)$this->aauth->is_admin();
+            if (!$isAdmin) {
+                $spin = $this->prizes->get_row('spins', $id);
+                $campaign = $this->prizes->get_row('campaigns', (int)$spin['campaign_id']);
+                if (!empty($campaign['created_by']) && (int)$campaign['created_by'] !== $userId) {
+                    throw new Order_prize_error('Anda tidak memiliki akses ke data spin ini.', 403);
+                }
+            }
             return $this->prizes->fulfill(
-                Order_prize_rules::integer($id, 'ID', 1, 4294967295),
+                $id,
                 $this->prize_input(),
-                (int)$this->aauth->get_user()->id
+                $userId
             );
         }, 'POST');
     }
@@ -275,6 +371,15 @@ class Order_prizes extends Admin
         $this->prize_json(function () {
             $this->authorize('order_prizes_manage');
             $id = Order_prize_rules::integer($this->input->post('campaign_id'), 'Campaign', 1, 4294967295);
+            $user = $this->aauth->get_user();
+            $userId = (int)($user->id ?? 0);
+            $isAdmin = (bool)$this->aauth->is_admin();
+            if (!$isAdmin) {
+                $campaign = $this->prizes->get_row('campaigns', $id);
+                if (!empty($campaign['created_by']) && (int)$campaign['created_by'] !== $userId) {
+                    throw new Order_prize_error('Anda tidak memiliki akses ke campaign ini.', 403);
+                }
+            }
             $file = $_FILES['file'] ?? null;
             if (!$file || $file['error'] !== UPLOAD_ERR_OK || $file['size'] > 2097152 || !is_uploaded_file($file['tmp_name'])) {
                 throw new Order_prize_error('Upload CSV maksimal 2 MB.');
@@ -299,10 +404,43 @@ class Order_prizes extends Admin
                         throw new Order_prize_error('Maksimal 1000 baris per import.');
                     }
                 }
-                return $this->prizes->import_orders($id, $rows, (int)$this->aauth->get_user()->id);
+                return $this->prizes->import_orders($id, $rows, $userId);
             } finally {
                 fclose($handle);
             }
         }, 'POST');
+    }
+
+    public function sync_tiktok()
+    {
+        $this->prize_json(function () {
+            $this->authorize('order_prizes_manage');
+            $id = Order_prize_rules::integer($this->input->post('campaign_id'), 'Campaign', 1, 4294967295);
+            $user = $this->aauth->get_user();
+            $userId = (int)($user->id ?? 0);
+            $isAdmin = (bool)$this->aauth->is_admin();
+            if (!$isAdmin) {
+                $campaign = $this->prizes->get_row('campaigns', $id);
+                if (!empty($campaign['created_by']) && (int)$campaign['created_by'] !== $userId) {
+                    throw new Order_prize_error('Anda tidak memiliki akses ke campaign ini.', 403);
+                }
+            }
+            return $this->prizes->sync_tiktok_orders($id, $userId);
+        }, 'POST');
+    }
+
+    public function download_csv_template()
+    {
+        $this->is_allowed('order_prizes_manage');
+        $filename = 'template_order_prizes_' . date('Ymd_His') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        fputs($output, "\xEF\xBB\xBF");
+        fputcsv($output, ['order_number', 'phone', 'status', 'revenue', 'profit', 'ordered_at']);
+        fputcsv($output, ['261014ABC123', '081234567890', 'completed', '150000', '35000', date('Y-m-d H:i:s')]);
+        fputcsv($output, ['261014XYZ789', '081987654321', 'completed', '250000', '60000', date('Y-m-d H:i:s')]);
+        fclose($output);
+        exit;
     }
 }

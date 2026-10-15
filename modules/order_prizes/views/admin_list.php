@@ -303,6 +303,9 @@
                             <i class="fa fa-plus"></i> Tambah Hadiah Baru
                         </a>
                     <?php elseif ($active_tab === 'orders'): ?>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-sync-tiktok" style="margin-right: 6px; border-radius: 6px; font-weight: 600; color: #0284c7; border-color: #bae6fd; background: #f0f9ff;">
+                            <i class="fa fa-refresh text-blue"></i> Tarik Pesanan TikTok Otomatis
+                        </button>
                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-import-csv" style="margin-right: 6px; border-radius: 6px; font-weight: 600;">
                             <i class="fa fa-file-excel-o text-green"></i> Import CSV
                         </button>
@@ -447,7 +450,7 @@
                                 <td style="font-size: 12px; color: #475569;">
                                     <div><?= date('d M Y H:i', strtotime($item['starts_at'])); ?></div>
                                     <div style="color: #94a3b8;">s/d <?= date('d M Y H:i', strtotime($item['ends_at'])); ?></div>
-                                    <div style="color: #64748b; font-size: 11px;">Masa klaim: <?= $item['claim_days']; ?> hari</div>
+                                    <div style="color: #64748b; font-size: 11px;">Batas spin: <?= $item['claim_days']; ?> hari stlh pesanan</div>
                                 </td>
                                 <td>
                                     <span class="badge-status badge-<?= $item['status']; ?>">
@@ -513,7 +516,19 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge" style="background: #f1f5f9; color: #334155;">#<?= $item['campaign_id']; ?></span>
+                                    <?php if (!empty($item['campaigns'])): ?>
+                                        <div style="display: flex; flex-direction: column; gap: 3px;">
+                                            <?php foreach ($item['campaigns'] as $c): ?>
+                                                <span class="badge" style="background: #f1f5f9; color: #334155; text-align: left; white-space: normal; font-size: 11px;">
+                                                    #<?= $c['id']; ?> <?= html_escape($c['name']); ?>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php elseif (!empty($item['campaign_id'])): ?>
+                                        <span class="badge" style="background: #f1f5f9; color: #334155;">#<?= $item['campaign_id']; ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted" style="font-size: 11px;">Belum Terhubung</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="badge-kind badge-kind-<?= $item['kind']; ?>">
@@ -538,14 +553,14 @@
                                 <td style="font-size: 11.5px; color: #475569;">
                                     <?php if ($item['auto_metric'] !== 'none'): ?>
                                         <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
-                                            Auto <?= ucfirst($item['auto_metric']); ?> (<?= $item['allocation_percent']; ?>%)
+                                            Auto <?= $item['auto_metric'] === 'revenue' ? 'Omset' : 'Profit'; ?> (<?= $item['allocation_percent']; ?>%)
                                         </span>
                                     <?php elseif ($item['threshold_spins'] == 0 && $item['threshold_revenue'] == 0 && $item['threshold_profit'] == 0): ?>
                                         <span class="text-muted"><i class="fa fa-check text-green"></i> Tanpa Syarat (Terbuka)</span>
                                     <?php else: ?>
-                                        <?php if ($item['threshold_spins'] > 0): ?><div>• Tiap <?= number_format($item['threshold_spins']); ?> spin</div><?php endif; ?>
-                                        <?php if ($item['threshold_revenue'] > 0): ?><div>• Omset: Rp <?= number_format($item['threshold_revenue'], 0, ',', '.'); ?></div><?php endif; ?>
-                                        <?php if ($item['threshold_profit'] > 0): ?><div>• Profit: Rp <?= number_format($item['threshold_profit'], 0, ',', '.'); ?></div><?php endif; ?>
+                                        <?php if ($item['threshold_spins'] > 0): ?><div>• Min. Spin: <?= number_format($item['threshold_spins']); ?></div><?php endif; ?>
+                                        <?php if ($item['threshold_revenue'] > 0): ?><div>• Min. Omset: Rp <?= number_format($item['threshold_revenue'], 0, ',', '.'); ?></div><?php endif; ?>
+                                        <?php if ($item['threshold_profit'] > 0): ?><div>• Min. Profit: Rp <?= number_format($item['threshold_profit'], 0, ',', '.'); ?></div><?php endif; ?>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -882,8 +897,8 @@
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px;">
                         <code style="font-size: 12px; color: #0f172a;">order_number,phone,status,revenue,profit,ordered_at</code>
                         <div style="margin-top: 6px;">
-                            <a href="<?= base_url('docs/order_prizes_orders_template.csv'); ?>" download class="btn btn-xs btn-default">
-                                <i class="fa fa-download"></i> Unduh File Template CSV
+                            <a href="<?= site_url(ADMIN_NAMESPACE_URL . '/order_prizes/download_csv_template'); ?>" class="btn btn-xs btn-default">
+                                <i class="fa fa-download text-green"></i> Unduh File Template CSV Siap Pakai
                             </a>
                         </div>
                     </div>
@@ -907,6 +922,51 @@
                 <div class="modal-footer" style="border-top: 1px solid #edf2f7; padding: 16px 24px;">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary" id="btn-submit-csv">Mulai Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL SYNC TIKTOK ORDERS                   -->
+<!-- ========================================== -->
+<div class="modal fade" id="modal-sync-tiktok" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius: 8px;">
+            <div class="modal-header" style="border-bottom: 1px solid #edf2f7; padding: 18px 24px;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" style="font-weight: 700; color: #0f172a;"><i class="fa fa-refresh text-blue"></i> Tarik Pesanan Otomatis dari TikTok</h4>
+            </div>
+            <form id="form-sync-tiktok">
+                <div class="modal-body" style="padding: 24px;">
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; margin-bottom: 18px;">
+                        <div style="font-size: 13px; color: #166534; font-weight: 600;">
+                            <i class="fa fa-bolt"></i> Sinkronisasi Otomatis Tanpa Ribet
+                        </div>
+                        <p style="font-size: 12.5px; color: #15803d; margin: 4px 0 0; line-height: 1.5;">
+                            Sistem akan otomatis mengambil pesanan TikTok (Completed, Delivered, Shipped) yang sesuai dengan periode campaign dan memasukkannya ke daftar undian.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pilih Campaign Target <span class="text-danger">*</span></label>
+                        <select name="campaign_id" id="sync-tiktok-campaign-id" class="form-control" required>
+                            <option value="">-- Pilih Campaign --</option>
+                            <?php foreach ($campaigns_dropdown as $c): ?>
+                                <option value="<?= $c['id']; ?>" <?= ($filters['campaign_id'] ?? '') == $c['id'] ? 'selected' : ''; ?>>
+                                    #<?= $c['id']; ?> - <?= html_escape($c['name']); ?> (<?= strtoupper($c['channel']); ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="help-block" style="font-size: 11.5px;">Pesanan yang nomor HP-nya valid dan belum pernah dimasukkan akan otomatis didaftarkan.</span>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #edf2f7; padding: 16px 24px;">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-sync-tiktok" style="background: #0284c7; border-color: #0284c7; font-weight: 600;">
+                        <i class="fa fa-refresh"></i> Mulai Tarik Pesanan Sekarang
+                    </button>
                 </div>
             </form>
         </div>
@@ -1061,6 +1121,57 @@ $('#form-import-csv').on('submit', function(e) {
         },
         complete: function() {
             $('#btn-submit-csv').prop('disabled', false).html('Mulai Import');
+        }
+    });
+});
+
+$('#form-sync-tiktok').on('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    formData.append(CSRF_NAME, CSRF_HASH);
+
+    $('#btn-submit-sync-tiktok').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menarik Pesanan TikTok...');
+
+    $.ajax({
+        url: BASE_ADMIN + '/sync_tiktok',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res) {
+            if (res.csrf) CSRF_HASH = res.csrf.hash;
+            if (res.success) {
+                $('#modal-sync-tiktok').modal('hide');
+                swal({
+                    title: 'Sinkronisasi Selesai!',
+                    text: (res.data.synced || 0) + ' pesanan baru berhasil disinkronkan otomatis dari TikTok (dari ' + (res.data.total_candidates || 0) + ' pesanan yang diperiksa).',
+                    type: 'success'
+                }, function() {
+                    location.reload();
+                });
+            } else {
+                swal('Perhatian', res.message || 'Gagal sinkronisasi.', 'warning');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Terjadi kesalahan sistem saat sinkronisasi.';
+            if (xhr.status === 403) {
+                msg = 'Sesi atau token keamanan (CSRF) tidak valid / kedaluwarsa. Silakan refresh halaman (F5).';
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            } else if (xhr.responseText) {
+                try {
+                    var parsed = JSON.parse(xhr.responseText);
+                    if (parsed && parsed.message) msg = parsed.message;
+                } catch (_) {
+                    if (xhr.responseText.length < 200 && !xhr.responseText.includes('<html')) msg = xhr.responseText;
+                }
+            }
+            swal('Gagal Sinkronisasi', msg, 'error');
+        },
+        complete: function() {
+            $('#btn-submit-sync-tiktok').prop('disabled', false).html('<i class="fa fa-refresh"></i> Mulai Tarik Pesanan Sekarang');
         }
     });
 });

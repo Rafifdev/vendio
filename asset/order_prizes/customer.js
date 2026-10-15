@@ -201,16 +201,18 @@
     el('prize').textContent = result.prize_name;
 
     const text = {
-      pending: 'Hadiah berhasil didapat! Silakan klik Klaim sebelum ',
-      claimed: 'Klaim Anda telah berhasil dicatat. Tim toko akan segera menghubungi Anda.',
-      expired: 'Batas waktu klaim hadiah ini telah berakhir.',
-      rejected: 'Klaim hadiah ditolak. Silakan hubungi customer service toko.',
+      claimed: '🎉 Hadiah telah otomatis tercatat & diklaim! Tim toko akan segera memproses hadiah Anda.',
+      pending: '🎉 Hadiah telah otomatis tercatat & diklaim! Tim toko akan segera memproses hadiah Anda.',
+      expired: 'Batas waktu kesempatan spin untuk pesanan ini telah berakhir.',
+      rejected: 'Hadiah tidak dapat diproses. Silakan hubungi customer service toko.',
       not_required: 'Terima kasih atas partisipasi Anda! Belanja lagi untuk kesempatan berikutnya.'
     };
 
-    var deadlineStr = result.claim_deadline ? ' (' + result.claim_deadline + ' WIB).' : '';
-    el('status').textContent = (text[result.claim_status] || result.claim_status) + (result.claim_status === 'pending' ? deadlineStr : '');
-    el('claim').hidden = result.claim_status !== 'pending';
+    el('status').textContent = text[result.claim_status] || result.claim_status;
+    const claimBtn = el('claim');
+    if (claimBtn) {
+      claimBtn.hidden = true; // Otomatis klaim saat spin, tidak perlu tombol klaim manual
+    }
 
     if (result.prize_kind !== 'none') {
       playWinFanfare();
@@ -315,12 +317,15 @@
     message('Hasil tersimpan dengan aman.');
   });
 
-  // Claim Prize Action
-  el('claim').onclick = () => task(async () => {
-    const res = await api('claim', { token });
-    showResult(res);
-    message('Hadiah Anda berhasil diklaim! Operator toko akan segera menghubungi nomor WhatsApp Anda.');
-  });
+  // Claim Prize Action (if manual claim button exists)
+  const claimBtn = el('claim');
+  if (claimBtn) {
+    claimBtn.onclick = () => task(async () => {
+      const res = await api('claim', { token });
+      showResult(res);
+      message('Hadiah Anda berhasil diklaim! Operator toko akan segera menghubungi nomor WhatsApp Anda.');
+    });
+  }
 
   // Reset / Check Another Order
   el('reset').onclick = () => {

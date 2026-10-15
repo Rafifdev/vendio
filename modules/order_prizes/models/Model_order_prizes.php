@@ -27,7 +27,9 @@ class Model_order_prizes extends CI_Model
                   `name` VARCHAR(160) NOT NULL,
                   `channel` VARCHAR(20) NOT NULL DEFAULT 'shopee',
                   `shop_ref` VARCHAR(80) NOT NULL,
+                  `created_by` INT UNSIGNED DEFAULT NULL,
                   `status` VARCHAR(12) NOT NULL DEFAULT 'draft',
+                  `verification_mode` VARCHAR(12) NOT NULL DEFAULT 'auto',
                   `starts_at` DATETIME NOT NULL,
                   `ends_at` DATETIME NOT NULL,
                   `claim_days` INT UNSIGNED NOT NULL DEFAULT 7,
@@ -38,12 +40,14 @@ class Model_order_prizes extends CI_Model
                   `profit_total` BIGINT NOT NULL DEFAULT 0,
                   `awarded_cost` BIGINT UNSIGNED NOT NULL DEFAULT 0,
                   `created_at` DATETIME NOT NULL,
-                  `updated_at` DATETIME NOT NULL
+                  `updated_at` DATETIME NOT NULL,
+                  KEY `idx_campaigns_created_by` (`created_by`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 
                 "CREATE TABLE IF NOT EXISTS `order_prize_items` (
                   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                  `campaign_id` INT UNSIGNED NOT NULL,
+                  `campaign_id` INT UNSIGNED NOT NULL DEFAULT 0,
+                  `created_by` INT UNSIGNED DEFAULT NULL,
                   `name` VARCHAR(160) NOT NULL,
                   `description` TEXT NOT NULL,
                   `kind` VARCHAR(16) NOT NULL DEFAULT 'physical',
@@ -60,7 +64,8 @@ class Model_order_prizes extends CI_Model
                   `created_at` DATETIME NOT NULL,
                   `updated_at` DATETIME NOT NULL,
                   KEY `campaign_active` (`campaign_id`, `active`),
-                  KEY `campaign_id` (`campaign_id`)
+                  KEY `campaign_id` (`campaign_id`),
+                  KEY `idx_prizes_created_by` (`created_by`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 
                 "CREATE TABLE IF NOT EXISTS `order_prize_orders` (
@@ -154,6 +159,40 @@ class Model_order_prizes extends CI_Model
             }
             $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
         }
+
+        if ($this->db->table_exists('order_prize_campaigns')) {
+            if (!$this->db->field_exists('verification_mode', 'order_prize_campaigns')) {
+                $this->db->query("ALTER TABLE `order_prize_campaigns` ADD COLUMN `verification_mode` VARCHAR(12) NOT NULL DEFAULT 'auto' AFTER `status`");
+            }
+            if (!$this->db->field_exists('created_by', 'order_prize_campaigns')) {
+                $this->db->query("ALTER TABLE `order_prize_campaigns` ADD COLUMN `created_by` INT UNSIGNED NULL AFTER `channel`");
+                $this->db->query("ALTER TABLE `order_prize_campaigns` ADD KEY `idx_campaigns_created_by` (`created_by`)");
+            }
+        }
+
+        if ($this->db->table_exists('order_prize_items')) {
+            if (!$this->db->field_exists('created_by', 'order_prize_items')) {
+                $this->db->query("ALTER TABLE `order_prize_items` ADD COLUMN `created_by` INT UNSIGNED NULL AFTER `campaign_id`");
+                $this->db->query("ALTER TABLE `order_prize_items` ADD KEY `idx_prizes_created_by` (`created_by`)");
+            }
+        }
+
+        if (!$this->db->table_exists('order_prize_campaign_prizes')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `order_prize_campaign_prizes` (
+                `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                `campaign_id` INT UNSIGNED NOT NULL,
+                `prize_id` INT UNSIGNED NOT NULL,
+                `created_at` DATETIME NOT NULL,
+                UNIQUE KEY `campaign_prize` (`campaign_id`, `prize_id`),
+                KEY `campaign_id` (`campaign_id`),
+                KEY `prize_id` (`prize_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+
+            if ($this->db->table_exists('order_prize_items')) {
+                $this->db->query("INSERT IGNORE INTO `order_prize_campaign_prizes` (`campaign_id`, `prize_id`, `created_at`)
+                    SELECT `campaign_id`, `id`, `created_at` FROM `order_prize_items` WHERE `campaign_id` > 0");
+            }
+        }
     }
 
     private function q($sql, array $params = [])
@@ -216,12 +255,94 @@ class Model_order_prizes extends CI_Model
         if ($c['status'] !== 'active' || $now < $c['starts_at'] || $now > $c['ends_at']) throw new Order_prize_error('Campaign tidak sedang berlangsung.', 409);
     }
 
+    public function get_campaign_prizes($campaignId)
+    {
+        $campaignId = (int)$campaignId;
+        $sql = "SELECT DISTINCT p.* FROM order_prize_items p
+                LEFT JOIN order_prize_campaign_prizes cp ON cp.prize_id = p.id
+                WHERE (cp.campaign_id = ? OR p.campaign_id = ?)
+                ORDER BY p.id ASC";
+        return $this->q($sql, [$campaignId, $campaignId])->result_array();
+    }
+
+    public function get_campaign_prize_ids($campaignId)
+    {
+        $prizes = $this->get_campaign_prizes($campaignId);
+        return array_map('intval', array_column($prizes, 'id'));
+    }
+
+    public function get_prize_campaign_ids($prizeId)
+    {
+        $prizeId = (int)$prizeId;
+        $sql = "SELECT campaign_id FROM order_prize_campaign_prizes WHERE prize_id = ?";
+        $rows = $this->q($sql, [$prizeId])->result_array();
+        $ids = array_map('intval', array_column($rows, 'campaign_id'));
+        if (empty($ids)) {
+            $p = $this->row('order_prize_items', $prizeId);
+            if (!empty($p['campaign_id'])) $ids[] = (int)$p['campaign_id'];
+        }
+        return array_values(array_unique($ids));
+    }
+
+    public function get_prize_campaigns($prizeId)
+    {
+        $prizeId = (int)$prizeId;
+        $sql = "SELECT c.id, c.name, c.channel FROM order_prize_campaigns c
+                JOIN order_prize_campaign_prizes cp ON cp.campaign_id = c.id
+                WHERE cp.prize_id = ?
+                ORDER BY c.id ASC";
+        $list = $this->q($sql, [$prizeId])->result_array();
+        if (empty($list)) {
+            $p = $this->row('order_prize_items', $prizeId);
+            if (!empty($p['campaign_id'])) {
+                $c = $this->q("SELECT id, name, channel FROM order_prize_campaigns WHERE id = ?", [$p['campaign_id']])->row_array();
+                if ($c) $list[] = $c;
+            }
+        }
+        return $list;
+    }
+
+    public function sync_campaign_prizes($campaignId, array $prizeIds)
+    {
+        $campaignId = (int)$campaignId;
+        $this->q("DELETE FROM order_prize_campaign_prizes WHERE campaign_id = ?", [$campaignId]);
+        $now = $this->now();
+        foreach ($prizeIds as $pId) {
+            $pId = (int)$pId;
+            if ($pId > 0) {
+                $this->q("INSERT IGNORE INTO order_prize_campaign_prizes (campaign_id, prize_id, created_at) VALUES (?, ?, ?)",
+                    [$campaignId, $pId, $now]);
+            }
+        }
+    }
+
+    public function sync_prize_campaigns($prizeId, array $campaignIds)
+    {
+        $prizeId = (int)$prizeId;
+        $this->q("DELETE FROM order_prize_campaign_prizes WHERE prize_id = ?", [$prizeId]);
+        $now = $this->now();
+        foreach ($campaignIds as $cId) {
+            $cId = (int)$cId;
+            if ($cId > 0) {
+                $this->q("INSERT IGNORE INTO order_prize_campaign_prizes (campaign_id, prize_id, created_at) VALUES (?, ?, ?)",
+                    [$cId, $prizeId, $now]);
+            }
+        }
+    }
+
     private function require_fallback($campaignId)
     {
-        foreach ($this->q('SELECT * FROM order_prize_items WHERE campaign_id = ?', [$campaignId])->result_array() as $p) {
+        foreach ($this->get_campaign_prizes($campaignId) as $p) {
             if (Order_prize_rules::fallback($p)) return;
         }
-        $this->insert('order_prize_items', [
+        // Link existing master fallback prize if one exists
+        $fallback = $this->q("SELECT id FROM order_prize_items WHERE kind = 'none' AND cost = 0 LIMIT 1")->row_array();
+        if ($fallback) {
+            $this->q("INSERT IGNORE INTO order_prize_campaign_prizes (campaign_id, prize_id, created_at) VALUES (?, ?, ?)",
+                [$campaignId, $fallback['id'], $this->now()]);
+            return;
+        }
+        $fbId = $this->insert('order_prize_items', [
             'campaign_id' => $campaignId,
             'name' => 'Belum Beruntung (Coba Lagi)',
             'description' => 'Terima kasih telah berbelanja dan berpartisipasi dalam undian pesanan.',
@@ -239,6 +360,51 @@ class Model_order_prizes extends CI_Model
             'created_at' => $this->now(),
             'updated_at' => $this->now(),
         ]);
+        $this->q("INSERT IGNORE INTO order_prize_campaign_prizes (campaign_id, prize_id, created_at) VALUES (?, ?, ?)",
+            [$campaignId, $fbId, $this->now()]);
+    }
+
+    public function get_seller_tiktok_shops($userId, $isAdmin = false)
+    {
+        if (!$this->db->table_exists('tiktok_shops')) {
+            return [];
+        }
+
+        if ($isAdmin || empty($userId)) {
+            return $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result_array();
+        }
+
+        $shops = [];
+        $shopIds = [];
+
+        if ($this->db->field_exists('created_by', 'tiktok_shops')) {
+            $direct = $this->db->where('created_by', (int)$userId)
+                ->order_by('shop_name', 'ASC')
+                ->get('tiktok_shops')
+                ->result_array();
+            foreach ($direct as $s) {
+                $shops[] = $s;
+                $shopIds[] = $s['id'];
+            }
+        }
+
+        if ($this->db->table_exists('tiktok_oauth_states')) {
+            $this->db->select('s.*')
+                ->from('tiktok_shops s')
+                ->join('tiktok_oauth_states o', 'o.shop_id = s.id')
+                ->where('o.created_by', (int)$userId)
+                ->group_by('s.id')
+                ->order_by('s.shop_name', 'ASC');
+            if (!empty($shopIds)) {
+                $this->db->where_not_in('s.id', $shopIds);
+            }
+            $fromStates = $this->db->get()->result_array();
+            foreach ($fromStates as $s) {
+                $shops[] = $s;
+            }
+        }
+
+        return $shops;
     }
 
     public function save_campaign(array $input, $id, $actor)
@@ -247,14 +413,31 @@ class Model_order_prizes extends CI_Model
             $old = $id ? $this->row('order_prize_campaigns', $id, true) : [];
             $data = Order_prize_rules::campaign(array_merge($old, $input));
             if ($id) {
+                if (!empty($actor) && !empty($old['created_by']) && (int)$old['created_by'] !== (int)$actor && !$this->aauth->is_admin((int)$actor)) {
+                    throw new Order_prize_error('Tidak memiliki akses ke campaign ini.', 403);
+                }
                 $used = $this->q('SELECT id FROM order_prize_orders WHERE campaign_id = ? LIMIT 1', [$id])->row_array();
                 foreach (['slug','channel','shop_ref'] as $field) {
                     if ($used && $data[$field] !== $old[$field]) throw new Order_prize_error('Identitas campaign tidak bisa diubah setelah ada order.', 409);
                 }
+            } else {
+                $data['created_by'] = !empty($actor) ? (int)$actor : null;
             }
             $data['updated_at'] = $this->now();
             if ($id) $this->update('order_prize_campaigns', $id, $data);
             else $id = $this->insert('order_prize_campaigns', $data + ['created_at'=>$this->now()]);
+
+            // Sync prizes linked to this campaign
+            if (isset($input['prize_ids']) && is_array($input['prize_ids'])) {
+                $this->sync_campaign_prizes($id, array_map('intval', $input['prize_ids']));
+            } elseif (!$id || empty($old)) {
+                // Auto-link active master prizes belonging to this seller or global fallback
+                $allActive = $this->q("SELECT id FROM order_prize_items WHERE active = 1 AND (created_by = ? OR created_by IS NULL)", [!empty($actor) ? (int)$actor : 0])->result_array();
+                if (!empty($allActive)) {
+                    $this->sync_campaign_prizes($id, array_column($allActive, 'id'));
+                }
+            }
+
             if ($data['status'] === 'active') $this->require_fallback($id);
             $this->audit($actor, 'campaign.save', 'campaigns', $id, ['before'=>$old, 'after'=>$data]);
             return $this->row('order_prize_campaigns', $id);
@@ -263,21 +446,43 @@ class Model_order_prizes extends CI_Model
 
     public function save_prize(array $input, $id, $actor)
     {
-        $context = $id ? $this->row('order_prize_items', $id) : [];
-        $campaignId = Order_prize_rules::integer($context['campaign_id'] ?? ($input['campaign_id'] ?? ''), 'Campaign', 1, 4294967295);
-        return $this->transaction(function () use ($input, $id, $actor, $campaignId) {
-            $c = $this->row('order_prize_campaigns', $campaignId, true);
+        return $this->transaction(function () use ($input, $id, $actor) {
             $old = $id ? $this->row('order_prize_items', $id, true) : [];
-            $data = Order_prize_rules::prize(array_merge($old, $input));
-            if ($data['campaign_id'] !== $campaignId) throw new Order_prize_error('Hadiah tidak bisa dipindah campaign.');
-            if (!$id && $this->q('SELECT COUNT(*) n FROM order_prize_items WHERE campaign_id = ?', [$campaignId])->row()->n >= 100) {
-                throw new Order_prize_error('Maksimal 100 hadiah per campaign.');
+
+            if ($id) {
+                if (!empty($actor) && !empty($old['created_by']) && (int)$old['created_by'] !== (int)$actor && !$this->aauth->is_admin((int)$actor)) {
+                    throw new Order_prize_error('Tidak memiliki akses ke hadiah ini.', 403);
+                }
+            } else {
+                $data['created_by'] = !empty($actor) ? (int)$actor : null;
+            }
+
+            // Campaign IDs can be passed as array campaign_ids or single campaign_id
+            $campaignIds = [];
+            if (!empty($input['campaign_ids']) && is_array($input['campaign_ids'])) {
+                $campaignIds = array_filter(array_map('intval', $input['campaign_ids']));
+            } elseif (!empty($input['campaign_id'])) {
+                $campaignIds = [(int)$input['campaign_id']];
+            }
+            $primaryCampaignId = !empty($campaignIds) ? reset($campaignIds) : (int)($old['campaign_id'] ?? 0);
+
+            $data = Order_prize_rules::prize(array_merge($old, $input, ['campaign_id' => $primaryCampaignId]));
+            if (!$id && !empty($actor)) {
+                $data['created_by'] = (int)$actor;
             }
             $data['updated_at'] = $this->now();
-            if ($id) $this->update('order_prize_items', $id, $data);
-            else $id = $this->insert('order_prize_items', $data + ['created_at'=>$this->now()]);
-            if ($c['status'] === 'active') $this->require_fallback($campaignId);
-            $this->audit($actor, 'prize.save', 'prizes', $id, ['before'=>$old, 'after'=>$data]);
+            if ($id) {
+                $this->update('order_prize_items', $id, $data);
+            } else {
+                $id = $this->insert('order_prize_items', $data + ['created_at'=>$this->now()]);
+            }
+
+            // Sync with order_prize_campaign_prizes
+            if (!empty($campaignIds)) {
+                $this->sync_prize_campaigns($id, $campaignIds);
+            }
+
+            $this->audit($actor, 'prize.save', 'prizes', $id, ['before'=>$old, 'after'=>$data, 'campaigns'=>$campaignIds]);
             return $this->row('order_prize_items', $id);
         });
     }
@@ -346,6 +551,92 @@ class Model_order_prizes extends CI_Model
         });
     }
 
+    public function sync_tiktok_orders($campaignId, $actor = null)
+    {
+        return $this->transaction(function () use ($campaignId, $actor) {
+            $c = $this->row('order_prize_campaigns', $campaignId, true);
+            if (!$this->db->table_exists('tiktok_orders')) {
+                throw new Order_prize_error('Modul TikTok Orders tidak ditemukan di database.');
+            }
+
+            // Find shop condition if shop_ref specified and not all
+            $shopId = null;
+            if (!empty($c['shop_ref']) && !in_array(strtolower($c['shop_ref']), ['all', 'semua toko', 'default', ''], true)) {
+                if ($this->db->table_exists('tiktok_shops')) {
+                    $shop = $this->db->group_start()
+                        ->where('shop_name', $c['shop_ref'])
+                        ->or_where('shop_code', $c['shop_ref'])
+                        ->or_where('shop_id', $c['shop_ref'])
+                        ->group_end()
+                        ->get('tiktok_shops')
+                        ->row_array();
+                    if ($shop) {
+                        $shopId = $shop['id'];
+                    }
+                }
+            }
+
+            $this->db->from('tiktok_orders');
+            if ($shopId) {
+                $this->db->where('tiktok_shop_id', $shopId);
+            }
+            $this->db->where_in('order_status', ['COMPLETED', 'DELIVERED', 'SHIPPED', 'IN_TRANSIT', 'AWAITING_COLLECTION']);
+            $this->db->where('recipient_phone IS NOT NULL');
+            $this->db->where('recipient_phone !=', '');
+
+            if (!empty($c['starts_at'])) {
+                $this->db->where('order_created_time >=', $c['starts_at']);
+            }
+            if (!empty($c['ends_at'])) {
+                $this->db->where('order_created_time <=', $c['ends_at']);
+            }
+
+            $orders = $this->db->get()->result_array();
+            $synced = 0;
+            $now = $this->now();
+
+            foreach ($orders as $tOrder) {
+                $rawPhone = trim($tOrder['recipient_phone'] ?? '');
+                try {
+                    $phone = Order_prize_rules::phone($rawPhone);
+                } catch (Throwable $e) {
+                    continue;
+                }
+
+                $orderNumber = strtoupper(trim($tOrder['order_id']));
+                if (strlen($orderNumber) < 4) continue;
+
+                $exists = $this->q('SELECT id FROM order_prize_orders WHERE campaign_id = ? AND order_number = ?', [$c['id'], $orderNumber])->row_array();
+                if ($exists) continue;
+
+                $orderData = [
+                    'campaign_id' => (int)$c['id'],
+                    'channel' => 'tiktok',
+                    'shop_ref' => $c['shop_ref'] ?: 'TIKTOK',
+                    'order_number' => $orderNumber,
+                    'phone' => $phone,
+                    'status' => in_array($tOrder['order_status'], ['COMPLETED', 'DELIVERED'], true) ? 'completed' : 'paid',
+                    'revenue' => (int)round($tOrder['total_amount'] ?? 0),
+                    'profit' => null,
+                    'ordered_at' => $tOrder['order_created_time'] ?: $now,
+                    'source' => 'tiktok_sync',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $this->insert('order_prize_orders', $orderData);
+                $synced++;
+            }
+
+            $this->audit($actor, 'orders.tiktok_sync', 'campaigns', $c['id'], [
+                'synced_count' => $synced,
+                'total_candidates' => count($orders),
+            ]);
+
+            return ['synced' => $synced, 'total_candidates' => count($orders)];
+        });
+    }
+
     public function rate_limit($scope, $identity, $limit = 30)
     {
         $window = intdiv(time(), 900);
@@ -363,7 +654,7 @@ class Model_order_prizes extends CI_Model
         if ($c['status'] === 'draft') throw new Order_prize_error('Campaign belum dipublikasikan.', 404);
         return ['status'=>$c['status'], 'is_open'=>$c['status'] === 'active' && $this->now() >= $c['starts_at'] && $this->now() <= $c['ends_at'], 'slug'=>$c['slug'], 'name'=>$c['name'], 'terms'=>$c['terms'], 'ends_at'=>$c['ends_at'],
             'claim_days'=>(int)$c['claim_days'], 'timezone'=>date_default_timezone_get(),
-            'prizes'=>$this->q('SELECT id,name,description,kind FROM order_prize_items WHERE campaign_id = ? AND active = 1 ORDER BY id', [$c['id']])->result_array()];
+            'prizes'=>$this->q('SELECT DISTINCT p.id, p.name, p.description, p.kind FROM order_prize_items p LEFT JOIN order_prize_campaign_prizes cp ON cp.prize_id = p.id WHERE (cp.campaign_id = ? OR p.campaign_id = ?) AND p.active = 1 ORDER BY p.id ASC', [$c['id'], $c['id']])->result_array()];
     }
 
     public function verify($slug, $number, $phone, $consent)
@@ -374,12 +665,32 @@ class Model_order_prizes extends CI_Model
         $this->rate_limit('order', $slug . ':' . $number, 10);
         return $this->transaction(function () use ($slug, $number, $phone, $consent) {
             $c = $this->q('SELECT * FROM order_prize_campaigns WHERE slug = ? FOR UPDATE', [$slug])->row_array();
-            if (!$c) throw new Order_prize_error('Pesanan/nomor HP tidak memenuhi syarat.', 422);
+            if (!$c) throw new Order_prize_error('Campaign tidak ditemukan.', 404);
+            $this->active($c);
+
             $o = $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ? FOR UPDATE', [$c['id'], $number])->row_array();
-            if (!$o || !hash_equals($o['phone'], $phone)) throw new Order_prize_error('Pesanan/nomor HP tidak memenuhi syarat.', 422);
+
+            // 1. On-Demand Auto-Discovery from TikTok Orders
+            if (!$o && $this->db->table_exists('tiktok_orders')) {
+                $o = $this->auto_discover_tiktok_order($c, $number, $phone);
+            }
+
+            // 2. On-Demand Auto-Registration for Auto Verification Mode (Shopee / Open / Testing)
+            $vMode = $c['verification_mode'] ?? 'auto';
+            if (!$o && $vMode === 'auto') {
+                $o = $this->auto_register_customer_order($c, $number, $phone);
+            }
+
+            if (!$o) {
+                throw new Order_prize_error('Nomor pesanan belum terdaftar dalam campaign ini.', 422);
+            }
+
+            if (!hash_equals($o['phone'], $phone)) {
+                throw new Order_prize_error('Nomor WhatsApp/HP tidak cocok dengan data pesanan.', 422);
+            }
+
             $spin = $this->q('SELECT * FROM order_prize_spins WHERE order_id = ?', [$o['id']])->row_array();
             if (!$spin) {
-                $this->active($c);
                 $this->eligible_order($o, $c);
             }
             $token = bin2hex(random_bytes(32));
@@ -395,10 +706,92 @@ class Model_order_prizes extends CI_Model
         });
     }
 
+    private function auto_discover_tiktok_order(array $c, $number, $phone)
+    {
+        $this->db->from('tiktok_orders')
+            ->where('order_id', $number);
+
+        $tOrder = $this->db->get()->row_array();
+        if (!$tOrder) return null;
+
+        $rawPhone = trim($tOrder['recipient_phone'] ?? '');
+        try {
+            $normalizedPhone = Order_prize_rules::phone($rawPhone);
+        } catch (Throwable $e) {
+            $normalizedPhone = '';
+        }
+
+        if ($normalizedPhone !== '' && !hash_equals($normalizedPhone, $phone)) {
+            return null;
+        }
+
+        $now = $this->now();
+        $orderData = [
+            'campaign_id' => (int)$c['id'],
+            'channel' => 'tiktok',
+            'shop_ref' => $c['shop_ref'] ?: 'TIKTOK',
+            'order_number' => $number,
+            'phone' => $phone,
+            'status' => in_array($tOrder['order_status'], ['COMPLETED', 'DELIVERED'], true) ? 'completed' : 'paid',
+            'revenue' => (int)round($tOrder['total_amount'] ?? 0),
+            'profit' => null,
+            'ordered_at' => $tOrder['order_created_time'] ?: $now,
+            'source' => 'tiktok_auto',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        try {
+            $id = $this->insert('order_prize_orders', $orderData);
+            return $this->q('SELECT * FROM order_prize_orders WHERE id = ?', [$id])->row_array();
+        } catch (Throwable $e) {
+            return $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ?', [$c['id'], $number])->row_array();
+        }
+    }
+
+    private function auto_register_customer_order(array $c, $number, $phone)
+    {
+        $now = $this->now();
+        $orderData = [
+            'campaign_id' => (int)$c['id'],
+            'channel' => $c['channel'] ?: 'shopee',
+            'shop_ref' => $c['shop_ref'] ?: 'DEFAULT',
+            'order_number' => $number,
+            'phone' => $phone,
+            'status' => 'completed',
+            'revenue' => 50000,
+            'profit' => null,
+            'ordered_at' => $now,
+            'source' => 'customer_auto',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        try {
+            $id = $this->insert('order_prize_orders', $orderData);
+            return $this->q('SELECT * FROM order_prize_orders WHERE id = ?', [$id])->row_array();
+        } catch (Throwable $e) {
+            return $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ?', [$c['id'], $number])->row_array();
+        }
+    }
+
     private function eligible_order(array $o, array $c)
     {
-        if (!in_array($o['status'], ['paid','completed'], true) || $o['ordered_at'] < $c['starts_at'] || $o['ordered_at'] > $c['ends_at']) {
-            throw new Order_prize_error('Pesanan tidak memenuhi syarat.', 422);
+        if (!in_array($o['status'], ['paid','completed'], true)) {
+            throw new Order_prize_error('Status order belum selesai/lunas (' . $o['status'] . ').', 422);
+        }
+        if ($o['ordered_at'] < $c['starts_at'] || $o['ordered_at'] > $c['ends_at']) {
+            throw new Order_prize_error('Waktu transaksi pesanan berada di luar periode campaign (' . date('d M Y', strtotime($c['starts_at'])) . ' - ' . date('d M Y', strtotime($c['ends_at'])) . ').', 422);
+        }
+        // Batas waktu kesempatan spin maksimal N hari sejak pesanan
+        $claimDays = (int)($c['claim_days'] ?? 0);
+        if ($claimDays > 0) {
+            $orderTime = strtotime($o['ordered_at']);
+            $expireTime = $orderTime + ($claimDays * 86400);
+            if (time() > $expireTime) {
+                $tglBatas = date('d M Y H:i', $expireTime);
+                throw new Order_prize_error("Kesempatan spin untuk pesanan ini telah hangus (Batas maksimal {$claimDays} hari setelah pesanan: s/d {$tglBatas}).", 422);
+            }
         }
     }
 
@@ -436,21 +829,23 @@ class Model_order_prizes extends CI_Model
             foreach ($totals as $value) {
                 if (abs($value) > 100000000000000) throw new Order_prize_error('Batas akumulasi campaign tercapai.', 409);
             }
-            $prizes = $this->q('SELECT * FROM order_prize_items WHERE campaign_id = ? ORDER BY id FOR UPDATE', [$c['id']])->result_array();
+            $prizes = $this->q('SELECT DISTINCT p.* FROM order_prize_items p LEFT JOIN order_prize_campaign_prizes cp ON cp.prize_id = p.id WHERE (cp.campaign_id = ? OR p.campaign_id = ?) ORDER BY p.id ASC FOR UPDATE', [$c['id'], $c['id']])->result_array();
             $eligible = array_values(array_filter($prizes, function ($p) use ($totals, $c) { return Order_prize_rules::eligible($p, $totals, $c['budget_profit_percent']); }));
             $winner = Order_prize_rules::draw($eligible);
             $decision = ['totals'=>$totals, 'budget_profit_percent'=>$c['budget_profit_percent'], 'eligible_weights'=>[], 'winner_rules'=>$winner];
             foreach ($eligible as $p) $decision['eligible_weights'][$p['id']] = (int)$p['weight'];
             $none = $winner['kind'] === 'none';
+            $now = $this->now();
             $id = $this->insert('order_prize_spins', [
                 'campaign_id'=>$c['id'], 'order_id'=>$o['id'], 'token_id'=>$t['id'], 'prize_id'=>$winner['id'],
                 'order_number'=>$o['order_number'], 'phone'=>$o['phone'], 'prize_name'=>$winner['name'],
                 'prize_kind'=>$winner['kind'], 'prize_cost'=>$winner['cost'], 'spin_type'=>'order',
-                'claim_status'=>$none ? 'not_required' : 'pending', 'prize_status'=>$none ? 'not_required' : 'reserved',
+                'claim_status'=>$none ? 'not_required' : 'claimed', // Sudah spin = sudah klaim otomatis!
+                'prize_status'=>$none ? 'not_required' : 'reserved',
                 'follow_up_status'=>$none ? 'closed' : 'pending', 'broadcast_status'=>'not_sent',
                 'marketing_consent'=>$t['marketing_consent'], 'notes'=>'',
                 'decision_json'=>json_encode($decision, JSON_UNESCAPED_UNICODE),
-                'spun_at'=>$this->now(), 'claim_deadline'=>date('Y-m-d H:i:s', time() + (int)$c['claim_days'] * 86400), 'updated_at'=>$this->now(),
+                'spun_at'=>$now, 'claim_deadline'=>$now, 'claimed_at'=>$none ? null : $now, 'updated_at'=>$now,
             ]);
             $this->q('UPDATE order_prize_items SET stock = IF(stock IS NULL,NULL,stock-1), awarded_count=awarded_count+1, updated_at=? WHERE id=?', [$this->now(), $winner['id']]);
             $totals['awarded_cost'] += (int)$winner['cost'];
@@ -531,7 +926,7 @@ class Model_order_prizes extends CI_Model
         });
     }
 
-    public function listing($entity, array $filters)
+    public function listing($entity, array $filters, $userId = null, $isAdmin = false)
     {
         if (!isset($this->tables[$entity])) throw new Order_prize_error('Modul tidak ditemukan.', 404);
         $table = $this->tables[$entity];
@@ -553,10 +948,34 @@ class Model_order_prizes extends CI_Model
             foreach ($search as $field) { $parts[] = '`' . $field . '` LIKE ?'; $params[] = '%' . $this->db->escape_like_str(Order_prize_rules::text($filters['q'], 'Pencarian', 100)) . '%'; }
             $where[] = '(' . implode(" ESCAPE '!' OR ", $parts) . " ESCAPE '!')";
         }
+
+        // Multi-Seller Scope Isolation
+        if (!$isAdmin && !empty($userId)) {
+            if ($entity === 'campaigns') {
+                $where[] = "(`created_by` = ? OR `created_by` IS NULL)";
+                $params[] = (int)$userId;
+            } elseif ($entity === 'prizes') {
+                $where[] = "(`created_by` = ? OR `created_by` IS NULL)";
+                $params[] = (int)$userId;
+            } elseif ($entity === 'orders' || $entity === 'spins') {
+                $where[] = "`campaign_id` IN (SELECT `id` FROM `order_prize_campaigns` WHERE `created_by` = ? OR `created_by` IS NULL)";
+                $params[] = (int)$userId;
+            } elseif ($entity === 'audit') {
+                $where[] = "(`actor_id` = ? OR `actor_id` IS NULL)";
+                $params[] = (int)$userId;
+            }
+        }
+
         $where = implode(' AND ', $where);
         $total = (int)$this->q('SELECT COUNT(*) n FROM ' . $table . ' WHERE ' . $where, $params)->row()->n;
         $rows = $this->q('SELECT * FROM ' . $table . ' WHERE ' . $where . ' ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . (($page - 1) * $limit), $params)->result_array();
         if ($entity === 'spins') $rows = array_map([$this, 'effective_spin'], $rows);
+        if ($entity === 'prizes') {
+            foreach ($rows as &$r) {
+                $r['campaigns'] = $this->get_prize_campaigns($r['id']);
+            }
+            unset($r);
+        }
         return ['items'=>$rows, 'total'=>$total, 'page'=>$page, 'limit'=>$limit];
     }
 
@@ -566,20 +985,39 @@ class Model_order_prizes extends CI_Model
         return $this->row($table, $id);
     }
 
-    public function get_campaigns_dropdown()
+    public function get_campaigns_dropdown($userId = null, $isAdmin = false)
     {
-        return $this->q('SELECT id, name, slug, status, channel, shop_ref FROM order_prize_campaigns ORDER BY id DESC')->result_array();
+        if ($isAdmin || empty($userId)) {
+            return $this->q('SELECT id, name, slug, status, channel, shop_ref FROM order_prize_campaigns ORDER BY id DESC')->result_array();
+        }
+        return $this->q('SELECT id, name, slug, status, channel, shop_ref FROM order_prize_campaigns WHERE created_by = ? OR created_by IS NULL ORDER BY id DESC', [(int)$userId])->result_array();
     }
 
-    public function get_summary_stats()
+    public function get_summary_stats($userId = null, $isAdmin = false)
     {
         try {
-            $total_c = (int)$this->q('SELECT COUNT(*) n FROM order_prize_campaigns')->row()->n;
-            $active_c = (int)$this->q("SELECT COUNT(*) n FROM order_prize_campaigns WHERE status = 'active'")->row()->n;
-            $total_p = (int)$this->q('SELECT COUNT(*) n FROM order_prize_items')->row()->n;
-            $total_o = (int)$this->q('SELECT COUNT(*) n FROM order_prize_orders')->row()->n;
-            $total_s = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins')->row()->n;
-            $metric = $this->q('SELECT COALESCE(SUM(revenue_total),0) rev, COALESCE(SUM(profit_total),0) prof, COALESCE(SUM(awarded_cost),0) cost FROM order_prize_campaigns')->row();
+            $wCampaign = "1=1";
+            $pCampaign = [];
+            $wPrize = "1=1";
+            $pPrize = [];
+            $wOrder = "1=1";
+            $pOrder = [];
+
+            if (!$isAdmin && !empty($userId)) {
+                $wCampaign = "(created_by = ? OR created_by IS NULL)";
+                $pCampaign = [(int)$userId];
+                $wPrize = "(created_by = ? OR created_by IS NULL)";
+                $pPrize = [(int)$userId];
+                $wOrder = "campaign_id IN (SELECT id FROM order_prize_campaigns WHERE created_by = ? OR created_by IS NULL)";
+                $pOrder = [(int)$userId];
+            }
+
+            $total_c = (int)$this->q("SELECT COUNT(*) n FROM order_prize_campaigns WHERE {$wCampaign}", $pCampaign)->row()->n;
+            $active_c = (int)$this->q("SELECT COUNT(*) n FROM order_prize_campaigns WHERE status = 'active' AND {$wCampaign}", $pCampaign)->row()->n;
+            $total_p = (int)$this->q("SELECT COUNT(*) n FROM order_prize_items WHERE {$wPrize}", $pPrize)->row()->n;
+            $total_o = (int)$this->q("SELECT COUNT(*) n FROM order_prize_orders WHERE {$wOrder}", $pOrder)->row()->n;
+            $total_s = (int)$this->q("SELECT COUNT(*) n FROM order_prize_spins WHERE {$wOrder}", $pOrder)->row()->n;
+            $metric = $this->q("SELECT COALESCE(SUM(revenue_total),0) rev, COALESCE(SUM(profit_total),0) prof, COALESCE(SUM(awarded_cost),0) cost FROM order_prize_campaigns WHERE {$wCampaign}", $pCampaign)->row();
             return [
                 'total_campaigns' => $total_c,
                 'active_campaigns' => $active_c,
@@ -612,6 +1050,19 @@ class Model_order_prizes extends CI_Model
         $old = $this->row($table, $id);
         
         return $this->transaction(function () use ($entity, $table, $id, $old, $actor) {
+            if (!empty($actor) && !$this->aauth->is_admin((int)$actor)) {
+                if ($entity === 'campaigns' || $entity === 'prizes') {
+                    if (isset($old['created_by']) && !empty($old['created_by']) && (int)$old['created_by'] !== (int)$actor) {
+                        throw new Order_prize_error('Tidak memiliki izin menghapus data ini.', 403);
+                    }
+                } elseif ($entity === 'orders') {
+                    $c = $this->row('order_prize_campaigns', $old['campaign_id']);
+                    if (isset($c['created_by']) && !empty($c['created_by']) && (int)$c['created_by'] !== (int)$actor) {
+                        throw new Order_prize_error('Tidak memiliki izin menghapus data ini.', 403);
+                    }
+                }
+            }
+
             if ($entity === 'campaigns') {
                 $has_orders = (int)$this->q('SELECT COUNT(*) n FROM order_prize_orders WHERE campaign_id = ?', [$id])->row()->n;
                 if ($has_orders > 0) {
@@ -619,7 +1070,7 @@ class Model_order_prizes extends CI_Model
                     $this->audit($actor, 'campaign.end', 'campaigns', $id, ['reason'=>'deactivated_has_orders']);
                     return ['deleted'=>false, 'message'=>'Campaign memiliki order terkait, status diubah menjadi Ended.'];
                 }
-                $this->q('DELETE FROM order_prize_items WHERE campaign_id = ?', [$id]);
+                $this->q('DELETE FROM order_prize_campaign_prizes WHERE campaign_id = ?', [$id]);
                 $this->q('DELETE FROM order_prize_campaigns WHERE id = ?', [$id]);
             } elseif ($entity === 'prizes') {
                 $has_spins = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins WHERE prize_id = ?', [$id])->row()->n;
@@ -628,6 +1079,7 @@ class Model_order_prizes extends CI_Model
                     $this->audit($actor, 'prize.deactivate', 'prizes', $id, ['reason'=>'deactivated_has_spins']);
                     return ['deleted'=>false, 'message'=>'Hadiah sudah pernah dimenangkan, status diubah menjadi Non-Aktif.'];
                 }
+                $this->q('DELETE FROM order_prize_campaign_prizes WHERE prize_id = ?', [$id]);
                 $this->q('DELETE FROM order_prize_items WHERE id = ?', [$id]);
             } elseif ($entity === 'orders') {
                 $spun = (int)$this->q('SELECT COUNT(*) n FROM order_prize_spins WHERE order_id = ?', [$id])->row()->n;

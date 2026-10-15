@@ -29,6 +29,9 @@ class Order_prize_rules
     public static function integer($value, $name, $min = 0, $max = 1000000000000, $nullable = false)
     {
         if ($nullable && ($value === null || $value === '')) return null;
+        if (is_string($value)) {
+            $value = str_replace(['.', ',', ' '], '', trim($value));
+        }
         if ((!is_int($value) && !is_string($value)) || !preg_match('/^-?\d+$/D', (string) $value) || $value < $min || $value > $max) {
             throw new Order_prize_error($name . ' harus bilangan bulat ' . $min . '–' . $max . '.');
         }
@@ -69,14 +72,15 @@ class Order_prize_rules
 
     public static function campaign(array $in)
     {
-        $d = array_merge(['status'=>'draft', 'channel'=>'shopee', 'claim_days'=>7, 'budget_profit_percent'=>null, 'terms'=>''], $in);
+        $d = array_merge(['status'=>'active', 'channel'=>'shopee', 'verification_mode'=>'auto', 'claim_days'=>7, 'budget_profit_percent'=>null, 'terms'=>''], $in);
         $slug = self::text($d['slug'] ?? '', 'Slug', 80);
         if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) throw new Order_prize_error('Slug harus huruf kecil, angka, dan strip.');
         $out = [
             'slug'=>$slug, 'name'=>self::text($d['name'] ?? '', 'Nama', 160),
-            'channel'=>self::choice($d['channel'], 'Channel', ['shopee','tiktok','other']),
+            'channel'=>self::choice($d['channel'], 'Channel', ['shopee','tiktok','tokopedia','lazada','other']),
             'shop_ref'=>self::text($d['shop_ref'] ?? '', 'Referensi toko', 80),
             'status'=>self::choice($d['status'], 'Status', ['draft','active','paused','ended']),
+            'verification_mode'=>self::choice($d['verification_mode'] ?? 'auto', 'Mode Verifikasi', ['auto','strict']),
             'starts_at'=>self::datetime($d['starts_at'] ?? '', 'Mulai'),
             'ends_at'=>self::datetime($d['ends_at'] ?? '', 'Selesai'),
             'claim_days'=>self::integer($d['claim_days'], 'Batas klaim (hari)', 1, 90),
@@ -92,7 +96,7 @@ class Order_prize_rules
     {
         $d = array_merge(['description'=>'','kind'=>'physical','active'=>1,'weight'=>1,'stock'=>null,'cost'=>0,
             'threshold_spins'=>0,'threshold_revenue'=>0,'threshold_profit'=>0,'auto_metric'=>'none','allocation_percent'=>10], $in);
-        $out = ['campaign_id'=>self::integer($d['campaign_id'] ?? '', 'Campaign', 1, 4294967295),
+        $out = ['campaign_id'=>self::integer($d['campaign_id'] ?? 0, 'Campaign', 0, 4294967295, true) ?: 0,
             'name'=>self::text($d['name'] ?? '', 'Nama hadiah', 160),
             'description'=>self::text($d['description'], 'Deskripsi', 4000, false),
             'kind'=>self::choice($d['kind'], 'Jenis hadiah', ['physical','voucher','none']),

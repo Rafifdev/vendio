@@ -1,8 +1,21 @@
-email : developer@gmail.com
-password : developer
+# 🚀 Vendio Omnichannel
+
+Aplikasi omnichannel management e-commerce (TikTok Shop, Shopee, Tokopedia, Lazada, & Order Loyalty Engine).
+
+---
+
+## 🎁 Modul Baru: Order Prizes (Vendio Rewards)
+Panduan lengkap arsitektur multi-tenant, threshold pengaman finansial, dan dokumentasi operasional modul Order Prizes tersedia di:
+👉 **[README_ORDER_PRIZES.md](README_ORDER_PRIZES.md)**
+
+---
+
+Default Login Demo:
+- **Email**: `developer@gmail.com`
+- **Password**: `developer`
 
 ###################
-CiCOOL
+CiCOOL Engine
 ###################
 
 **Feature**
