@@ -94,7 +94,6 @@ class Blog extends Admin
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|max_length[10]');
 		$this->form_validation->set_rules('meta_description', 'Meta Description', 'trim|max_length[255]');
 		$this->form_validation->set_rules('meta_keywords', 'Meta Keywords', 'trim|max_length[255]');
-		$this->form_validation->set_rules('read_time', 'Read Time', 'trim|numeric');
 		$this->form_validation->set_rules('published_at', 'Published At', 'trim');
 		
 
@@ -111,11 +110,8 @@ class Blog extends Admin
 				$excerpt = character_limiter(strip_tags($content), 160);
 			}
 
-			$read_time = (int)$this->input->post('read_time');
-			if ($read_time <= 0) {
-				$words = str_word_count(strip_tags($content));
-				$read_time = max(1, (int)ceil($words / 200));
-			}
+			$words = str_word_count(strip_tags($content));
+			$read_time = max(1, (int)ceil($words / 200));
 
 			$post_published = $this->input->post('published_at');
 			$published_at = !empty($post_published) ? date('Y-m-d H:i:s', strtotime($post_published)) : date('Y-m-d H:i:s');
@@ -254,7 +250,6 @@ class Blog extends Admin
 		$this->form_validation->set_rules('status', 'Status', 'trim|required|max_length[10]');
 		$this->form_validation->set_rules('meta_description', 'Meta Description', 'trim|max_length[255]');
 		$this->form_validation->set_rules('meta_keywords', 'Meta Keywords', 'trim|max_length[255]');
-		$this->form_validation->set_rules('read_time', 'Read Time', 'trim|numeric');
 		$this->form_validation->set_rules('published_at', 'Published At', 'trim');
 		
 		if ($this->form_validation->run()) {
@@ -271,11 +266,8 @@ class Blog extends Admin
 				$excerpt = character_limiter(strip_tags($content), 160);
 			}
 
-			$read_time = (int)$this->input->post('read_time');
-			if ($read_time <= 0) {
-				$words = str_word_count(strip_tags($content));
-				$read_time = max(1, (int)ceil($words / 200));
-			}
+			$words = str_word_count(strip_tags($content));
+			$read_time = max(1, (int)ceil($words / 200));
 
 			$post_published = $this->input->post('published_at');
 			$published_at = !empty($post_published) ? date('Y-m-d H:i:s', strtotime($post_published)) : date('Y-m-d H:i:s');

@@ -288,23 +288,18 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="title" id="title" placeholder="Masukkan judul artikel blog..." value="<?= set_value('title'); ?>">
-                                <small class="info help-block">
-                                Judul artikel blog yang informatif dan menarik untuk pembaca.</small>
+                                <input type="text" class="form-control" name="title" id="title" placeholder="Judul artikel..." value="<?= set_value('title'); ?>">
+                                <small class="info help-block">Tulis judul artikel yang menarik.</small>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="slug" class="control-label">Slug URL (Permalink) 
+                            <label for="slug" class="control-label">Slug URL 
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <div class="input-group">
-                                    <span class="input-group-addon" style="background: #f8fafc; font-size: 12.5px; color: #64748b;"><?= site_url('blog/'); ?></span>
-                                    <input type="text" class="form-control" name="slug" id="slug" placeholder="masukkan-slug-artikel" value="<?= set_value('slug'); ?>">
-                                </div>
-                                <small class="info help-block">
-                                Tautan permanen artikel untuk SEO (otomatis terisi dari judul, atau bisa disesuaikan manual).</small>
+                                <input type="text" class="form-control" name="slug" id="slug" placeholder="slug-artikel" value="<?= set_value('slug'); ?>">
+                                <small class="info help-block">Tautan URL artikel (otomatis terisi dari judul).</small>
                             </div>
                         </div>
 
@@ -313,83 +308,13 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <select class="form-control chosen chosen-select-deselect" name="category" id="category" data-placeholder="Pilih Kategori Blog">
+                                <select class="form-control chosen chosen-select-deselect" name="category" id="category" data-placeholder="Pilih Kategori">
                                     <option value=""></option>
                                     <?php foreach (db_get_all_data('blog_category') as $row): ?>
                                     <option value="<?= $row->category_id ?>" <?= set_value('category') == $row->category_id ? 'selected' : ''; ?>><?= $row->category_name; ?></option>
                                     <?php endforeach; ?>  
                                 </select>
-                                <small class="info help-block">
-                                Pilih kategori yang sesuai untuk artikel blog ini. <a href="<?= site_url('administrator/blog_category'); ?>" target="_blank"><i class="fa fa-external-link"></i> Kelola Kategori</a></small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="status" class="control-label">Status Publikasi 
-                            <i class="required">*</i>
-                            </label>
-                            <div class="col-sm-8">
-                                <select class="form-control chosen chosen-select" name="status" id="status" data-placeholder="Pilih Status Publikasi">
-                                    <option value="publish" <?= (set_value('status') == 'publish' || !set_value('status')) ? 'selected' : ''; ?>>Publish</option>
-                                    <option value="draft" <?= set_value('status') == 'draft' ? 'selected' : ''; ?>>Draft</option>
-                                    <option value="archive" <?= set_value('status') == 'archive' ? 'selected' : ''; ?>>Archive</option>
-                                </select>
-                                <small class="info help-block">
-                                Tentukan status publikasi artikel (Publish, Draft, atau Archive).</small>
-                            </div>
-                        </div>
-
-
-                        <div class="form-group">
-                            <label for="published_at" class="control-label">Jadwal Publikasi 
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="datetime-local" class="form-control" name="published_at" id="published_at" style="max-width: 280px;" value="<?= set_value('published_at', date('Y-m-d\TH:i')); ?>">
-                                <small class="info help-block">
-                                Atur tanggal dan waktu terbit. Jika diatur di masa depan, artikel tidak akan tampil di publik sebelum waktunya.</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="read_time" class="control-label">Estimasi Waktu Baca 
-                            </label>
-                            <div class="col-sm-8">
-                                <div class="input-group" style="max-width: 170px;">
-                                    <input type="number" min="1" max="180" class="form-control" name="read_time" id="read_time" placeholder="3" value="<?= set_value('read_time', 3); ?>">
-                                    <span class="input-group-addon" style="background: #f8fafc; font-size: 12.5px; color: #64748b;">Menit</span>
-                                </div>
-                                <small class="info help-block">
-                                Estimasi durasi membaca artikel (otomatis dihitung dari jumlah kata atau dapat disesuaikan).</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="excerpt" class="control-label">Ringkasan Singkat (Excerpt) 
-                            </label>
-                            <div class="col-sm-8">
-                                <textarea id="excerpt" name="excerpt" rows="3" class="form-control" placeholder="Tuliskan 1-2 kalimat ringkasan cuplikan artikel untuk kartu blog di halaman depan..."><?= set_value('excerpt'); ?></textarea>
-                                <small class="info help-block">
-                                Cuplikan singkat yang akan tampil di kartu blog dan preview link (opsional, jika kosong otomatis diambil dari isi konten).</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="tags" class="control-label">Tag Artikel 
-                            </label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" name="tags" id="tags" placeholder="Contoh: Ecommerce, Bisnis, Tips" value="<?= set_value('tags'); ?>">
-                                <small class="info help-block">
-                                Pisahkan dengan tanda koma (,) untuk menambahkan beberapa tag (opsional).</small>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="meta_description" class="control-label">SEO Meta Description 
-                            </label>
-                            <div class="col-sm-8">
-                                <textarea id="meta_description" name="meta_description" rows="2" maxlength="200" class="form-control" placeholder="Deskripsi singkat untuk hasil pencarian Google dan preview saat link dibagikan di WhatsApp..."><?= set_value('meta_description'); ?></textarea>
-                                <small class="info help-block">
-                                Disarankan 140–160 karakter agar tidak terpotong di Google dan pesan WhatsApp (opsional).</small>
+                                <small class="info help-block">Pilih kategori artikel. <a href="<?= site_url('administrator/blog_category'); ?>" target="_blank"><i class="fa fa-external-link"></i> Kelola Kategori</a></small>
                             </div>
                         </div>
 
@@ -399,8 +324,16 @@
                             <div class="col-sm-8">
                                 <div id="blog_image_galery"></div>
                                 <div id="blog_image_galery_listed"></div>
-                                <small class="info help-block">
-                                <b>Format file yang diizinkan:</b> JPG, JPEG, PNG.</small>
+                                <small class="info help-block">Format file: JPG, JPEG, PNG.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="excerpt" class="control-label">Ringkasan (Excerpt) 
+                            </label>
+                            <div class="col-sm-8">
+                                <textarea id="excerpt" name="excerpt" rows="3" class="form-control" placeholder="Tulis ringkasan singkat artikel..."><?= set_value('excerpt'); ?></textarea>
+                                <small class="info help-block">Opsional. Cuplikan untuk kartu blog & preview link.</small>
                             </div>
                         </div>
 
@@ -409,9 +342,49 @@
                             <i class="required">*</i>
                             </label>
                             <div class="col-sm-8">
-                                <textarea id="content" name="content" rows="12" class="textarea form-control" placeholder="Tuliskan isi artikel blog di sini..."><?= set_value('content'); ?></textarea>
-                                <small class="info help-block">
-                                Tuliskan isi konten artikel secara lengkap dengan teks, format heading, dan media.</small>
+                                <textarea id="content" name="content" rows="12" class="textarea form-control" placeholder="Tulis isi artikel di sini..."><?= set_value('content'); ?></textarea>
+                                <small class="info help-block">Isi utama artikel blog.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status" class="control-label">Status Publikasi 
+                            <i class="required">*</i>
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control chosen chosen-select" name="status" id="status" data-placeholder="Pilih Status">
+                                    <option value="publish" <?= (set_value('status') == 'publish' || !set_value('status')) ? 'selected' : ''; ?>>Publish</option>
+                                    <option value="draft" <?= set_value('status') == 'draft' ? 'selected' : ''; ?>>Draft</option>
+                                    <option value="archive" <?= set_value('status') == 'archive' ? 'selected' : ''; ?>>Archive</option>
+                                </select>
+                                <small class="info help-block">Pilih status publikasi artikel.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="published_at" class="control-label">Jadwal Publikasi 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="datetime-local" class="form-control" name="published_at" id="published_at" style="max-width: 260px;" value="<?= set_value('published_at', date('Y-m-d\TH:i')); ?>">
+                                <small class="info help-block">Tanggal dan waktu terbit artikel.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tags" class="control-label">Tag Artikel 
+                            </label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="tags" id="tags" placeholder="Contoh: Bisnis, Tips, Marketing" value="<?= set_value('tags'); ?>">
+                                <small class="info help-block">Pisahkan tag dengan tanda koma (,).</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="meta_description" class="control-label">SEO Meta Description 
+                            </label>
+                            <div class="col-sm-8">
+                                <textarea id="meta_description" name="meta_description" rows="2" maxlength="200" class="form-control" placeholder="Deskripsi singkat untuk mesin pencari & media sosial..."><?= set_value('meta_description'); ?></textarea>
+                                <small class="info help-block">Disarankan 140–160 karakter (opsional).</small>
                             </div>
                         </div>
 
@@ -464,20 +437,6 @@
       width: '100%'
     }); 
     var content = CKEDITOR.instances.content;
-
-    // Auto-calculate reading time on content change
-    content.on('change', function() {
-      var plainText = content.getData().replace(/<[^>]*>/g, '').trim();
-      var wordCount = plainText.length ? plainText.split(/\s+/).length : 0;
-      var minutes = Math.max(1, Math.ceil(wordCount / 200));
-      if (!$('#read_time').data('manual')) {
-        $('#read_time').val(minutes);
-      }
-    });
-
-    $('#read_time').on('input', function() {
-      $(this).data('manual', true);
-    });
                    
     $('#btn_cancel').click(function(){
       swal({
