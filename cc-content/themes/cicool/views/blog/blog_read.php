@@ -86,7 +86,7 @@ foreach ($toc_tree as $h2) {
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Vendio Brand Fonts (Impact BC & Vladivostok) -->
@@ -1416,73 +1416,82 @@ foreach ($toc_tree as $h2) {
             color: var(--primary-purple);
             text-decoration: underline;
         }
-        .article-cat-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            background: rgba(139, 154, 110, 0.14);
-            color: #55643b;
-            border: 1px solid rgba(139, 154, 110, 0.28);
-            padding: 4px 14px;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 18px;
+        .article-read-estimate {
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: block;
+            line-height: 1.4;
         }
         .article-title {
-            font-family: var(--font-heading);
-            font-size: clamp(2rem, 3.8vw, 2.85rem);
+            font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+            font-size: clamp(2.1rem, 3.8vw, 2.9rem);
             font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.25;
-            margin-bottom: 22px;
-            color: var(--text-title);
+            letter-spacing: -0.015em;
+            line-height: 1.28;
+            margin-bottom: 16px;
+            color: #1e293b;
         }
-        .article-meta-row {
+        .article-meta-dates {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 10px;
+            line-height: 1.5;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             flex-wrap: wrap;
-            gap: 16px;
-            padding-bottom: 22px;
-            border-bottom: 1px solid var(--border-light);
-            font-size: 0.88rem;
-            color: var(--text-muted);
+            gap: 6px;
         }
-        .article-author-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .author-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(139, 154, 110, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #55643b;
+        .article-meta-dates .meta-date-label {
             font-weight: 700;
-            border: 1px solid rgba(139, 154, 110, 0.3);
+            color: #1e293b;
+        }
+        .article-meta-dates .meta-date-val {
+            font-weight: 400;
+            color: #475569;
+        }
+        .article-meta-dates .meta-date-sep {
+            color: #94a3b8;
+            margin: 0 4px;
+            font-size: 0.8rem;
+        }
+        .article-author-by {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .article-author-by .author-by-label {
+            color: #64748b;
+            font-weight: 400;
+        }
+        .article-author-by .author-by-name {
+            color: #2563eb;
+            font-weight: 600;
         }
 
-        /* Featured Image */
+        /* Featured Image - Borderless, clean 16:9 ratio */
         .article-cover-wrap {
-            margin: 32px 0 38px;
-            border-radius: 20px;
+            margin: 24px 0 34px;
+            border-radius: 16px;
             overflow: hidden;
-            border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-card);
-            background: #f7f2eb;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent;
+            width: 100%;
+            aspect-ratio: 16 / 9;
         }
         .article-cover-img {
             width: 100%;
-            max-height: 480px;
+            height: 100%;
+            aspect-ratio: 16 / 9;
             object-fit: cover;
             display: block;
+            border-radius: 16px;
+            border: none !important;
         }
 
         /* Article Content / Prose */
@@ -1537,7 +1546,8 @@ foreach ($toc_tree as $h2) {
             height: auto;
             border-radius: 14px;
             margin: 24px 0;
-            border: 1px solid var(--border-light);
+            border: none !important;
+            box-shadow: none !important;
         }
 
         /* Tags Strip */
@@ -2094,40 +2104,52 @@ foreach ($toc_tree as $h2) {
 
             <!-- Right Side: Article Body -->
             <div class="article-main-col">
-                <!-- Article Header -->
+                <!-- Article Header (Matching Simple Layout in Reference Image 2) -->
                 <header class="article-header" id="heading-article-title">
-                    <div class="article-breadcrumbs">
-                        <a href="<?= site_url(); ?>"><i class="fa-solid fa-house"></i> Home</a>
-                        <span>/</span>
-                        <a href="<?= site_url('blog'); ?>">Blog</a>
-                        <span>/</span>
-                        <span><?= !empty($blog->category_name) ? _ent($blog->category_name) : 'Ritel & Omnichannel'; ?></span>
-                    </div>
+                    <?php 
+                        $article_read_time = !empty($blog->read_time) ? intval($blog->read_time) : max(1, ceil(str_word_count(strip_tags($blog->content)) / 200));
 
-                    <span class="article-cat-badge">
-                        <i class="fa-solid fa-tag"></i> <?= !empty($blog->category_name) ? _ent($blog->category_name) : 'VENDIO RESEARCH'; ?>
-                    </span>
+                        $bulan_indo_art = [
+                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                        ];
+
+                        $pub_ts = strtotime(!empty($blog->published_at) ? $blog->published_at : ($blog->created_at ?: 'now'));
+                        $pub_date_str = date('j', $pub_ts) . ' ' . $bulan_indo_art[(int)date('n', $pub_ts)] . ' ' . date('Y', $pub_ts);
+
+                        // Check if article has ever been updated
+                        $is_art_updated = false;
+                        if (!empty($blog->updated_at) && $blog->updated_at != '0000-00-00 00:00:00') {
+                            $upd_ts = strtotime($blog->updated_at);
+                            $created_ts = strtotime($blog->created_at ?: '');
+                            if ($upd_ts > 0 && ($created_ts <= 0 || $upd_ts > $created_ts)) {
+                                $is_art_updated = true;
+                            }
+                        }
+
+                        if ($is_art_updated) {
+                            $upd_date_str = date('j', $upd_ts) . ' ' . $bulan_indo_art[(int)date('n', $upd_ts)] . ' ' . date('Y', $upd_ts);
+                        } else {
+                            $upd_date_str = '-';
+                        }
+
+                        $author_display_name = !empty($blog->author_name) ? $blog->author_name : (!empty($blog->author) ? $blog->author : 'Tim Vendio');
+                    ?>
+
+                    <div class="article-read-estimate"><?= $article_read_time; ?> mins read</div>
 
                     <h1 class="article-title"><?= _ent($blog->title); ?></h1>
 
-                    <div class="article-meta-row">
-                        <div class="article-author-info">
-                            <div class="author-avatar">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 700; color: var(--text-title);"><?= _ent($blog->author ?: 'Tim Vendio'); ?></div>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-regular fa-calendar" style="margin-right: 4px;"></i><?= date('d F Y', strtotime(!empty($blog->published_at) ? $blog->published_at : ($blog->created_at ?: 'now'))); ?></div>
-                            </div>
-                        </div>
+                    <div class="article-meta-dates">
+                        <span class="meta-date-label">Diterbitkan</span> <span class="meta-date-val"><?= $pub_date_str; ?></span>
+                        <span class="meta-date-sep">&bull;</span>
+                        <span class="meta-date-label">Diperbarui</span> <span class="meta-date-val"><?= $upd_date_str; ?></span>
+                    </div>
 
-                        <div style="display: flex; align-items: center; gap: 18px; font-weight: 500;">
-                            <span><i class="fa-regular fa-eye" style="color: var(--primary-purple); margin-right: 4px;"></i> <?= intval($blog->viewers); ?> pembaca</span>
-                            <?php 
-                                $article_read_time = !empty($blog->read_time) ? intval($blog->read_time) : max(1, ceil(str_word_count(strip_tags($blog->content)) / 200));
-                            ?>
-                            <span><i class="fa-regular fa-clock" style="color: var(--primary-purple); margin-right: 4px;"></i> <?= $article_read_time; ?> menit baca</span>
-                        </div>
+                    <div class="article-author-by">
+                        <span class="author-by-label">Ditulis oleh:</span>
+                        <span class="author-by-name"><?= _ent($author_display_name); ?></span>
                     </div>
                 </header>
 
