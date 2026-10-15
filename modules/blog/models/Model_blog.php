@@ -92,7 +92,7 @@ class Model_blog extends MY_Model {
         if ($where) {
             $this->db->where($where);
         }
-        $this->db->select('blog.*, blog_category.category_name, blog_category.category_desc');
+        $this->db->select('blog.*, blog_category.category_name, blog_category.category_desc, aauth_users.full_name as author_name, aauth_users.avatar as author_avatar');
         $this->db->limit($limit, $offset);
         $this->db->order_by('COALESCE(blog.published_at, blog.created_at) DESC, blog.id DESC', '', FALSE);
 		$query = $this->db->get($this->table_name);
@@ -102,7 +102,7 @@ class Model_blog extends MY_Model {
 
     public function join_avaiable() {
         $this->db->join('blog_category', 'blog_category.category_id = blog.category', 'LEFT');
-        
+        $this->db->join('aauth_users', 'aauth_users.username = blog.author', 'LEFT');
         return $this;
     }
 
@@ -115,7 +115,7 @@ class Model_blog extends MY_Model {
     public function find_by_slug($slug = null)
     {
     	$this->join_avaiable()->filter_avaiable();
-    	$this->db->select('blog.*, blog_category.category_name, blog_category.category_desc');
+    	$this->db->select('blog.*, blog_category.category_name, blog_category.category_desc, aauth_users.full_name as author_name, aauth_users.avatar as author_avatar');
     	return $this->db->get_where($this->table_name, ['blog.slug' => $slug])->row();
     }
 

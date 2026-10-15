@@ -330,7 +330,7 @@
                                     <input type="hidden" class="listed_file_uuid" name="blog_image_uuid[<?= $idx ?>]" value="" /><input type="hidden" class="listed_file_name" name="blog_image_name[<?= $idx ?>]" value="<?= $filename; ?>" />
                                 <?php endif; endforeach; ?>
                                 </div>
-                                <small class="info help-block">Format file: JPG, JPEG, PNG.</small>
+                                <small class="info help-block">Format file: JPG, JPEG, PNG. Wajib rasio 16:9 (rekomendasi 1920 x 1080 px).</small>
                             </div>
                         </div>
 

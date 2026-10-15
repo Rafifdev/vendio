@@ -523,20 +523,18 @@ if (!empty($category_id)) {
         }
 
         .blog-card {
-            background: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            overflow: hidden;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 24px -4px rgba(35, 43, 30, 0.06), 0 4px 8px -2px rgba(35, 43, 30, 0.02);
+            box-shadow: none;
             /* Entrance Reveal State (Scroll, Reload, & Page Transition) */
             opacity: 0;
-            transform: translateY(28px) scale(0.98);
-            transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                        transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
-                        box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-                        border-color 0.3s ease;
+            transform: translateY(24px);
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             transition-delay: calc(var(--card-col, 0) * 0.08s);
             will-change: opacity, transform;
             animation: blogCardSafeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.65s forwards;
@@ -545,21 +543,21 @@ if (!empty($category_id)) {
         .blog-card.is-revealed {
             animation: none;
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
 
         .blog-card:hover {
             opacity: 1;
-            transform: translateY(-5px) scale(1);
-            border-color: rgba(139, 154, 110, 0.45);
-            box-shadow: 0 16px 32px -6px rgba(35, 43, 30, 0.11), 0 6px 14px -3px rgba(139, 154, 110, 0.07);
+            transform: translateY(-4px);
+            box-shadow: none;
+            border-color: transparent;
             transition-delay: 0s !important;
         }
 
         @keyframes blogCardSafeReveal {
             to {
                 opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateY(0);
             }
         }
 
@@ -574,66 +572,71 @@ if (!empty($category_id)) {
 
         .blog-card-img-wrap {
             width: 100%;
-            height: 160px;
-            background: #f8fafc;
-            position: relative;
+            aspect-ratio: 16 / 9;
+            background: #f1f5f9;
+            border-radius: 16px;
             overflow: hidden;
             display: block;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .blog-card-img-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 16px;
         }
 
         .blog-card-img {
             width: 100%;
             height: 100%;
+            aspect-ratio: 16 / 9;
             object-fit: cover;
+            border-radius: 16px;
             transition: transform 0.4s ease;
             display: block;
         }
 
         .blog-card:hover .blog-card-img {
-            transform: scale(1.05);
+            transform: scale(1.04);
         }
 
         .blog-card-placeholder {
             width: 100%;
             height: 100%;
+            aspect-ratio: 16 / 9;
             background: linear-gradient(135deg, #f7f2eb 0%, #eae2d6 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #8b9a6e;
-            font-size: 2rem;
+            font-size: 2.5rem;
             opacity: 0.75;
-        }
-
-        .blog-card-content {
-            padding: 16px 18px 16px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
+            border-radius: 16px;
         }
 
         .blog-card-category {
-            font-size: 0.67rem;
-            font-weight: 700;
-            color: #55643b;
-            background: rgba(139, 154, 110, 0.12);
-            border: 1px solid rgba(139, 154, 110, 0.22);
-            border-radius: 5px;
-            padding: 2px 8px;
-            display: inline-block;
-            align-self: flex-start;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4b5563;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0 0 6px 0;
+            display: block;
+            letter-spacing: 0.01em;
+            line-height: 1.4;
         }
 
         .blog-card-title {
             font-family: var(--font-heading);
-            font-size: 1.02rem;
+            font-size: 1.18rem;
             font-weight: 700;
-            line-height: 1.35;
+            line-height: 1.36;
             color: var(--text-title);
-            margin-bottom: 8px;
+            margin: 0 0 8px 0;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -650,26 +653,44 @@ if (!empty($category_id)) {
             color: var(--primary-purple);
         }
 
-        .blog-card-excerpt {
-            font-size: 0.82rem;
-            color: var(--text-body);
-            line-height: 1.48;
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            flex-grow: 1;
-        }
-
-        .blog-card-footer {
-            border-top: 1px solid #f1ece4;
-            padding-top: 10px;
-            margin-top: auto;
+        .blog-card-meta {
             display: flex;
             align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: #6b7280;
+            margin: 0 0 14px 0;
+            line-height: 1.4;
+        }
+
+        .blog-card-meta .meta-dot {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: #9ca3af;
+        }
+
+        .blog-card-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .blog-card-author-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+
+        .blog-card-author-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #2563eb;
+            line-height: 1.2;
+            transition: color 0.2s ease;
         }
 
         /* Empty State */
@@ -888,7 +909,7 @@ if (!empty($category_id)) {
             .blog-main-content { border-radius: 24px; padding: 40px 0 50px 0; }
             .blog-grid { grid-template-columns: 1fr; gap: 20px; }
             .blog-card { transition-delay: 0s !important; }
-            .blog-card-img-wrap { height: 160px; }
+            .blog-card-img-wrap { aspect-ratio: 16 / 9; height: auto; }
             .footer-grid { grid-template-columns: 1fr; }
 
             /* Mobile Dropdown Card matching Landing Page Image 2 */
@@ -1186,6 +1207,13 @@ if (!empty($category_id)) {
             <?php endif; ?>
 
             <?php if (!empty($blogs) && count($blogs) > 0): ?>
+                <?php
+                $bulan_indo = [
+                    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                ];
+                ?>
                 <div class="blog-grid" id="blog-grid">
                     <?php 
                     $card_idx = 0;
@@ -1198,45 +1226,53 @@ if (!empty($category_id)) {
                         $image_url = !empty($first_image) ? BASE_URL . 'uploads/blog/' . $first_image : '';
                         $col_idx = $card_idx % 3;
                         $card_idx++;
+
+                        $pub_ts = strtotime(!empty($item->published_at) ? $item->published_at : ($item->created_at ?: 'now'));
+                        $pub_date_str = date('j', $pub_ts) . ' ' . $bulan_indo[(int)date('n', $pub_ts)] . ' ' . date('Y', $pub_ts);
+                        $card_read_time = !empty($item->read_time) ? $item->read_time : max(1, ceil(str_word_count(strip_tags($item->content)) / 200));
+
+                        $author_display_name = !empty($item->author_name) ? $item->author_name : (!empty($item->author) ? $item->author : 'Penulis Vendio');
+                        $author_avatar_file = !empty($item->author_avatar) ? $item->author_avatar : '';
+                        $has_author_avatar = !empty($author_avatar_file) && file_exists(FCPATH . 'uploads/user/' . $author_avatar_file);
+                        $author_avatar_url = $has_author_avatar ? BASE_URL . 'uploads/user/' . $author_avatar_file : 'https://ui-avatars.com/api/?name=' . urlencode($author_display_name) . '&background=eff6ff&color=2563eb&size=64';
                     ?>
                         <article class="blog-card" style="--card-col: <?= $col_idx; ?>;">
-                            <a href="<?= site_url('blog/' . $item->slug); ?>" class="blog-card-img-wrap">
-                                <?php if (!empty($image_url) && file_exists(FCPATH . 'uploads/blog/' . $first_image)): ?>
-                                    <img src="<?= $image_url; ?>" alt="<?= _ent($item->title); ?>" class="blog-card-img" loading="lazy">
-                                <?php else: ?>
-                                    <div class="blog-card-placeholder">
-                                        <i class="fa-solid fa-newspaper"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </a>
+                            <!-- 1. image di div sendiri -->
+                            <div class="blog-card-img-wrap">
+                                <a href="<?= site_url('blog/' . $item->slug); ?>" class="blog-card-img-link" title="<?= _ent($item->title); ?>">
+                                    <?php if (!empty($image_url) && file_exists(FCPATH . 'uploads/blog/' . $first_image)): ?>
+                                        <img src="<?= $image_url; ?>" alt="<?= _ent($item->title); ?>" class="blog-card-img" loading="lazy">
+                                    <?php else: ?>
+                                        <div class="blog-card-placeholder">
+                                            <i class="fa-solid fa-newspaper"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                </a>
+                            </div>
 
-                            <div class="blog-card-content">
-                                <div class="blog-card-category">
-                                    <?= !empty($item->category_name) ? _ent($item->category_name) : 'OMNICHANNEL TECH'; ?>
-                                </div>
+                            <!-- 2. Kategori -->
+                            <div class="blog-card-category">
+                                <?= !empty($item->category_name) ? _ent($item->category_name) : 'Omnichannel Marketplace'; ?>
+                            </div>
 
-                                <h2 class="blog-card-title">
-                                    <a href="<?= site_url('blog/' . $item->slug); ?>">
-                                        <?= _ent($item->title); ?>
-                                    </a>
-                                </h2>
+                            <!-- 3. Judul artikel -->
+                            <h2 class="blog-card-title">
+                                <a href="<?= site_url('blog/' . $item->slug); ?>" title="<?= _ent($item->title); ?>">
+                                    <?= _ent($item->title); ?>
+                                </a>
+                            </h2>
 
-                                <p class="blog-card-excerpt">
-                                    <?= !empty($item->excerpt) ? _ent($item->excerpt) : (function_exists('character_limiter') ? character_limiter(strip_tags($item->content), 120) : (strlen(strip_tags($item->content)) > 120 ? substr(strip_tags($item->content), 0, 120) . '...' : strip_tags($item->content))); ?>
-                                </p>
+                            <!-- 4. waktu di buat dan estimasi baca -->
+                            <div class="blog-card-meta">
+                                <span><?= $pub_date_str; ?></span>
+                                <span class="meta-dot">&bull;</span>
+                                <span><?= $card_read_time; ?> mins read</span>
+                            </div>
 
-                                <div class="blog-card-footer" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                    <span><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i> <?= date('d M Y', strtotime(!empty($item->published_at) ? $item->published_at : ($item->created_at ?: 'now'))); ?></span>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <?php 
-                                            $card_read_time = !empty($item->read_time) ? $item->read_time : max(1, ceil(str_word_count(strip_tags($item->content)) / 200));
-                                        ?>
-                                        <span title="Estimasi waktu baca"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i> <?= $card_read_time; ?> mnt</span>
-                                        <?php if (!empty($item->viewers)): ?>
-                                            <span title="Jumlah pembaca"><i class="fa-regular fa-eye" style="margin-right: 4px;"></i> <?= number_format($item->viewers); ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
+                            <!-- 5. author -->
+                            <div class="blog-card-author">
+                                <img src="<?= $author_avatar_url; ?>" alt="<?= _ent($author_display_name); ?>" class="blog-card-author-avatar" loading="lazy">
+                                <span class="blog-card-author-name"><?= _ent($author_display_name); ?></span>
                             </div>
                         </article>
                     <?php endforeach; ?>

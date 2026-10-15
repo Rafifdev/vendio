@@ -326,7 +326,7 @@
                             <div class="col-sm-8">
                                 <div id="blog_image_galery"></div>
                                 <div id="blog_image_galery_listed"></div>
-                                <small class="info help-block">Format file: JPG, JPEG, PNG.</small>
+                                <small class="info help-block">Format file: JPG, JPEG, PNG. Wajib rasio 16:9 (rekomendasi 1920 x 1080 px).</small>
                             </div>
                         </div>
 

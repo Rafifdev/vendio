@@ -1434,7 +1434,7 @@ foreach ($toc_tree as $h2) {
         .article-title {
             font-family: var(--font-heading);
             font-size: clamp(2rem, 3.8vw, 2.85rem);
-            font-weight: 800;
+            font-weight: 700;
             letter-spacing: -0.02em;
             line-height: 1.25;
             margin-bottom: 22px;
@@ -1585,86 +1585,79 @@ foreach ($toc_tree as $h2) {
             gap: 24px;
         }
         .related-card {
-            background: #ffffff;
-            border: 1px solid var(--border-light);
-            border-radius: 18px;
-            overflow: hidden;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
             display: flex;
             flex-direction: column;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 16px rgba(35, 43, 30, 0.04);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: none;
         }
         .related-card:hover {
-            border-color: rgba(139, 154, 110, 0.5);
-            transform: translateY(-5px);
-            box-shadow: 0 16px 32px -6px rgba(35, 43, 30, 0.11), 0 6px 14px -3px rgba(139, 154, 110, 0.06);
+            transform: translateY(-4px);
+            box-shadow: none;
+            border-color: transparent;
         }
         .related-card-img-wrap {
             width: 100%;
-            height: 180px;
-            background: #f8fafc;
-            position: relative;
+            aspect-ratio: 16 / 9;
+            background: #f1f5f9;
+            border-radius: 16px;
             overflow: hidden;
             display: block;
             text-decoration: none;
+            margin-bottom: 12px;
+            position: relative;
         }
         .related-card-img {
             width: 100%;
             height: 100%;
+            aspect-ratio: 16 / 9;
             object-fit: cover;
+            border-radius: 16px;
             display: block;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .related-card:hover .related-card-img {
-            transform: scale(1.06);
+            transform: scale(1.04);
         }
         .related-card-placeholder {
             width: 100%;
             height: 100%;
+            aspect-ratio: 16 / 9;
             background: linear-gradient(135deg, #f7f2eb 0%, #eae2d6 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary-purple);
+            color: #8b9a6e;
             font-size: 2.2rem;
             opacity: 0.8;
+            border-radius: 16px;
         }
-        .related-card-body {
-            padding: 20px 22px 24px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-        .related-card-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .related-card-badge {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: #4b5a32;
-            background: rgba(139, 154, 110, 0.16);
-            padding: 3px 10px;
-            border-radius: 9999px;
-            letter-spacing: 0.04em;
-        }
-        .related-card-date {
-            font-size: 0.76rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .related-card-category {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4b5563;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0 0 6px 0;
+            display: block;
+            letter-spacing: 0.01em;
+            line-height: 1.4;
         }
         .related-card-title {
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             font-family: var(--font-heading);
             font-weight: 700;
-            line-height: 1.42;
-            margin: 0 0 10px 0;
+            line-height: 1.36;
+            margin: 0 0 8px 0;
             letter-spacing: -0.01em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         .related-card-title a {
             color: var(--text-title);
@@ -1674,12 +1667,40 @@ foreach ($toc_tree as $h2) {
         .related-card-title a:hover {
             color: var(--primary-purple);
         }
-        .related-card-desc {
-            font-size: 0.86rem;
-            color: var(--text-body);
-            line-height: 1.58;
-            margin: 0;
-            flex-grow: 1;
+        .related-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: #6b7280;
+            margin: 0 0 14px 0;
+            line-height: 1.4;
+        }
+        .related-card-meta .meta-dot {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        .related-card-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: auto;
+        }
+        .related-card-author-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            flex-shrink: 0;
+        }
+        .related-card-author-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #2563eb;
+            line-height: 1.2;
+            transition: color 0.2s ease;
         }
 
         /* ==========================================================================
@@ -2144,6 +2165,13 @@ foreach ($toc_tree as $h2) {
 
                 <!-- Related Articles -->
                 <?php if (!empty($related) && count($related) > 1): ?>
+                    <?php
+                    $bulan_indo_rel = [
+                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                    ];
+                    ?>
                     <section class="related-section">
                         <h3 class="related-title">Artikel Terkait Lainnya</h3>
                         <div class="related-grid">
@@ -2161,32 +2189,53 @@ foreach ($toc_tree as $h2) {
                                 }
                                 $rel_has_file = !empty($rel_first_image) && file_exists(FCPATH . 'uploads/blog/' . $rel_first_image);
                                 $rel_image_url = $rel_has_file ? BASE_URL . 'uploads/blog/' . $rel_first_image : '';
+
+                                $rel_pub_ts = strtotime(!empty($rel->published_at) ? $rel->published_at : ($rel->created_at ?: 'now'));
+                                $rel_pub_date_str = date('j', $rel_pub_ts) . ' ' . $bulan_indo_rel[(int)date('n', $rel_pub_ts)] . ' ' . date('Y', $rel_pub_ts);
+                                $rel_read_time = !empty($rel->read_time) ? $rel->read_time : max(1, ceil(str_word_count(strip_tags($rel->content)) / 200));
+
+                                $rel_author_display = !empty($rel->author_name) ? $rel->author_name : (!empty($rel->author) ? $rel->author : 'Penulis Vendio');
+                                $rel_author_avatar_file = !empty($rel->author_avatar) ? $rel->author_avatar : '';
+                                $rel_has_author_avatar = !empty($rel_author_avatar_file) && file_exists(FCPATH . 'uploads/user/' . $rel_author_avatar_file);
+                                $rel_author_avatar_url = $rel_has_author_avatar ? BASE_URL . 'uploads/user/' . $rel_author_avatar_file : 'https://ui-avatars.com/api/?name=' . urlencode($rel_author_display) . '&background=eff6ff&color=2563eb&size=64';
                             ?>
                                 <article class="related-card">
-                                    <a href="<?= site_url('blog/' . $rel->slug); ?>" class="related-card-img-wrap" title="<?= _ent($rel->title); ?>">
-                                        <?php if (!empty($rel_image_url)): ?>
-                                            <img src="<?= $rel_image_url; ?>" alt="<?= _ent($rel->title); ?>" class="related-card-img" loading="lazy">
-                                        <?php else: ?>
-                                            <div class="related-card-placeholder">
-                                                <i class="fa-solid fa-newspaper"></i>
-                                            </div>
-                                        <?php endif; ?>
-                                    </a>
-                                    <div class="related-card-body">
-                                        <div class="related-card-meta">
-                                            <?php if (!empty($rel->category_name)): ?>
-                                                <span class="related-card-badge"><?= _ent(strtoupper($rel->category_name)); ?></span>
+                                    <!-- 1. image di div sendiri -->
+                                    <div class="related-card-img-wrap">
+                                        <a href="<?= site_url('blog/' . $rel->slug); ?>" title="<?= _ent($rel->title); ?>">
+                                            <?php if (!empty($rel_image_url)): ?>
+                                                <img src="<?= $rel_image_url; ?>" alt="<?= _ent($rel->title); ?>" class="related-card-img" loading="lazy">
+                                            <?php else: ?>
+                                                <div class="related-card-placeholder">
+                                                    <i class="fa-solid fa-newspaper"></i>
+                                                </div>
                                             <?php endif; ?>
-                                            <span class="related-card-date"><?= date('d M Y', strtotime($rel->created_at ?: 'now')); ?></span>
-                                        </div>
-                                        <h4 class="related-card-title">
-                                            <a href="<?= site_url('blog/' . $rel->slug); ?>">
-                                                <?= _ent($rel->title); ?>
-                                            </a>
-                                        </h4>
-                                        <p class="related-card-desc">
-                                            <?= (strlen(strip_tags($rel->content)) > 95 ? substr(strip_tags($rel->content), 0, 95) . '...' : strip_tags($rel->content)); ?>
-                                        </p>
+                                        </a>
+                                    </div>
+
+                                    <!-- 2. Kategori -->
+                                    <div class="related-card-category">
+                                        <?= !empty($rel->category_name) ? _ent($rel->category_name) : 'Omnichannel Marketplace'; ?>
+                                    </div>
+
+                                    <!-- 3. Judul artikel -->
+                                    <h4 class="related-card-title">
+                                        <a href="<?= site_url('blog/' . $rel->slug); ?>" title="<?= _ent($rel->title); ?>">
+                                            <?= _ent($rel->title); ?>
+                                        </a>
+                                    </h4>
+
+                                    <!-- 4. waktu di buat dan estimasi baca -->
+                                    <div class="related-card-meta">
+                                        <span><?= $rel_pub_date_str; ?></span>
+                                        <span class="meta-dot">&bull;</span>
+                                        <span><?= $rel_read_time; ?> mins read</span>
+                                    </div>
+
+                                    <!-- 5. author -->
+                                    <div class="related-card-author">
+                                        <img src="<?= $rel_author_avatar_url; ?>" alt="<?= _ent($rel_author_display); ?>" class="related-card-author-avatar" loading="lazy">
+                                        <span class="related-card-author-name"><?= _ent($rel_author_display); ?></span>
                                     </div>
                                 </article>
                             <?php endforeach; ?>

@@ -146,8 +146,24 @@ class Blog extends Admin
 				foreach ((array) $_POST['blog_image_name'] as $idx => $file_name) {
 					if (!empty($file_name)) {
 						if (isset($_POST['blog_image_uuid'][$idx]) && !empty($_POST['blog_image_uuid'][$idx])) {
-							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
 							$src_file = FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' . $file_name;
+							if (is_file($src_file)) {
+								$img_info = @getimagesize($src_file);
+								if ($img_info && !empty($img_info[0]) && !empty($img_info[1])) {
+									$w = $img_info[0];
+									$h = $img_info[1];
+									$ratio = $w / $h;
+									if (abs($ratio - (16 / 9)) > 0.08) {
+										echo json_encode([
+											'success' => false,
+											'message' => 'Gambar sampul harus memiliki rasio aspek 16:9 (rekomendasi 1920 x 1080 px). Resolusi file: ' . $w . ' x ' . $h . ' px.'
+										]);
+										exit;
+									}
+								}
+							}
+
+							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
 							$dest_file = FCPATH . 'uploads/blog/' . $blog_image_name_copy;
 
 							if (is_file($src_file)) {
@@ -302,8 +318,24 @@ class Blog extends Admin
 				foreach ((array) $_POST['blog_image_name'] as $idx => $file_name) {
 					if (!empty($file_name)) {
 						if (isset($_POST['blog_image_uuid'][$idx]) && !empty($_POST['blog_image_uuid'][$idx])) {
-							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
 							$src_file = FCPATH . 'uploads/tmp/' . $_POST['blog_image_uuid'][$idx] . '/' . $file_name;
+							if (is_file($src_file)) {
+								$img_info = @getimagesize($src_file);
+								if ($img_info && !empty($img_info[0]) && !empty($img_info[1])) {
+									$w = $img_info[0];
+									$h = $img_info[1];
+									$ratio = $w / $h;
+									if (abs($ratio - (16 / 9)) > 0.08) {
+										echo json_encode([
+											'success' => false,
+											'message' => 'Gambar sampul harus memiliki rasio aspek 16:9 (rekomendasi 1920 x 1080 px). Resolusi file: ' . $w . ' x ' . $h . ' px.'
+										]);
+										exit;
+									}
+								}
+							}
+
+							$blog_image_name_copy = date('YmdHis') . '-' . $file_name;
 							$dest_file = FCPATH . 'uploads/blog/' . $blog_image_name_copy;
 
 							if (is_file($src_file)) {
@@ -450,11 +482,35 @@ class Blog extends Admin
 
 		$uuid = $this->input->post('qquuid');
 
-		echo $this->upload_file([
+		$upload_json = $this->upload_file([
 			'uuid' 		 	=> $uuid,
 			'table_name' 	=> 'blog',
 			'allowed_types' => 'jpg|jpeg|png',
 		]);
+
+		$res = json_decode($upload_json, true);
+		if (!empty($res['success']) && !empty($res['uploadName'])) {
+			$file_path = FCPATH . 'uploads/tmp/' . $uuid . '/' . $res['uploadName'];
+			if (is_file($file_path)) {
+				$img_info = @getimagesize($file_path);
+				if ($img_info && !empty($img_info[0]) && !empty($img_info[1])) {
+					$w = $img_info[0];
+					$h = $img_info[1];
+					$ratio = $w / $h;
+					// 16:9 ratio is ~1.7778 (tolerance 0.08 allows 1.70 to 1.85)
+					if (abs($ratio - (16 / 9)) > 0.08) {
+						@unlink($file_path);
+						echo json_encode([
+							'success' => false,
+							'error' => 'Gambar harus memiliki rasio aspek 16:9 (rekomendasi 1920 x 1080 px). Resolusi file Anda: ' . $w . ' x ' . $h . ' px.'
+						]);
+						exit;
+					}
+				}
+			}
+		}
+
+		echo $upload_json;
 	}
 
 	/**
