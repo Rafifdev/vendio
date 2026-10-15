@@ -864,8 +864,11 @@ foreach ($toc_tree as $h2) {
                 display: none !important;
             }
             .article-header {
-                padding: 12px 0 0px !important;
-                margin-bottom: 8px !important;
+                padding: 10px 0 0px !important;
+                margin-bottom: 24px !important;
+            }
+            .article-cover-wrap {
+                margin: 24px 0 !important;
             }
             .article-breadcrumbs {
                 margin-bottom: 14px !important;
@@ -1398,8 +1401,8 @@ foreach ($toc_tree as $h2) {
 
         /* Article Header */
         .article-header {
-            padding: 0 0 0px;
-            margin-bottom: 8px;
+            padding: 0;
+            margin-bottom: 30px;
         }
         .article-breadcrumbs {
             font-size: 0.84rem;
@@ -1477,7 +1480,7 @@ foreach ($toc_tree as $h2) {
 
         /* Featured Image - Borderless, clean 16:9 ratio */
         .article-cover-wrap {
-            margin: 12px 0 30px;
+            margin: 30px 0 30px;
             border-radius: 16px;
             overflow: hidden;
             border: none !important;
