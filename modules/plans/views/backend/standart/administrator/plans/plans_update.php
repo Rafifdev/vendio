@@ -208,7 +208,7 @@
 
    .duration-calc-note {
       font-size: 11.5px;
-      color: #059669;
+      color: #1e293b;
       font-weight: 500;
       margin-top: 4px;
    }
