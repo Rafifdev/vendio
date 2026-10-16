@@ -85,8 +85,7 @@ CREATE TABLE IF NOT EXISTS `order_prize_tokens` (
   `expires_at` DATETIME NOT NULL,
   `marketing_consent` TINYINT UNSIGNED NOT NULL DEFAULT 0,
   `consent_at` DATETIME DEFAULT NULL,
-  `created_at` DATETIME NOT NULL,
-  KEY `order_id` (`order_id`)
+  `created_at` DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `order_prize_spins` (
@@ -115,8 +114,7 @@ CREATE TABLE IF NOT EXISTS `order_prize_spins` (
   KEY `campaign_time` (`campaign_id`, `spun_at`),
   KEY `workflow` (`claim_status`, `follow_up_status`, `broadcast_status`),
   KEY `campaign_id` (`campaign_id`),
-  KEY `prize_id` (`prize_id`),
-  KEY `order_id` (`order_id`)
+  KEY `prize_id` (`prize_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `order_prize_audit` (
