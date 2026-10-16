@@ -552,59 +552,38 @@ class Model_order_prizes extends CI_Model
             [$campaignId, $fbId, $this->now()]);
     }
 
-    public function get_seller_tiktok_shops($userId, $isAdmin = false)
+    public function get_seller_tiktok_shops($userId = null, $isAdmin = false)
     {
         if (!$this->db->table_exists('tiktok_shops')) {
             return [];
         }
 
-        if ($isAdmin || empty($userId)) {
-            return $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result_array();
-        }
-
-        $shops = [];
-        $shopIds = [];
-
-        if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+        // Determine tenant ID to enforce multi-tenant isolation
+        $tenantId = null;
+        if (function_exists('get_active_tenant_id')) {
             $tenantId = get_active_tenant_id();
-            $direct = $this->db->where('tenant_id', (int)$tenantId)
-                ->order_by('shop_name', 'ASC')
-                ->get('tiktok_shops')
-                ->result_array();
-            foreach ($direct as $s) {
-                if (!in_array($s['id'], $shopIds)) {
-                    $shops[] = $s;
-                    $shopIds[] = $s['id'];
-                }
-            }
-        } elseif ($this->db->field_exists('created_by', 'tiktok_shops')) {
-            $direct = $this->db->where('created_by', (int)$userId)
-                ->order_by('shop_name', 'ASC')
-                ->get('tiktok_shops')
-                ->result_array();
-            foreach ($direct as $s) {
-                $shops[] = $s;
-                $shopIds[] = $s['id'];
+        }
+        if (empty($tenantId) && !empty($userId) && $this->db->field_exists('tenant_id', 'aauth_users')) {
+            $u = $this->db->select('tenant_id')->where('id', (int)$userId)->get('aauth_users')->row();
+            if ($u && !empty($u->tenant_id)) {
+                $tenantId = (int)$u->tenant_id;
             }
         }
 
-        if ($this->db->table_exists('tiktok_oauth_states')) {
-            $this->db->select('s.*')
-                ->from('tiktok_shops s')
-                ->join('tiktok_oauth_states o', 'o.shop_id = s.id')
-                ->where('o.created_by', (int)$userId)
-                ->group_by('s.id')
-                ->order_by('s.shop_name', 'ASC');
-            if (!empty($shopIds)) {
-                $this->db->where_not_in('s.id', $shopIds);
-            }
-            $fromStates = $this->db->get()->result_array();
-            foreach ($fromStates as $s) {
-                $shops[] = $s;
-            }
+        // Only query ACTIVE shops that have a valid authorization / access token
+        $this->db->select('*')
+            ->from('tiktok_shops')
+            ->where('is_active', 1)
+            ->where('access_token IS NOT NULL', null, false)
+            ->where('access_token !=', '');
+
+        if (!empty($tenantId) && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+            $this->db->where('tenant_id', (int)$tenantId);
+        } elseif (!empty($userId) && $this->db->field_exists('created_by', 'tiktok_shops')) {
+            $this->db->where('created_by', (int)$userId);
         }
 
-        return $shops;
+        return $this->db->order_by('shop_name', 'ASC')->get()->result_array();
     }
 
     public function save_campaign(array $input, $id, $actor)
@@ -622,6 +601,20 @@ class Model_order_prizes extends CI_Model
                 }
             } else {
                 $data['created_by'] = !empty($actor) ? (int)$actor : null;
+            }
+
+            // Validasi koneksi toko TikTok jika channel TikTok dipilih
+            if ($data['channel'] === 'tiktok') {
+                $connectedShops = $this->get_seller_tiktok_shops($actor);
+                if (empty($connectedShops)) {
+                    throw new Order_prize_error('Belum ada akun toko TikTok yang terhubung. Hubungkan toko terlebih dahulu di menu Akun Toko.');
+                }
+                if ($data['shop_ref'] !== 'all') {
+                    $shopNames = array_column($connectedShops, 'shop_name');
+                    if (!in_array($data['shop_ref'], $shopNames, true)) {
+                        throw new Order_prize_error('Toko TikTok yang dipilih tidak valid atau belum terhubung.');
+                    }
+                }
             }
             $data['updated_at'] = $this->now();
             if ($id) $this->update('order_prize_campaigns', $id, $data);
@@ -759,6 +752,13 @@ class Model_order_prizes extends CI_Model
                 throw new Order_prize_error('Modul TikTok Orders tidak ditemukan di database.');
             }
 
+            // Find allowed shops for this tenant/user
+            $allowedShops = $this->get_seller_tiktok_shops(!empty($c['created_by']) ? $c['created_by'] : $actor);
+            $allowedShopIds = array_column($allowedShops, 'id');
+            if (empty($allowedShopIds)) {
+                return ['synced' => 0, 'total_candidates' => 0, 'message' => 'Tidak ada akun toko TikTok yang terhubung.'];
+            }
+
             // Find shop condition if shop_ref specified and not all
             $shopId = null;
             if (!empty($c['shop_ref']) && !in_array(strtolower($c['shop_ref']), ['all', 'semua toko', 'default', ''], true)) {
@@ -768,6 +768,7 @@ class Model_order_prizes extends CI_Model
                         ->or_where('shop_code', $c['shop_ref'])
                         ->or_where('shop_id', $c['shop_ref'])
                         ->group_end()
+                        ->where_in('id', $allowedShopIds)
                         ->get('tiktok_shops')
                         ->row_array();
                     if ($shop) {
@@ -779,6 +780,8 @@ class Model_order_prizes extends CI_Model
             $this->db->from('tiktok_orders');
             if ($shopId) {
                 $this->db->where('tiktok_shop_id', $shopId);
+            } else {
+                $this->db->where_in('tiktok_shop_id', $allowedShopIds);
             }
             $this->db->where_in('order_status', ['COMPLETED', 'DELIVERED', 'SHIPPED', 'IN_TRANSIT', 'AWAITING_COLLECTION']);
             $this->db->where('recipient_phone IS NOT NULL');
@@ -945,8 +948,13 @@ class Model_order_prizes extends CI_Model
 
     private function auto_discover_tiktok_order(array $c, $number, $phone)
     {
+        $allowedShops = $this->get_seller_tiktok_shops(!empty($c['created_by']) ? $c['created_by'] : null);
+        $allowedShopIds = array_column($allowedShops, 'id');
+        if (empty($allowedShopIds)) return null;
+
         $this->db->from('tiktok_orders')
-            ->where('order_id', $number);
+            ->where('order_id', $number)
+            ->where_in('tiktok_shop_id', $allowedShopIds);
 
         $tOrder = $this->db->get()->row_array();
         if (!$tOrder) return null;
@@ -1186,8 +1194,8 @@ class Model_order_prizes extends CI_Model
         if (!isset($this->tables[$entity])) throw new Order_prize_error('Modul tidak ditemukan.', 404);
         $table = $this->tables[$entity];
         $where = ['1=1']; $params = [];
-        $page = Order_prize_rules::integer($filters['page'] ?? 1, 'Halaman', 1, 1000000);
-        $limit = Order_prize_rules::integer($filters['limit'] ?? 25, 'Limit', 1, 100);
+        $page = Order_prize_rules::integer((int)($filters['page'] ?? 1), 'Halaman', 1, 1000000);
+        $limit = Order_prize_rules::integer((int)($filters['limit'] ?? 20), 'Limit', 1, 100);
         $allowed = ['campaigns'=>['status'], 'prizes'=>['campaign_id','active'], 'orders'=>['campaign_id','status'],
             'spins'=>['campaign_id','prize_status','follow_up_status','broadcast_status','marketing_consent'], 'audit'=>['entity','entity_id']];
         foreach ($allowed[$entity] as $field) {
@@ -1198,9 +1206,20 @@ class Model_order_prizes extends CI_Model
             $params[] = $this->now(); $params[] = Order_prize_rules::text($filters['claim_status'], 'claim_status', 20);
         }
         if (!empty($filters['q'])) {
-            $search = ['campaigns'=>['name','slug'], 'prizes'=>['name'], 'orders'=>['order_number','phone'], 'spins'=>['order_number','phone','prize_name'], 'audit'=>['action']][$entity];
+            $search_all = [
+                'campaigns' => ['name', 'slug', 'channel'],
+                'prizes'    => ['name', 'kind'],
+                'orders'    => ['order_number', 'phone'],
+                'spins'     => ['order_number', 'phone', 'prize_name'],
+                'audit'     => ['action']
+            ][$entity] ?? ['id'];
+            $selected_f = !empty($filters['f']) ? trim((string)$filters['f']) : '';
+            $search = ($selected_f !== '' && in_array($selected_f, $search_all, true)) ? [$selected_f] : $search_all;
             $parts = [];
-            foreach ($search as $field) { $parts[] = '`' . $field . '` LIKE ?'; $params[] = '%' . $this->db->escape_like_str(Order_prize_rules::text($filters['q'], 'Pencarian', 100)) . '%'; }
+            foreach ($search as $field) {
+                $parts[] = '`' . $field . '` LIKE ?';
+                $params[] = '%' . $this->db->escape_like_str(Order_prize_rules::text($filters['q'], 'Pencarian', 100)) . '%';
+            }
             $where[] = '(' . implode(" ESCAPE '!' OR ", $parts) . " ESCAPE '!')";
         }
 
@@ -1238,6 +1257,27 @@ class Model_order_prizes extends CI_Model
     {
         $table = $this->tables[$entity] ?? $entity;
         return $this->row($table, $id);
+    }
+
+    public function get_order_detail($id, $userId = null, $isAdmin = false)
+    {
+        $id = (int)$id;
+        $order = $this->row('order_prize_orders', $id);
+        $campaign = null;
+        if (!empty($order['campaign_id'])) {
+            $campaign = $this->db->get_where('order_prize_campaigns', ['id' => (int)$order['campaign_id']])->row_array();
+            if (!$isAdmin && !empty($userId) && !empty($campaign['created_by']) && (int)$campaign['created_by'] !== (int)$userId) {
+                throw new Order_prize_error('Anda tidak memiliki akses ke pesanan ini.', 403);
+            }
+        }
+        $spin = $this->db->get_where('order_prize_spins', ['order_id' => $id])->row_array();
+        $token = $this->db->get_where('order_prize_tokens', ['order_id' => $id])->row_array();
+        return [
+            'order' => $order,
+            'campaign' => $campaign,
+            'spin' => $spin,
+            'token' => $token,
+        ];
     }
 
     public function get_campaigns_dropdown($userId = null, $isAdmin = false)

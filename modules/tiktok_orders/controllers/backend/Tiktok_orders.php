@@ -346,7 +346,8 @@ class Tiktok_orders extends Admin
 
 		if (empty($shops)) {
 			set_message('Belum ada Toko TikTok yang terhubung atau aktif. Silakan hubungkan toko terlebih dahulu di menu Kelola Toko.', 'error');
-			redirect('administrator/tiktok_orders');
+			$redirect = $this->input->get('redirect') ?: 'administrator/tiktok_orders';
+			redirect($redirect);
 			return;
 		}
 
@@ -620,6 +621,18 @@ class Tiktok_orders extends Admin
 			$this->db->trans_complete();
 		}
 
+		if ($this->db->table_exists('order_prize_campaigns')) {
+			$active_campaigns = $this->db->get_where('order_prize_campaigns', ['status' => 'active'])->result_array();
+			if (!empty($active_campaigns)) {
+				$this->load->model('order_prizes/model_order_prizes', 'model_order_prizes');
+				foreach ($active_campaigns as $ac) {
+					try {
+						$this->model_order_prizes->sync_tiktok_orders($ac['id']);
+					} catch (Throwable $e) {}
+				}
+			}
+		}
+
 		if (!empty($error_messages)) {
 			if ($total_synced === 0) {
 				set_message('Gagal menyinkronkan pesanan: ' . implode('; ', $error_messages), 'error');
@@ -630,7 +643,8 @@ class Tiktok_orders extends Admin
 			set_message('Berhasil menyinkronkan ' . $total_synced . ' pesanan dari TikTok Shop!', 'success');
 		}
 
-		redirect('administrator/tiktok_orders');
+		$redirect = $this->input->get('redirect') ?: 'administrator/tiktok_orders';
+		redirect($redirect);
 	}
 
 	/**

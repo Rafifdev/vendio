@@ -29,6 +29,9 @@ class Order_prize_rules
     public static function integer($value, $name, $min = 0, $max = 1000000000000, $nullable = false)
     {
         if ($nullable && ($value === null || $value === '')) return null;
+        if (is_float($value) && floor($value) == $value) {
+            $value = (int)$value;
+        }
         if (is_string($value)) {
             $value = str_replace(['.', ',', ' '], '', trim($value));
         }

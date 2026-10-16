@@ -24,7 +24,7 @@ class Order_prizes extends Admin
     /**
      * Main Index: Unified management dashboard with tabs
      */
-    public function index($tab = 'campaigns')
+    public function index($tab = 'campaigns', $offset = 0)
     {
         $this->is_allowed('order_prizes_view');
         
@@ -34,9 +34,23 @@ class Order_prizes extends Admin
         }
 
         $filters = $this->input->get(null, true) ?: [];
-        $page = max(1, (int)($filters['page'] ?? 1));
-        $filters['page'] = $page;
-        $filters['limit'] = 20;
+        $filter = $this->input->get('q');
+        $field  = $this->input->get('f');
+        $limit  = $this->limit_page = 20;
+
+        // Support standard CI offset from uri segment or ?page= query parameter
+        $offset = (int)$offset;
+        if ($offset <= 0 && !empty($filters['page'])) {
+            $page = max(1, (int)$filters['page']);
+            $offset = ($page - 1) * $limit;
+        } else {
+            $page = (int)floor($offset / $limit) + 1;
+        }
+
+        $filters['page'] = (int)$page;
+        $filters['limit'] = $limit;
+        $filters['q'] = $filter;
+        $filters['f'] = $field;
 
         $user = $this->aauth->get_user();
         $userId = (int)($user->id ?? 0);
@@ -46,21 +60,30 @@ class Order_prizes extends Admin
         $stats = $this->prizes->get_summary_stats($userId, $isAdmin);
         $campaigns_dropdown = $this->prizes->get_campaigns_dropdown($userId, $isAdmin);
 
-        $this->template->title('Order Prizes · Hadiah Pesanan');
+        $config = [
+            'base_url'     => 'administrator/order_prizes/tab/' . $tab . '/',
+            'total_rows'   => $records['total'],
+            'per_page'     => $limit,
+            'uri_segment'  => 5,
+        ];
+        $pagination = $this->pagination($config);
+
+        $this->template->title('Hadiah Pesanan');
         $this->render('order_prizes/admin_list', [
             'active_tab' => $tab,
             'records' => $records,
             'stats' => $stats,
             'campaigns_dropdown' => $campaigns_dropdown,
             'filters' => $filters,
+            'pagination' => $pagination,
             'can_manage' => $this->is_allowed('order_prizes_manage', false),
             'can_fulfill' => $this->is_allowed('order_prizes_fulfill', false),
         ]);
     }
 
-    public function tab($tab = 'campaigns')
+    public function tab($tab = 'campaigns', $offset = 0)
     {
-        $this->index($tab);
+        $this->index($tab, $offset);
     }
 
     // ==========================================
@@ -70,7 +93,7 @@ class Order_prizes extends Admin
     public function campaign_add()
     {
         $this->is_allowed('order_prizes_manage');
-        $this->template->title('Tambah Campaign Baru · Order Prizes');
+        $this->template->title('Tambah Campaign Baru · Hadiah Pesanan');
 
         $user = $this->aauth->get_user();
         $userId = (int)($user->id ?? 0);
@@ -172,7 +195,7 @@ class Order_prizes extends Admin
 
         $linked_campaign_ids = $campaign_id ? [$campaign_id] : array_map('intval', array_column($campaigns_dropdown, 'id'));
 
-        $this->template->title('Tambah Hadiah & Threshold · Order Prizes');
+        $this->template->title('Tambah Hadiah & Threshold · Hadiah Pesanan');
         $this->render('order_prizes/prize_form', [
             'mode' => 'add',
             'campaigns_dropdown' => $campaigns_dropdown,
@@ -249,7 +272,7 @@ class Order_prizes extends Admin
             redirect(ADMIN_NAMESPACE_URL . '/order_prizes/campaign_add');
         }
 
-        $this->template->title('Tambah Order Terverifikasi · Order Prizes');
+        $this->template->title('Tambah Order Terverifikasi · Hadiah Pesanan');
         $this->render('order_prizes/order_form', [
             'mode' => 'add',
             'campaigns_dropdown' => $campaigns_dropdown,
@@ -301,6 +324,32 @@ class Order_prizes extends Admin
         ]);
     }
 
+    public function view($id = 0)
+    {
+        $this->is_allowed('order_prizes_view');
+        $id = (int)$id;
+        $user = $this->aauth->get_user();
+        $userId = (int)($user->id ?? 0);
+        $isAdmin = (bool)$this->aauth->is_admin();
+
+        try {
+            $detail = $this->prizes->get_order_detail($id, $userId, $isAdmin);
+        } catch (Throwable $e) {
+            set_message($e->getMessage() ?: 'Data order tidak ditemukan.', 'error');
+            redirect(ADMIN_NAMESPACE_URL . '/order_prizes/tab/orders');
+            return;
+        }
+
+        $this->template->title('Detail Order #' . html_escape($detail['order']['order_number']) . ' · Hadiah Pesanan');
+        $this->render('order_prizes/order_view', [
+            'order' => $detail['order'],
+            'campaign' => $detail['campaign'],
+            'spin' => $detail['spin'],
+            'token' => $detail['token'],
+            'can_manage' => $this->is_allowed('order_prizes_manage', false),
+        ]);
+    }
+
     // ==========================================
     // FORM SAVE ACTIONS (AJAX + Standard Submit)
     // ==========================================
@@ -331,6 +380,29 @@ class Order_prizes extends Admin
             $id = Order_prize_rules::integer($id, 'ID', 1, 4294967295);
             $actor = (int)$this->aauth->get_user()->id;
             return $this->prizes->delete_record($entity, $id, $actor);
+        }, 'POST');
+    }
+
+    public function bulk_delete($entity = '')
+    {
+        $this->prize_json(function () use ($entity) {
+            $this->authorize('order_prizes_manage');
+            $ids = $this->input->post('id');
+            if (empty($ids) || !is_array($ids)) {
+                throw new Order_prize_error('Pilih minimal 1 data untuk dihapus.', 400);
+            }
+            $actor = (int)$this->aauth->get_user()->id;
+            $deleted = 0;
+            foreach ($ids as $id) {
+                $id = (int)$id;
+                if ($id > 0) {
+                    try {
+                        $this->prizes->delete_record($entity, $id, $actor);
+                        $deleted++;
+                    } catch (Throwable $e) {}
+                }
+            }
+            return ['deleted' => $deleted, 'message' => "Berhasil memproses {$deleted} data terpilih."];
         }, 'POST');
     }
 
