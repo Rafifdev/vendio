@@ -325,6 +325,9 @@ class Order_prizes extends Admin
     {
         $this->prize_json(function () use ($entity, $id) {
             $this->authorize('order_prizes_manage');
+            if (!is_numeric($id) || (int)$id <= 0) {
+                $id = $this->input->post('id');
+            }
             $id = Order_prize_rules::integer($id, 'ID', 1, 4294967295);
             $actor = (int)$this->aauth->get_user()->id;
             return $this->prizes->delete_record($entity, $id, $actor);
@@ -341,6 +344,21 @@ class Order_prizes extends Admin
             $isAdmin = (bool)$this->aauth->is_admin();
             return $this->prizes->listing($entity, is_array($filters) ? $filters : [], $userId, $isAdmin);
         });
+    }
+
+    public function seed_prizes()
+    {
+        $this->prize_json(function () {
+            $this->authorize('order_prizes_manage');
+            $user = $this->aauth->get_user();
+            $userId = (int)($user->id ?? 0);
+            $inserted = $this->prizes->seed_default_prizes($userId);
+            return [
+                'seeded' => true,
+                'count' => count($inserted),
+                'message' => 'Berhasil menambahkan ' . count($inserted) . ' varian hadiah sample siap pakai!'
+            ];
+        }, 'POST');
     }
 
     public function fulfill($id = 0)

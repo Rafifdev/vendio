@@ -275,9 +275,9 @@
 
       if (data.already_spun) {
         showResult(data.result);
-        message('Pesanan ini sudah pernah memutar roda undian. Berikut adalah hasil tersimpan Anda.');
+        message(data.message || 'Anda sudah memutar undian untuk pesanan ini. Berikut adalah hasil tersimpan Anda.');
       } else {
-        message('Pesanan berhasil diverifikasi! Klik tombol di bawah untuk memutar roda hadiah.');
+        message(data.message || 'Pesanan berhasil diverifikasi! Klik tombol di bawah untuk memutar roda hadiah.');
       }
     });
   });

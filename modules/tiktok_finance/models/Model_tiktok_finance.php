@@ -103,7 +103,9 @@ class Model_tiktok_finance extends MY_Model {
 
     public function filter_avaiable() {
         if (function_exists('get_active_tenant_id')) {
-            $this->db->where($this->table_name . '.tenant_id', get_active_tenant_id());
+            if ($this->db->field_exists('tenant_id', $this->table_name)) {
+                $this->db->where($this->table_name . '.tenant_id', get_active_tenant_id());
+            }
         }
 
         return $this;

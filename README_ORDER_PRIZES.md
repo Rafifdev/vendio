@@ -14,6 +14,7 @@
 7. [Integrasi Marketplace & Input Pesanan](#7-integrasi-marketplace--input-pesanan)
 8. [Struktur Database & Skema Tabel](#8-struktur-database--skema-tabel)
 9. [Panduan Operasional & API Reference](#9-panduan-operasional--api-reference)
+10. [Troubleshooting & Catatan Arsitektur Developer](#10-troubleshooting--catatan-arsitektur-developer)
 
 ---
 
@@ -237,6 +238,65 @@ order_prize_audits (Audit Log Mutasi & Aktivitas)
 | `/order_prizes/verify` | POST | `slug`, `order_number`, `phone`, `accept_terms`, `marketing_consent` | Verifikasi hak putar pesanan |
 | `/order_prizes/spin` | POST | `token` | Memutar roda & mencatat hadiah di server |
 | `/order_prizes/result` | POST | `token` | Mengambil detail hasil hadiah tersimpan |
+
+---
+
+## 10. TROUBLESHOOTING & CATATAN ARSITEKTUR DEVELOPER
+
+Bagian ini wajib dibaca oleh semua developer dan kolaborator sebelum memodifikasi query database, helper multi-tenancy, atau routing admin.
+
+### A. Isolasi Active Record / Query Builder (Aturan Mutlak)
+* **Masalah Masa Lalu**: CodeIgniter menggunakan instance database singleton (`$this->db`). Ketika sebuah model sedang menyusun query (misal `join_avaiable()` memanggil `$this->db->select('tiktok_shops.*')`) lalu memanggil helper `get_active_tenant_id()` yang di dalamnya menggunakan `$ci->db->select()->get_where()`, Active Record CodeIgniter akan mencampurkan klausa SELECT tersebut ke dalam query `aauth_users`. Hal ini menyebabkan MySQL melempar error:
+  `Error 1051: Unknown table 'vendio.tiktok_shops' in query SELECT tiktok_shops.*, tenant_id FROM aauth_users`.
+* **Solusi Baku**:
+  Di seluruh helper (`tenant_helper.php`, dll), **DILARANG KERAS** menggunakan Query Builder (`select()`, `where()`, `get_where()`). Wajib menggunakan raw query terisolasi dengan parameterized binding:
+  ```php
+  // BENAR: Terisolasi 100%, tidak mencemari Active Record yang sedang berjalan
+  $query = $ci->db->query("SELECT `tenant_id` FROM `aauth_users` WHERE `id` = ? LIMIT 1", [(int) $user_id]);
+  ```
+
+---
+
+### B. SaaS Multi-Tenancy & Error `1054 Unknown column 'tenant_id'`
+* **Mengapa Terjadi**:
+  Model marketplace seperti `Model_tiktok_orders`, `Model_tiktok_products`, `Model_tiktok_shops`, dll memiliki method `filter_avaiable()` yang memfilter berdasarkan `tenant_id`. Namun, pada database lokal developer yang berasal dari dump versi lama, kolom `tenant_id` belum ada di tabel tersebut.
+* **Aturan Implementasi**:
+  Semua model yang menambahkan filter `tenant_id` **WAJIB** mengecek keberadaan kolom terlebih dahulu menggunakan `field_exists`:
+  ```php
+  // Pola yang benar di setiap Model:
+  public function filter_avaiable() {
+      if (function_exists('get_active_tenant_id')) {
+          if ($this->db->field_exists('tenant_id', $this->table_name)) {
+              $this->db->where($this->table_name . '.tenant_id', get_active_tenant_id());
+          }
+      }
+      return $this;
+  }
+  ```
+* **Self-Healing Migration**:
+  Fungsi `ensure_multi_tenancy_schema()` di `tenant_helper.php` secara otomatis mendeteksi dan membuat tabel `tenants` & `plans` serta menambahkan kolom `tenant_id` ke tabel `aauth_users`, `tiktok_orders`, dan `tiktok_shops` jika belum ada di database lokal Anda.
+
+---
+
+### C. Typo Routing Global 4-Parameter di `routes.php`
+* **Masalah Masa Lalu**:
+  Di file `application/config/routes.php`, rule generic 4 parameter bawaan framework:
+  `$route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)/(:any)/(:any)'] = '$1/backend/$1/$2/$3/$3';`
+  memiliki typo di mana parameter ke-4 diduplikasi dari `$3` (alih-alih `$4`).
+* **Dampak**:
+  Setiap pemanggilan URL 4 parameter seperti `/delete/prizes/5` menyebabkan parameter kedua (`$id`) bernilai string `'prizes'` sehingga memicu validasi error:
+  `"ID harus bilangan bulat 1–4294967295."`
+* **Solusi Baku**:
+  1. Typo pada `routes.php` telah diperbaiki menjadi `$1/backend/$1/$2/$3/$4`.
+  2. Route eksplisit telah didaftarkan:
+     `$route[ADMIN_NAMESPACE_URL.'/order_prizes/delete/(:any)/(:num)'] = 'order_prizes/backend/order_prizes/delete/$1/$2';`
+  3. Controller `Order_prizes::delete` juga dilengkapi fallback membaca `$_POST['id']`.
+
+---
+
+### D. Fitur Seeding 10 Hadiah Sample
+* Jika tabel `order_prize_items` kosong (atau hanya berisi zonk/fallback), sistem otomatis mengeksekusi `seed_default_prizes()` saat membuka halaman admin.
+* Developer juga dapat melakukan re-seed sewaktu-waktu dengan menekan tombol **`⚡ Seed 10 Hadiah Sample`** di Tab Hadiah & Threshold atau melalui AJAX endpoint `POST /order_prizes/seed_prizes`.
 
 ---
 *Dikembangkan dengan standar arsitektur aman, efisien, dan siap pakai untuk pertumbuhan omset seller Vendio.*

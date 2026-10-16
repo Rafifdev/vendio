@@ -438,8 +438,14 @@ class Tiktok_orders extends Admin
 					$order_paid_time = date('Y-m-d H:i:s', $ts);
 				}
 
+				$has_tenant_orders = $this->db->field_exists('tenant_id', 'tiktok_orders');
+				$has_tenant_status_logs = $this->db->field_exists('tenant_id', 'tiktok_order_status_logs');
+				$has_tenant_price_details = $this->db->field_exists('tenant_id', 'tiktok_order_price_details');
+				$has_tenant_items = $this->db->field_exists('tenant_id', 'tiktok_order_items');
+
+				$target_tenant_id = !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1);
+
 				$order_data = [
-					'tenant_id'           => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 					'tiktok_shop_id'      => $shop->id,
 					'order_id'            => $order_id,
 					'order_status'        => $status,
@@ -462,20 +468,20 @@ class Tiktok_orders extends Admin
 					'order_paid_time'     => $order_paid_time,
 					'updated_at'          => date('Y-m-d H:i:s'),
 				];
+				if ($has_tenant_orders) {
+					$order_data['tenant_id'] = $target_tenant_id;
+				}
 
 				// Cek apakah data order sudah ada di database lokal dari map pre-fetch
 				$existing = $existing_orders[$order_id] ?? null;
 				$prev_status = $existing ? $existing->order_status : null;
-
-				$target_tenant_id = !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1);
 
 				if ($existing) {
 					$this->db->where('id', $existing->id)->update('tiktok_orders', $order_data);
 					$local_order_id = $existing->id;
 
 					if ($prev_status !== $status) {
-						$this->db->insert('tiktok_order_status_logs', [
-							'tenant_id'       => $target_tenant_id,
+						$status_log_data = [
 							'tiktok_order_id' => $local_order_id,
 							'order_id'        => $order_id,
 							'previous_status' => $prev_status,
@@ -483,15 +489,18 @@ class Tiktok_orders extends Admin
 							'reason'          => 'Perubahan status terdeteksi via sinkronisasi TikTok Shop',
 							'source'          => 'API_SYNC',
 							'created_at'      => date('Y-m-d H:i:s'),
-						]);
+						];
+						if ($has_tenant_status_logs) {
+							$status_log_data['tenant_id'] = $target_tenant_id;
+						}
+						$this->db->insert('tiktok_order_status_logs', $status_log_data);
 					}
 				} else {
 					$order_data['created_at'] = date('Y-m-d H:i:s');
 					$this->db->insert('tiktok_orders', $order_data);
 					$local_order_id = $this->db->insert_id();
 
-					$this->db->insert('tiktok_order_status_logs', [
-						'tenant_id'       => $target_tenant_id,
+					$status_log_data = [
 						'tiktok_order_id' => $local_order_id,
 						'order_id'        => $order_id,
 						'previous_status' => null,
@@ -499,7 +508,11 @@ class Tiktok_orders extends Admin
 						'reason'          => 'Pesanan baru ditarik dari TikTok Shop',
 						'source'          => 'API_SYNC',
 						'created_at'      => date('Y-m-d H:i:s'),
-					]);
+					];
+					if ($has_tenant_status_logs) {
+						$status_log_data['tenant_id'] = $target_tenant_id;
+					}
+					$this->db->insert('tiktok_order_status_logs', $status_log_data);
 				}
 
 				// Simpan Rincian Finansial Lengkap (Price Details Breakdown)
@@ -517,7 +530,6 @@ class Tiktok_orders extends Admin
 				$seller_revenue = max(0, $orig_product_price - $seller_discount);
 
 				$price_data = [
-					'tenant_id'                     => $target_tenant_id,
 					'tiktok_order_id'               => $local_order_id,
 					'order_id'                      => $order_id,
 					'currency'                      => $currency,
@@ -534,6 +546,9 @@ class Tiktok_orders extends Admin
 					'seller_revenue'                => $seller_revenue,
 					'updated_at'                    => date('Y-m-d H:i:s'),
 				];
+				if ($has_tenant_price_details) {
+					$price_data['tenant_id'] = $target_tenant_id;
+				}
 
 				$existing_price = $this->db->get_where('tiktok_order_price_details', ['tiktok_order_id' => $local_order_id])->row();
 				if ($existing_price) {
@@ -551,7 +566,6 @@ class Tiktok_orders extends Admin
 						$sku_id = $item['sku_id'] ?? null;
 
 						$item_data = [
-							'tenant_id'       => $target_tenant_id,
 							'tiktok_order_id' => $local_order_id,
 							'order_id'        => $order_id,
 							'order_line_id'   => $line_id,
@@ -564,6 +578,9 @@ class Tiktok_orders extends Admin
 							'item_price'      => floatval($item['sale_price'] ?? ($item['sku_price'] ?? 0)),
 							'sku_image'       => $item['sku_image'] ?? null,
 						];
+						if ($has_tenant_items) {
+							$item_data['tenant_id'] = $target_tenant_id;
+						}
 
 						// Cek keberadaan item (berdasarkan order_line_id atau fallback ke sku_id dalam pesanan yang sama)
 						$existing_item = null;

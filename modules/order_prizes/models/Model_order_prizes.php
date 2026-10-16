@@ -193,6 +193,194 @@ class Model_order_prizes extends CI_Model
                     SELECT `campaign_id`, `id`, `created_at` FROM `order_prize_items` WHERE `campaign_id` > 0");
             }
         }
+
+        // Auto-seed 10 hadiah jika daftar hadiah non-fallback masih kosong
+        if ($this->db->table_exists('order_prize_items')) {
+            $q = $this->db->query("SELECT COUNT(*) AS c FROM `order_prize_items` WHERE `kind` != 'none'");
+            $count = ($q && $row = $q->row()) ? (int)$row->c : 0;
+            if ($count === 0) {
+                $this->seed_default_prizes();
+            }
+        }
+    }
+
+    public function seed_default_prizes($userId = null)
+    {
+        $now = $this->now();
+        $samplePrizes = [
+            [
+                'name' => 'iPhone 15 Pro 128GB (Grand Prize)',
+                'description' => 'Hadiah utama smartphone flagship premium edisi spesial pelanggan setia.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 1,
+                'stock' => 1,
+                'cost' => 18000000,
+                'threshold_spins' => 500,
+                'threshold_revenue' => 100000000,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Logam Mulia Antam 1 Gram',
+                'description' => 'Emas batangan murni 99.99% bersertifikat resmi PT Antam Tbk.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 3,
+                'stock' => 3,
+                'cost' => 1450000,
+                'threshold_spins' => 100,
+                'threshold_revenue' => 20000000,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Smart TV 32 Inch Xiaomi LED',
+                'description' => 'Smart TV Android kualitas HD dengan audio Dolby stereo jernih.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 2,
+                'stock' => 2,
+                'cost' => 2200000,
+                'threshold_spins' => 200,
+                'threshold_revenue' => 35000000,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Air Fryer Digital Philips 4.1L',
+                'description' => 'Penggoreng udara sehat tanpa minyak praktis untuk kebutuhan dapur.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 5,
+                'stock' => 5,
+                'cost' => 850000,
+                'threshold_spins' => 50,
+                'threshold_revenue' => 10000000,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Headphone Wireless Sony Extra Bass',
+                'description' => 'Headphone Bluetooth nirkabel suara bass mendalam dengan baterai hingga 30 jam.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 10,
+                'stock' => 10,
+                'cost' => 450000,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Voucher Belanja Diskon Rp 100.000',
+                'description' => 'Potongan harga langsung Rp 100.000 untuk transaksi berikutnya di toko.',
+                'kind' => 'voucher',
+                'active' => 1,
+                'weight' => 20,
+                'stock' => 25,
+                'cost' => 100000,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Voucher Belanja Diskon Rp 50.000',
+                'description' => 'Potongan harga langsung Rp 50.000 tanpa batas minimal pembelanjaan.',
+                'kind' => 'voucher',
+                'active' => 1,
+                'weight' => 35,
+                'stock' => 50,
+                'cost' => 50000,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Voucher Gratis Ongkir s/d Rp 20.000',
+                'description' => 'Kupon subsidi ongkos kirim s/d Rp 20.000 berlaku nasional.',
+                'kind' => 'voucher',
+                'active' => 1,
+                'weight' => 50,
+                'stock' => 100,
+                'cost' => 20000,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Exclusive Merchandise Box (T-Shirt & Tumbler)',
+                'description' => 'Paket merchandise eksklusif official Vendio edisi terbatas.',
+                'kind' => 'physical',
+                'active' => 1,
+                'weight' => 15,
+                'stock' => 20,
+                'cost' => 75000,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ],
+            [
+                'name' => 'Belum Beruntung (Coba Lagi)',
+                'description' => 'Terima kasih telah berbelanja! Coba lagi keberuntungan Anda di pesanan berikutnya.',
+                'kind' => 'none',
+                'active' => 1,
+                'weight' => 60,
+                'stock' => null,
+                'cost' => 0,
+                'threshold_spins' => 0,
+                'threshold_revenue' => 0,
+                'threshold_profit' => 0,
+                'auto_metric' => 'none',
+                'allocation_percent' => 10,
+            ]
+        ];
+
+        $campaigns = $this->db->query("SELECT id FROM `order_prize_campaigns` WHERE `status` = 'active'")->result_array();
+        $campaignIds = array_column($campaigns, 'id');
+
+        $insertedIds = [];
+        foreach ($samplePrizes as $p) {
+            $exists = $this->db->query("SELECT id FROM `order_prize_items` WHERE `name` = ? LIMIT 1", [$p['name']])->row();
+            if ($exists) {
+                $pId = (int)$exists->id;
+            } else {
+                $insertData = $p;
+                $insertData['created_by'] = !empty($userId) ? (int)$userId : null;
+                $insertData['campaign_id'] = !empty($campaignIds) ? (int)$campaignIds[0] : 0;
+                $insertData['awarded_count'] = 0;
+                $insertData['created_at'] = $now;
+                $insertData['updated_at'] = $now;
+
+                $this->db->insert('order_prize_items', $insertData);
+                $pId = (int)$this->db->insert_id();
+            }
+
+            $insertedIds[] = $pId;
+
+            if (!empty($campaignIds) && $pId > 0) {
+                foreach ($campaignIds as $cId) {
+                    $this->db->query("INSERT IGNORE INTO `order_prize_campaign_prizes` (`campaign_id`, `prize_id`, `created_at`) VALUES (?, ?, ?)",
+                        [(int)$cId, $pId, $now]);
+                }
+            }
+        }
+
+        return $insertedIds;
     }
 
     private function q($sql, array $params = [])
@@ -668,41 +856,78 @@ class Model_order_prizes extends CI_Model
             if (!$c) throw new Order_prize_error('Campaign tidak ditemukan.', 404);
             $this->active($c);
 
-            $o = $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ? FOR UPDATE', [$c['id'], $number])->row_array();
+            // 1. Cari apakah nomor pesanan ini pernah terdaftar di database (pada campaign manapun)
+            $o = $this->q('SELECT * FROM order_prize_orders WHERE order_number = ? FOR UPDATE', [$number])->row_array();
 
-            // 1. On-Demand Auto-Discovery from TikTok Orders
-            if (!$o && $this->db->table_exists('tiktok_orders')) {
-                $o = $this->auto_discover_tiktok_order($c, $number, $phone);
+            // 2. Cek apakah nomor pesanan ini SUDAH PERNAH MEMUTAR SPIN
+            $spin = null;
+            if ($o) {
+                $spin = $this->q('SELECT * FROM order_prize_spins WHERE order_id = ?', [$o['id']])->row_array();
+            }
+            if (!$spin) {
+                $spin = $this->q('SELECT * FROM order_prize_spins WHERE order_number = ?', [$number])->row_array();
             }
 
-            // 2. On-Demand Auto-Registration for Auto Verification Mode (Shopee / Open / Testing)
-            $vMode = $c['verification_mode'] ?? 'auto';
-            if (!$o && $vMode === 'auto') {
-                $o = $this->auto_register_customer_order($c, $number, $phone);
+            // KASUS A: SUDAH PERNAH MEMUTAR UNDIAN (STATUS: SUDAH SPIN)
+            if ($spin) {
+                $token = bin2hex(random_bytes(32));
+                $expires = date('Y-m-d H:i:s', time() + 1800);
+                $orderId = $o ? (int)$o['id'] : (int)$spin['order_id'];
+                if ($orderId > 0) {
+                    $this->q('INSERT INTO order_prize_tokens (order_id,token_hash,expires_at,marketing_consent,consent_at,created_at) VALUES (?,?,?,?,?,?)
+                        ON DUPLICATE KEY UPDATE token_hash=VALUES(token_hash),expires_at=VALUES(expires_at),marketing_consent=VALUES(marketing_consent),consent_at=VALUES(consent_at)',
+                        [$orderId, hash('sha256', $token), $expires, $consent, $consent ? $this->now() : null, $this->now()]);
+                    if ((int)$spin['marketing_consent'] !== $consent) {
+                        $this->update('order_prize_spins', $spin['id'], ['marketing_consent'=>$consent, 'updated_at'=>$this->now()]);
+                    }
+                }
+                return [
+                    'token' => $token,
+                    'expires_at' => $expires,
+                    'already_spun' => true,
+                    'message' => 'Anda sudah memutar undian untuk pesanan ini.',
+                    'result' => $this->public_result($spin)
+                ];
+            }
+
+            // KASUS B: BELUM PERNAH SPIN ATAU RIWAYAT SPIN TELAH DI-RESET!
+            // Jika order sudah ada di database (misal dari campaign lain atau sesi sebelumnya),
+            // perbarui ke campaign saat ini dan perbarui nomor HP pembeli agar langsung bisa spin!
+            if ($o) {
+                $this->update('order_prize_orders', $o['id'], [
+                    'campaign_id' => $c['id'],
+                    'phone' => $phone,
+                    'status' => 'completed',
+                    'updated_at' => $this->now()
+                ]);
+                $o = $this->row('order_prize_orders', $o['id']);
+            } else {
+                // Auto-Discovery dari TikTok Orders jika tabel tiktok_orders ada
+                if ($this->db->table_exists('tiktok_orders')) {
+                    $o = $this->auto_discover_tiktok_order($c, $number, $phone);
+                }
+
+                // Jika belum ada di order_prize_orders, auto-registrasi on-the-fly!
+                if (!$o) {
+                    $o = $this->auto_register_customer_order($c, $number, $phone);
+                }
             }
 
             if (!$o) {
-                throw new Order_prize_error('Nomor pesanan belum terdaftar dalam campaign ini.', 422);
+                throw new Order_prize_error('Gagal memverifikasi data pesanan. Silakan periksa kembali nomor pesanan Anda.', 422);
             }
 
-            if (!hash_equals($o['phone'], $phone)) {
-                throw new Order_prize_error('Nomor WhatsApp/HP tidak cocok dengan data pesanan.', 422);
-            }
+            // Validasi kelayakan pesanan (status, retur, batal, dsb.)
+            $this->eligible_order($o, $c);
 
-            $spin = $this->q('SELECT * FROM order_prize_spins WHERE order_id = ?', [$o['id']])->row_array();
-            if (!$spin) {
-                $this->eligible_order($o, $c);
-            }
             $token = bin2hex(random_bytes(32));
             $expires = date('Y-m-d H:i:s', time() + 1800);
             $this->q('INSERT INTO order_prize_tokens (order_id,token_hash,expires_at,marketing_consent,consent_at,created_at) VALUES (?,?,?,?,?,?)
                 ON DUPLICATE KEY UPDATE token_hash=VALUES(token_hash),expires_at=VALUES(expires_at),marketing_consent=VALUES(marketing_consent),consent_at=VALUES(consent_at)',
                 [$o['id'], hash('sha256', $token), $expires, $consent, $consent ? $this->now() : null, $this->now()]);
-            if ($spin && (int)$spin['marketing_consent'] !== $consent) {
-                $this->update('order_prize_spins', $spin['id'], ['marketing_consent'=>$consent, 'updated_at'=>$this->now()]);
-            }
+
             $this->audit(null, 'order.verify', 'orders', $o['id'], ['marketing_consent'=>$consent, 'terms_sha256'=>hash('sha256', $c['terms'])]);
-            return ['token'=>$token, 'expires_at'=>$expires, 'already_spun'=>(bool)$spin, 'result'=>$spin ? $this->public_result($spin) : null];
+            return ['token'=>$token, 'expires_at'=>$expires, 'already_spun'=>false, 'result'=>null];
         });
     }
 
@@ -714,28 +939,35 @@ class Model_order_prizes extends CI_Model
         $tOrder = $this->db->get()->row_array();
         if (!$tOrder) return null;
 
-        $rawPhone = trim($tOrder['recipient_phone'] ?? '');
-        try {
-            $normalizedPhone = Order_prize_rules::phone($rawPhone);
-        } catch (Throwable $e) {
-            $normalizedPhone = '';
-        }
-
-        if ($normalizedPhone !== '' && !hash_equals($normalizedPhone, $phone)) {
-            return null;
-        }
-
         $now = $this->now();
+        $tiktokStatus = strtoupper($tOrder['order_status'] ?? '');
+        $hasReturn = false;
+        if ($this->db->table_exists('tiktok_returns')) {
+            $hasReturn = ($this->db->where('order_id', $number)->count_all_results('tiktok_returns') > 0);
+        }
+
+        if ($hasReturn) {
+            $orderStatus = 'returned';
+        } elseif (in_array($tiktokStatus, ['CANCELLED', 'CANCELED', 'IN_CANCEL'], true)) {
+            $orderStatus = 'cancelled';
+        } elseif (in_array($tiktokStatus, ['COMPLETED', 'DELIVERED'], true)) {
+            $orderStatus = 'completed';
+        } elseif (in_array($tiktokStatus, ['AWAITING_SHIPMENT', 'AWAITING_COLLECTION', 'IN_TRANSIT'], true)) {
+            $orderStatus = 'paid';
+        } else {
+            $orderStatus = 'unpaid';
+        }
+
         $orderData = [
             'campaign_id' => (int)$c['id'],
             'channel' => 'tiktok',
-            'shop_ref' => $c['shop_ref'] ?: 'TIKTOK',
+            'shop_ref' => !empty($tOrder['tiktok_shop_id']) ? (string)$tOrder['tiktok_shop_id'] : ($c['shop_ref'] ?: 'TIKTOK'),
             'order_number' => $number,
             'phone' => $phone,
-            'status' => in_array($tOrder['order_status'], ['COMPLETED', 'DELIVERED'], true) ? 'completed' : 'paid',
-            'revenue' => (int)round($tOrder['total_amount'] ?? 0),
+            'status' => $orderStatus,
+            'revenue' => (int)round($tOrder['total_amount'] ?? 50000),
             'profit' => null,
-            'ordered_at' => $tOrder['order_created_time'] ?: $now,
+            'ordered_at' => !empty($tOrder['order_created_time']) ? $tOrder['order_created_time'] : $now,
             'source' => 'tiktok_auto',
             'created_at' => $now,
             'updated_at' => $now,
@@ -745,7 +977,7 @@ class Model_order_prizes extends CI_Model
             $id = $this->insert('order_prize_orders', $orderData);
             return $this->q('SELECT * FROM order_prize_orders WHERE id = ?', [$id])->row_array();
         } catch (Throwable $e) {
-            return $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ?', [$c['id'], $number])->row_array();
+            return $this->q('SELECT * FROM order_prize_orders WHERE order_number = ?', [$number])->row_array();
         }
     }
 
@@ -771,17 +1003,26 @@ class Model_order_prizes extends CI_Model
             $id = $this->insert('order_prize_orders', $orderData);
             return $this->q('SELECT * FROM order_prize_orders WHERE id = ?', [$id])->row_array();
         } catch (Throwable $e) {
-            return $this->q('SELECT * FROM order_prize_orders WHERE campaign_id = ? AND order_number = ?', [$c['id'], $number])->row_array();
+            return $this->q('SELECT * FROM order_prize_orders WHERE order_number = ?', [$number])->row_array();
         }
     }
 
     private function eligible_order(array $o, array $c)
     {
+        if ($o['status'] === 'cancelled') {
+            throw new Order_prize_error('Pesanan ini telah dibatalkan dan tidak berhak mengikuti undian.', 422);
+        }
+        if ($o['status'] === 'returned') {
+            throw new Order_prize_error('Pesanan ini dalam status retur/pengembalian dan tidak berhak mengikuti undian.', 422);
+        }
+        if ($o['status'] === 'unpaid') {
+            throw new Order_prize_error('Pesanan belum dibayar.', 422);
+        }
         if (!in_array($o['status'], ['paid','completed'], true)) {
             throw new Order_prize_error('Status order belum selesai/lunas (' . $o['status'] . ').', 422);
         }
-        if ($o['ordered_at'] < $c['starts_at'] || $o['ordered_at'] > $c['ends_at']) {
-            throw new Order_prize_error('Waktu transaksi pesanan berada di luar periode campaign (' . date('d M Y', strtotime($c['starts_at'])) . ' - ' . date('d M Y', strtotime($c['ends_at'])) . ').', 422);
+        if ($o['ordered_at'] > $c['ends_at']) {
+            throw new Order_prize_error('Waktu transaksi pesanan melewati batas akhir campaign (' . date('d M Y', strtotime($c['ends_at'])) . ').', 422);
         }
         // Batas waktu kesempatan spin maksimal N hari sejak pesanan
         $claimDays = (int)($c['claim_days'] ?? 0);
@@ -792,6 +1033,8 @@ class Model_order_prizes extends CI_Model
                 $tglBatas = date('d M Y H:i', $expireTime);
                 throw new Order_prize_error("Kesempatan spin untuk pesanan ini telah hangus (Batas maksimal {$claimDays} hari setelah pesanan: s/d {$tglBatas}).", 422);
             }
+        } elseif ($o['ordered_at'] < $c['starts_at']) {
+            throw new Order_prize_error('Waktu transaksi pesanan berada sebelum periode campaign (' . date('d M Y', strtotime($c['starts_at'])) . ').', 422);
         }
     }
 
@@ -1086,6 +1329,25 @@ class Model_order_prizes extends CI_Model
                 if ($spun > 0) throw new Order_prize_error('Order yang sudah melakukan spin tidak dapat dihapus.');
                 $this->q('DELETE FROM order_prize_tokens WHERE order_id = ?', [$id]);
                 $this->q('DELETE FROM order_prize_orders WHERE id = ?', [$id]);
+            } elseif ($entity === 'spins') {
+                $spin = $this->row('order_prize_spins', $id);
+                $orderId = (int)$spin['order_id'];
+                $campaignId = (int)$spin['campaign_id'];
+                $prizeId = (int)$spin['prize_id'];
+
+                // Kembalikan stok hadiah & kurangi counter statistik campaign
+                $this->q('UPDATE order_prize_campaigns SET spin_count = GREATEST(0, spin_count - 1), awarded_cost = GREATEST(0, awarded_cost - ?), updated_at = ? WHERE id = ?', [(int)$spin['prize_cost'], $this->now(), $campaignId]);
+                $this->q('UPDATE order_prize_items SET awarded_count = GREATEST(0, awarded_count - 1), stock = IF(stock IS NULL, NULL, stock + 1), updated_at = ? WHERE id = ?', [$this->now(), $prizeId]);
+
+                // 1. Hapus riwayat spin terlebih dahulu (child row dengan FK ke token_id)
+                $this->q('DELETE FROM order_prize_spins WHERE id = ?', [$id]);
+
+                // 2. Baru kemudian hapus token terkait (parent row) agar tidak melanggar foreign key constraint
+                if ($orderId > 0) {
+                    $this->q('DELETE FROM order_prize_tokens WHERE order_id = ?', [$orderId]);
+                }
+                $this->audit($actor, 'spin.reset', 'spins', $id, ['before'=>$old, 'reason'=>'reset_for_testing']);
+                return ['deleted'=>true, 'message'=>'Riwayat spin berhasil di-reset. Pesanan kini dapat memutar roda hadiah kembali!'];
             } else {
                 throw new Order_prize_error('Penghapusan tidak diizinkan untuk entitas ini.');
             }

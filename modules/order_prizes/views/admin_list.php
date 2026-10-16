@@ -299,6 +299,9 @@
                             <i class="fa fa-plus"></i> Tambah Campaign Baru
                         </a>
                     <?php elseif ($active_tab === 'prizes'): ?>
+                        <button type="button" class="btn btn-default" onclick="seedSamplePrizes()" style="margin-right: 6px; border-radius: 6px; font-weight: 600; color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff;">
+                            <i class="fa fa-magic"></i> Seed 10 Hadiah Sample
+                        </button>
                         <a href="<?= site_url(ADMIN_NAMESPACE_URL . '/order_prizes/prize_add'); ?>" class="btn btn-primary-action">
                             <i class="fa fa-plus"></i> Tambah Hadiah Baru
                         </a>
@@ -505,7 +508,7 @@
                     </thead>
                     <tbody>
                         <?php if (empty($records['items'])): ?>
-                            <tr><td colspan="11" class="text-center" style="padding: 30px; color: #94a3b8;">Belum ada hadiah. Klik tombol <strong>Tambah Hadiah Baru</strong> di atas.</td></tr>
+                            <tr><td colspan="11" class="text-center" style="padding: 30px; color: #94a3b8;">Belum ada hadiah. Klik tombol <button type="button" class="btn btn-sm" onclick="seedSamplePrizes()" style="color: #7c3aed; background: #f5f3ff; border: 1px solid #ddd6fe; font-weight: 600; margin: 0 4px;"><i class="fa fa-magic"></i> Seed 10 Hadiah Sample</button> atau <strong>Tambah Hadiah Baru</strong> di atas.</td></tr>
                         <?php else: foreach ($records['items'] as $item): ?>
                             <tr>
                                 <td>#<?= $item['id']; ?></td>
@@ -721,9 +724,16 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-xs btn-primary" onclick="openFulfillmentModal(<?= html_escape(json_encode($item)); ?>)" style="border-radius: 4px; font-weight: 600;">
-                                        <i class="fa fa-truck"></i> Kelola Hadiah
-                                    </button>
+                                    <div style="display: inline-flex; gap: 4px; align-items: center; justify-content: center;">
+                                        <button type="button" class="btn btn-xs btn-primary" onclick="openFulfillmentModal(<?= html_escape(json_encode($item)); ?>)" style="border-radius: 4px; font-weight: 600;">
+                                            <i class="fa fa-truck"></i> Kelola
+                                        </button>
+                                        <?php if ($can_manage): ?>
+                                            <button type="button" class="btn btn-xs btn-default" title="Reset Spin (Hapus riwayat agar order bisa spin ulang untuk testing)" onclick="deleteRecord('spins', <?= $item['id']; ?>, 'Spin #<?= $item['id']; ?> (Pesanan: <?= html_escape($item['order_number']); ?>)')" style="border-radius: 4px; color: #dc2626; border-color: #fecaca; background: #fff5f5;">
+                                                <i class="fa fa-refresh"></i> Reset
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; endif; ?>
@@ -1189,7 +1199,7 @@ function deleteRecord(entity, id, title) {
     }, function(isConfirm) {
         if (!isConfirm) return;
 
-        var data = {};
+        var data = { id: id };
         data[CSRF_NAME] = CSRF_HASH;
 
         $.ajax({
@@ -1226,6 +1236,51 @@ function deleteRecord(entity, id, title) {
                         if (xhr.responseText.length < 200 && !xhr.responseText.includes('<html')) msg = xhr.responseText;
                     }
                 }
+                swal('Error', msg, 'error');
+            }
+        });
+    });
+}
+
+function seedSamplePrizes() {
+    swal({
+        title: 'Seed 10 Hadiah Sample?',
+        text: 'Sistem akan menambahkan 10 varian hadiah menarik siap pakai (iPhone 15 Pro, Emas Antam, Smart TV, Voucher Belanja, Merchandise, dll) ke database Anda.',
+        type: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#7c3aed',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Ya, Seed Sekarang!',
+        cancelButtonText: 'Batal'
+    }, function(isConfirm) {
+        if (!isConfirm) return;
+
+        var data = {};
+        data[CSRF_NAME] = CSRF_HASH;
+
+        $.ajax({
+            url: BASE_ADMIN + '/seed_prizes',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            success: function(res) {
+                if (res.csrf) CSRF_HASH = res.csrf.hash;
+                if (res.success) {
+                    swal({
+                        title: 'Berhasil!',
+                        text: res.data.message || '10 Hadiah berhasil ditambahkan.',
+                        type: 'success',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+                    setTimeout(function() { location.reload(); }, 1400);
+                } else {
+                    swal('Gagal', res.message || 'Tidak dapat menambahkan hadiah sample.', 'error');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Gagal melakukan seed hadiah.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
                 swal('Error', msg, 'error');
             }
         });

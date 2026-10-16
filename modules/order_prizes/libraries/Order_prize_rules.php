@@ -96,6 +96,11 @@ class Order_prize_rules
     {
         $d = array_merge(['description'=>'','kind'=>'physical','active'=>1,'weight'=>1,'stock'=>null,'cost'=>0,
             'threshold_spins'=>0,'threshold_revenue'=>0,'threshold_profit'=>0,'auto_metric'=>'none','allocation_percent'=>10], $in);
+        $autoMetric = self::choice($d['auto_metric'] ?? 'none', 'Threshold otomatis', ['none','revenue','profit']);
+        $allocVal = (int)($d['allocation_percent'] ?? 10);
+        if ($allocVal < 1 || $allocVal > 100) {
+            $allocVal = 10;
+        }
         $out = ['campaign_id'=>self::integer($d['campaign_id'] ?? 0, 'Campaign', 0, 4294967295, true) ?: 0,
             'name'=>self::text($d['name'] ?? '', 'Nama hadiah', 160),
             'description'=>self::text($d['description'], 'Deskripsi', 4000, false),
@@ -103,8 +108,8 @@ class Order_prize_rules
             'active'=>self::integer($d['active'], 'Aktif', 0, 1),
             'weight'=>self::integer($d['weight'], 'Bobot peluang', 1, 1000000),
             'stock'=>self::integer($d['stock'], 'Sisa stok', 0, 1000000, true),
-            'auto_metric'=>self::choice($d['auto_metric'] ?? 'none', 'Threshold otomatis', ['none','revenue','profit']),
-            'allocation_percent'=>self::integer(($d['allocation_percent'] ?? '') === '' ? 10 : $d['allocation_percent'], 'Alokasi (%)', 1, 100)];
+            'auto_metric'=>$autoMetric,
+            'allocation_percent'=>$allocVal];
         foreach (['cost','threshold_spins','threshold_revenue','threshold_profit'] as $key) {
             $val = ($d[$key] ?? '') === '' ? 0 : $d[$key];
             $out[$key] = self::integer($val, $key, 0, $key === 'threshold_spins' ? 1000000 : 1000000000);

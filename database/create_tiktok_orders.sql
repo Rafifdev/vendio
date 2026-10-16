@@ -1,9 +1,11 @@
 -- =========================================================================
 -- Tabel Modul Pesanan TikTok (Developer 2: Orders & Fulfillment)
+-- Lengkap dengan skema SaaS Multi-Tenancy (tenant_id)
 -- =========================================================================
 
 CREATE TABLE IF NOT EXISTS `tiktok_orders` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` INT(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Relasi ke tenants.id',
   `tiktok_shop_id` INT(11) DEFAULT NULL COMMENT 'Relasi ke tabel tiktok_shops.id',
   `order_id` VARCHAR(64) NOT NULL COMMENT 'ID Pesanan unik dari TikTok',
   `order_status` VARCHAR(50) NOT NULL DEFAULT 'UNPAID' COMMENT 'Status: UNPAID, AWAITING_SHIPMENT, AWAITING_COLLECTION, IN_TRANSIT, DELIVERED, COMPLETED, CANCELLED',
@@ -28,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `tiktok_orders` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_order_id` (`order_id`),
+  KEY `idx_tenant_id` (`tenant_id`),
   KEY `idx_tiktok_shop_id` (`tiktok_shop_id`),
   KEY `idx_order_status` (`order_status`),
   KEY `idx_order_created_time` (`order_created_time`)
@@ -35,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `tiktok_orders` (
 
 CREATE TABLE IF NOT EXISTS `tiktok_order_items` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` INT(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Relasi ke tenants.id',
   `tiktok_order_id` INT(11) NOT NULL COMMENT 'Relasi ke tiktok_orders.id',
   `order_id` VARCHAR(64) NOT NULL COMMENT 'ID Pesanan TikTok',
   `order_line_id` VARCHAR(64) DEFAULT NULL COMMENT 'ID baris item TikTok',
@@ -48,7 +52,49 @@ CREATE TABLE IF NOT EXISTS `tiktok_order_items` (
   `sku_image` VARCHAR(255) DEFAULT NULL COMMENT 'URL / Nama file gambar item',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  KEY `idx_tenant_id` (`tenant_id`),
   KEY `idx_tiktok_order_id` (`tiktok_order_id`),
   KEY `idx_order_id` (`order_id`),
   KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `tiktok_order_price_details` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` INT(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Relasi ke tenants.id',
+  `tiktok_order_id` INT(11) NOT NULL COMMENT 'Relasi ke tiktok_orders.id',
+  `order_id` VARCHAR(64) NOT NULL COMMENT 'ID Pesanan TikTok',
+  `currency` VARCHAR(10) DEFAULT 'IDR',
+  `original_product_price` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `seller_discount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `platform_discount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `subtotal` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `original_shipping_fee` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `shipping_fee_seller_discount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `shipping_fee_platform_discount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `buyer_shipping_fee` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `tax` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `total_buyer_payment` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `seller_revenue` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant_id` (`tenant_id`),
+  KEY `idx_tiktok_order_id` (`tiktok_order_id`),
+  KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `tiktok_order_status_logs` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` INT(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Relasi ke tenants.id',
+  `tiktok_order_id` INT(11) NOT NULL COMMENT 'Relasi ke tiktok_orders.id',
+  `order_id` VARCHAR(64) NOT NULL COMMENT 'ID Pesanan TikTok',
+  `previous_status` VARCHAR(50) DEFAULT NULL,
+  `new_status` VARCHAR(50) NOT NULL,
+  `reason` TEXT DEFAULT NULL,
+  `source` VARCHAR(50) NOT NULL DEFAULT 'API_SYNC',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant_id` (`tenant_id`),
+  KEY `idx_tiktok_order_id` (`tiktok_order_id`),
+  KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

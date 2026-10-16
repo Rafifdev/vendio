@@ -444,6 +444,7 @@ class Aauth {
 				'id' => $row->id,
 				'username' => $row->username,
 				'email' => $row->email,
+				'tenant_id' => !empty($row->tenant_id) ? (int)$row->tenant_id : 1,
 				'loggedin' => TRUE
 			);
 

@@ -201,7 +201,7 @@
 
                 <!-- THRESHOLD RULES BOX (MURNI MANUAL) -->
                 <input type="hidden" name="auto_metric" value="none">
-                <input type="hidden" name="allocation_percent" value="0">
+                <input type="hidden" name="allocation_percent" value="10">
 
                 <div class="threshold-card">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">

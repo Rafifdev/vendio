@@ -1760,8 +1760,11 @@ class Tiktok_products extends Admin
 					$listing_platforms = implode(',', $p['listing_platforms']);
 				}
 
+				$has_tenant_products = $this->db->field_exists('tenant_id', 'tiktok_products');
+				$has_tenant_skus = $this->db->field_exists('tenant_id', 'tiktok_product_skus');
+				$target_tenant_id = !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1);
+
 				$product_data = [
-					'tenant_id' => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 					'tiktok_shop_id' => $shop->id,
 					'product_id' => $product_id,
 					'title' => $title,
@@ -1779,6 +1782,9 @@ class Tiktok_products extends Admin
 					'raw_data' => json_encode($detail, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
 					'updated_at' => date('Y-m-d H:i:s'),
 				];
+				if ($has_tenant_products) {
+					$product_data['tenant_id'] = $target_tenant_id;
+				}
 
 				// Cek apakah produk sudah ada di database dari map pre-fetch
 				$existing_id = $existing_products[$product_id] ?? null;
@@ -1805,7 +1811,6 @@ class Tiktok_products extends Admin
 						}
 
 						$sku_data = [
-							'tenant_id' => !empty($shop->tenant_id) ? $shop->tenant_id : (function_exists('get_active_tenant_id') ? get_active_tenant_id() : 1),
 							'tiktok_product_id' => $local_product_id,
 							'product_id' => $product_id,
 							'sku_id' => $sku['id'],
@@ -1821,6 +1826,9 @@ class Tiktok_products extends Admin
 							'warehouse_id' => $warehouse_id,
 							'updated_at' => date('Y-m-d H:i:s'),
 						];
+						if ($has_tenant_skus) {
+							$sku_data['tenant_id'] = $target_tenant_id;
+						}
 
 						$existing_sku = $this->db->get_where('tiktok_product_skus', ['sku_id' => $sku['id']])->row();
 						if ($existing_sku) {

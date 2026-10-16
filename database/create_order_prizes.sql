@@ -1,5 +1,23 @@
--- Order Prizes v1. MySQL / MariaDB compatible.
--- Safe idempotent table creation.
+-- ============================================================================
+-- ORDER PRIZES (VENDIO REWARDS) MIGRATION v1
+-- MySQL / MariaDB compatible, safe & idempotent (IF NOT EXISTS).
+--
+-- Tabel yang dibuat:
+--   1. order_prize_campaigns        - Master kampanye undian seller
+--   2. order_prize_items            - Master hadiah (fisik, diskon, saldo, zonk)
+--   3. order_prize_campaign_prizes  - Relasi many-to-many campaign & prize
+--   4. order_prize_orders           - Data pesanan eligible untuk undian
+--   5. order_prize_tokens           - One-time verification token spin
+--   6. order_prize_spins            - Riwayat undian, pemenang & auto-claim
+--   7. order_prize_audit            - Audit trail & compliance log
+--   8. order_prize_rate_limits      - Rate limiting brute-force protection
+--   9. aauth_perms & menu           - Hak akses menu & permission admin
+--
+-- CATATAN UNTUK DEVELOPER:
+-- File migrasi ini HANYA mengurus modul Order Prizes dan TIDAK mengubah skema
+-- tabel TikTok maupun multi-tenancy (tenants/plans). Untuk struktur multi-tenant,
+-- lihat 'vendio.sql' atau helper 'application/helpers/tenant_helper.php'.
+-- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `order_prize_campaigns` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

@@ -27,6 +27,10 @@ class Cron extends MY_Controller
         parent::__construct();
         $this->output->enable_profiler(FALSE);
         $this->load->database();
+        $this->load->helper('tenant');
+        if (function_exists('ensure_multi_tenancy_schema')) {
+            ensure_multi_tenancy_schema($this);
+        }
         $this->load->library('tiktok_api');
 
         @ini_set('memory_limit', '512M');

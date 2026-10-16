@@ -78,8 +78,10 @@ $route['administrator/web-page'] = 'page/backend/page/admin';
 
 // Order Prizes: keep multi-argument admin endpoints ahead of generic HMVC routes.
 $route[ADMIN_NAMESPACE_URL.'/order_prizes/save/(:any)/(:num)'] = 'order_prizes/backend/order_prizes/save/$1/$2';
+$route[ADMIN_NAMESPACE_URL.'/order_prizes/delete/(:any)/(:num)'] = 'order_prizes/backend/order_prizes/delete/$1/$2';
 $route[ADMIN_NAMESPACE_URL.'/order_prizes/records/(:any)'] = 'order_prizes/backend/order_prizes/records/$1';
 $route[ADMIN_NAMESPACE_URL.'/order_prizes/fulfill/(:num)'] = 'order_prizes/backend/order_prizes/fulfill/$1';
+$route[ADMIN_NAMESPACE_URL.'/order_prizes/seed_prizes'] = 'order_prizes/backend/order_prizes/seed_prizes';
 
 $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)'] = 'form/backend/$1';
 $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)/(:any)'] = 'form/backend/$1/$2';
@@ -89,7 +91,7 @@ $route[ADMIN_NAMESPACE_URL.'/manage-form/(:any)/(:any)/(:any)/(:any)'] = 'form/b
 $route[ADMIN_NAMESPACE_URL.'/(:any)'] = '$1/backend/$1';
 $route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)'] = '$1/backend/$1/$2';
 $route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)/(:any)'] = '$1/backend/$1/$2/$3';
-$route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)/(:any)/(:any)'] = '$1/backend/$1/$2/$3/$3';
+$route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)/(:any)/(:any)'] = '$1/backend/$1/$2/$3/$4';
 
 
 
@@ -100,7 +102,7 @@ $route['api/group/(:any)'] = 'api/group/$1';
 $route['api/(:any)'] = '$1/api/$1';
 $route['api/(:any)/(:any)'] = '$1/api/$1/$2';
 $route['api/(:any)/(:any)/(:any)'] = '$1/api/$1/$2/$3';
-$route['api/(:any)/(:any)/(:any)/(:any)'] = '$1/api/$1/$2/$3/$3';
+$route['api/(:any)/(:any)/(:any)/(:any)'] = '$1/api/$1/$2/$3/$4';
 
 
 $route['cron'] = 'cron/sync_all';

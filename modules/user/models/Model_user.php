@@ -43,7 +43,9 @@ class Model_user extends MY_Model {
         }
 
         if (function_exists('is_super_admin') && !is_super_admin()) {
-        	$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
+        	if ($this->db->field_exists('tenant_id', 'aauth_users')) {
+        		$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
+        	}
         }
 
         $this->db->where($where);
@@ -76,7 +78,9 @@ class Model_user extends MY_Model {
         }
 
         if (function_exists('is_super_admin') && !is_super_admin()) {
-        	$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
+        	if ($this->db->field_exists('tenant_id', 'aauth_users')) {
+        		$this->db->where('aauth_users.tenant_id', get_active_tenant_id());
+        	}
         }
 
         $this->db->where($where);
