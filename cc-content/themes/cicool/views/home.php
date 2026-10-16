@@ -111,6 +111,7 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
             scroll-behavior: smooth;
             background-color: var(--bg-body);
             color: var(--text-heading);
+            overflow-x: hidden;
         }
 
         body {
@@ -2280,6 +2281,537 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
             0% { opacity: 0; transform: translate3d(-30px, 0, 0); }
             100% { opacity: 1; transform: translate3d(0, 0, 0); }
         }
+
+        /* ==========================================================================
+           PRICING SECTION (MATCHING IMAGE 2 IN VENDIO PALETTE)
+           ========================================================================== */
+        .pricing-section {
+            padding: 105px 0 115px;
+            position: relative;
+            background-color: var(--bg-alt);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(139, 154, 110, 0.14) 0%, transparent 45%),
+                radial-gradient(circle at 85% 75%, rgba(139, 154, 110, 0.10) 0%, transparent 45%),
+                linear-gradient(180deg, #f7f2eb 0%, #faf6f0 45%, #f7f2eb 100%);
+            overflow: hidden;
+        }
+
+        .pricing-header-row {
+            position: relative;
+            z-index: 50;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 54px;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .pricing-header-left {
+            max-width: 620px;
+        }
+
+        .pricing-title {
+            font-family: var(--font-heading);
+            font-size: 2.85rem;
+            font-weight: 800;
+            color: var(--text-title);
+            letter-spacing: -0.6px;
+            line-height: 1.16;
+            margin-bottom: 14px;
+        }
+
+        .pricing-title-indicator {
+            height: 3px;
+            width: 60px;
+            background: #8b9a6e;
+            margin: 0 0 16px 0;
+            border-radius: 2px;
+        }
+
+        .pricing-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-body);
+            line-height: 1.6;
+        }
+
+        /* Period Selector Dropdown (Matching Image 1 in Vendio Palette) */
+        .pricing-dropdown-wrap {
+            position: relative;
+            z-index: 60;
+            display: inline-block;
+            align-self: flex-end;
+            user-select: none;
+        }
+
+        .pricing-dropdown-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            min-width: 190px;
+            padding: 11px 18px;
+            background: #ffffff;
+            border: 1.5px solid #ded5c5;
+            border-radius: 14px;
+            font-family: var(--font-heading);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2e3b1f;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(139, 154, 110, 0.08);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+        }
+
+        .pricing-dropdown-btn:hover {
+            border-color: #6e8055;
+            box-shadow: 0 6px 20px rgba(110, 128, 85, 0.16);
+            background: #fdfbf7;
+        }
+
+        .pricing-dropdown-btn.is-open {
+            border-color: #6e8055;
+            box-shadow: 0 0 0 3px rgba(110, 128, 85, 0.18);
+        }
+
+        .pricing-dropdown-chevron {
+            font-size: 0.85rem;
+            color: #6e8055;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .pricing-dropdown-btn.is-open .pricing-dropdown-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown Menu Floating Box */
+        .pricing-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 270px;
+            background: #ffffff;
+            border: 1.5px solid #ded5c5;
+            border-radius: 16px;
+            box-shadow: 0 16px 38px rgba(46, 59, 31, 0.18);
+            padding: 8px;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pricing-dropdown-menu.is-show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .pricing-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #2e3b1f;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pricing-dropdown-item:hover {
+            background: #f7f4ed;
+            color: #5a6d45;
+        }
+
+        .pricing-dropdown-item.is-selected {
+            background: #eef2e6;
+            color: #3b4b26;
+            font-weight: 700;
+        }
+
+        .dropdown-item-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(110, 128, 85, 0.12);
+            color: #5a6d45;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .dropdown-item-badge.is-best {
+            background: rgba(110, 128, 85, 0.12);
+            color: #5a6d45;
+            font-weight: 700;
+        }
+
+        /* 3-Column Pricing Grid */
+        .pricing-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 26px;
+            align-items: stretch;
+        }
+
+        /* Base Card Styling (Hostinger Structure matching Image 2 in Vendio Palette) */
+        .pricing-card {
+            background: #f7f4ed;
+            border: 1.5px solid #ded5c5;
+            border-radius: 24px;
+            padding: 32px 28px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(139, 154, 110, 0.08);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 50px rgba(139, 154, 110, 0.16);
+            border-color: #c5baa8;
+        }
+
+        /* Featured Hero Card (Growth / Pro - Highlighted in Hijau Sage with Dashed Border) */
+        .pricing-card.is-featured {
+            background: #6e8055;
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            color: #ffffff;
+            box-shadow: 0 20px 50px rgba(93, 110, 66, 0.28);
+            transform: scale(1.02);
+            z-index: 2;
+        }
+
+        .pricing-card.is-featured:hover {
+            transform: scale(1.02) translateY(-6px);
+            box-shadow: 0 28px 65px rgba(93, 110, 66, 0.38);
+            border-color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Header Row: Title & Badge */
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pricing-plan-name {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 0;
+            color: #2e3b1f;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+
+        .pricing-card.is-featured .pricing-plan-name {
+            color: #ffffff;
+        }
+
+        .card-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(90, 109, 69, 0.12);
+            color: #4a5c34;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+
+        .pricing-card.is-featured .card-badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+        }
+
+        /* Description (Left Aligned matching Image 2) */
+        .pricing-desc {
+            font-size: 0.86rem;
+            line-height: 1.5;
+            color: #5d6752;
+            margin: 0 0 22px;
+            min-height: 42px;
+            text-align: left;
+        }
+
+        .pricing-card.is-featured .pricing-desc {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Price Area (Left Aligned matching Image 2) */
+        .pricing-price-area {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .pricing-price-strike {
+            font-size: 0.92rem;
+            color: #9ba793;
+            text-decoration: line-through;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .pricing-card.is-featured .pricing-price-strike {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .pricing-price-main-row {
+            display: flex;
+            align-items: baseline;
+            gap: 3px;
+            line-height: 1;
+        }
+
+        .price-currency {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #2e3b1f;
+        }
+
+        .pricing-card.is-featured .price-currency {
+            color: #ffffff;
+        }
+
+        .price-amount {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2e3b1f;
+            letter-spacing: -0.5px;
+        }
+
+        .pricing-card.is-featured .price-amount {
+            color: #ffffff;
+        }
+
+        .price-period-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #6e7963;
+            margin-left: 2px;
+        }
+
+        .pricing-card.is-featured .price-period-label {
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        /* CTA Button (Directly under Price matching Image 2) */
+        .pricing-btn {
+            display: block;
+            width: 100%;
+            padding: 13px 20px;
+            border-radius: 14px;
+            font-family: var(--font-heading);
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        /* Standard Button on Light Cards */
+        .pricing-btn-light {
+            background: transparent;
+            color: #5a6d45;
+            border: 1.5px solid #5a6d45;
+        }
+
+        .pricing-btn-light:hover {
+            background: #5a6d45;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(90, 109, 69, 0.25);
+        }
+
+        /* High-Contrast Hero Button on Hijau Sage Featured Card */
+        .pricing-btn-featured {
+            background: #ffffff;
+            color: #3b4827;
+            border: 1.5px solid #ffffff;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .pricing-btn-featured:hover {
+            background: #f7f4ed;
+            color: #2e3b1f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        /* Billing Detail Note below Button */
+        .pricing-billing-note {
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: #7d8972;
+            margin-top: 12px;
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        .pricing-card.is-featured .pricing-billing-note {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Divider */
+        .pricing-divider {
+            height: 1px;
+            background: #e2dcd0;
+            margin-bottom: 22px;
+        }
+
+        .pricing-card.is-featured .pricing-divider {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* Features Checklist */
+        .pricing-features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+            text-align: left;
+        }
+
+        .pricing-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            color: #3f4a33;
+        }
+
+        .pricing-card.is-featured .pricing-feature-item {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .feat-check {
+            color: #5a6d45;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .pricing-card.is-featured .feat-check {
+            color: #ffffff;
+        }
+
+        @media (max-width: 992px) {
+            .pricing-section .container {
+                padding-left: 20px;
+                padding-right: 20px;
+                box-sizing: border-box;
+            }
+            .pricing-grid {
+                grid-template-columns: minmax(0, 1fr);
+                width: 100%;
+                max-width: 500px;
+                margin: 0 auto;
+                box-sizing: border-box;
+                gap: 22px;
+            }
+            .pricing-card {
+                width: 100%;
+                min-width: 0;
+                box-sizing: border-box;
+                padding: 28px 22px;
+                transform: none !important;
+            }
+            .pricing-card.is-featured {
+                transform: none !important;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .pricing-card:hover,
+            .pricing-card.is-featured:hover {
+                transform: none !important;
+            }
+            .card-header-row {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .pricing-plan-name {
+                white-space: normal;
+                word-break: break-word;
+                font-size: 1.25rem;
+            }
+            .pricing-title {
+                font-size: 2.15rem;
+                word-break: break-word;
+            }
+            .pricing-header-row {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 36px;
+                gap: 20px;
+            }
+            .pricing-dropdown-wrap {
+                align-self: flex-start;
+                width: 100%;
+                max-width: 280px;
+            }
+            .pricing-dropdown-btn {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .pricing-dropdown-menu {
+                left: 0;
+                right: auto;
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .pricing-section {
+                padding: 55px 0 65px;
+            }
+            .pricing-section .container {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            .pricing-grid {
+                max-width: 100%;
+                gap: 18px;
+            }
+            .pricing-card {
+                padding: 24px 18px;
+                border-radius: 20px;
+            }
+            .pricing-title {
+                font-size: 1.85rem;
+            }
+            .pricing-subtitle {
+                font-size: 0.92rem;
+            }
+            .price-amount {
+                font-size: 2rem;
+            }
+        }
     </style>
 </head>
 
@@ -2305,6 +2837,7 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
                 <ul class="nav-links">
                     <li><a href="#feature" class="nav-link">Fitur</a></li>
                     <li><a href="#showcase" class="nav-link">Cara Kerja</a></li>
+                    <li><a href="#pricing" class="nav-link">Paket Harga</a></li>
                     <li><a href="<?= site_url('blog'); ?>" class="nav-link">Blog</a></li>
                     <li><a href="#faq" class="nav-link">FAQ</a></li>
                 </ul>
@@ -2323,6 +2856,9 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
                 </a>
                 <a href="#showcase" class="mobile-dropdown-item">
                     <span class="item-label">Cara Kerja</span>
+                </a>
+                <a href="#pricing" class="mobile-dropdown-item">
+                    <span class="item-label">Paket Harga</span>
                 </a>
                 <a href="<?= site_url('blog'); ?>" class="mobile-dropdown-item">
                     <span class="item-label">Blog</span>
@@ -2843,6 +3379,157 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
         </div>
     </section>
 
+    <!-- ==========================================================================
+       7. PRICING & SUBSCRIPTION SECTION (Paket & Harga Langganan)
+       Terkoneksi langsung dengan data tabel `plans` dari Admin Panel
+       Tampilan terinspirasi dari Image 2 dengan Palet Warna Khas Vendio
+       ========================================================================== -->
+    <?php
+        // Pastikan variabel $plans tersedia (fallback query langsung dari database jika belum di-passing)
+        if (!isset($plans) || empty($plans)) {
+            $ci =& get_instance();
+            $plans = $ci->db->where('status', 'active')->order_by('sort_order', 'ASC')->get('plans')->result();
+        }
+    ?>
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <!-- Header Row with Title & Period Toggle Pill (Matching Image 2) -->
+            <div class="pricing-header-row reveal-init">
+                <div class="pricing-header-left">
+                    <h2 class="pricing-title">Paket &amp; Harga Langganan</h2>
+                    <div class="pricing-title-indicator"></div>
+                    <p class="pricing-subtitle">
+                        Pilih paket investasi terbaik yang dirancang untuk skala bisnis Anda. Dari UMKM yang baru merintis hingga brand multi-gudang berskala nasional.
+                    </p>
+                </div>
+
+                <!-- Period Selector Dropdown (Matching Image 1 in Vendio Palette) -->
+                <div class="pricing-dropdown-wrap" id="pricingDropdownWrap">
+                    <button type="button" class="pricing-dropdown-btn" id="pricingDropdownBtn" aria-expanded="false" aria-haspopup="true">
+                        <span class="pricing-dropdown-label">12 bulan</span>
+                        <i class="fa-solid fa-chevron-down pricing-dropdown-chevron"></i>
+                    </button>
+                    <div class="pricing-dropdown-menu" id="pricingDropdownMenu">
+                        <div class="pricing-dropdown-item" data-duration="1">
+                            <span class="dropdown-item-text">1 bulan</span>
+                        </div>
+                        <div class="pricing-dropdown-item" data-duration="3">
+                            <span class="dropdown-item-text">3 bulan</span>
+                        </div>
+                        <div class="pricing-dropdown-item" data-duration="6">
+                            <span class="dropdown-item-text">6 bulan</span>
+                        </div>
+                        <div class="pricing-dropdown-item is-selected" data-duration="12">
+                            <span class="dropdown-item-text">12 bulan</span>
+                            <span class="dropdown-item-badge is-best">PENAWARAN TERBAIK</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Cards Grid -->
+            <div class="pricing-grid">
+                <?php 
+                if (!empty($plans)): 
+                    foreach ($plans as $index => $plan): 
+                        $is_featured = (!empty($plan->is_special) || strtolower($plan->code) == 'growth-pro');
+                        $price_1 = (float)$plan->price_monthly;
+                        $price_3 = (float)$plan->price_3_months;
+                        $disc_3  = (float)$plan->discount_3_months;
+                        $price_6 = (float)$plan->price_6_months;
+                        $disc_6  = (float)$plan->discount_6_months;
+                        $price_12 = (float)$plan->price_12_months;
+                        $disc_12 = (float)$plan->discount_12_months;
+
+                        // Default display is 12 bulan (Penawaran Terbaik)
+                        $annual_effective = ($price_12 > 0) ? round($price_12 / 12) : $price_1;
+                        $special_badge = !empty($plan->special_badge) ? $plan->special_badge : ($is_featured ? 'Paling Populer' : '');
+                        
+                        // Default badge text in 12-month mode: show discount according to duration
+                        $badge_text = ($disc_12 > 0) ? 'Diskon ' . (float)$disc_12 . '%' : (!empty($plan->special_badge) ? $plan->special_badge : '');
+                ?>
+                <div class="pricing-card <?= $is_featured ? 'is-featured' : ''; ?> reveal-init reveal-delay-<?= $index + 1; ?>"
+                     data-plan-name="<?= htmlspecialchars($plan->name, ENT_QUOTES); ?>"
+                     data-special-badge="<?= htmlspecialchars($special_badge, ENT_QUOTES); ?>"
+                     data-price-1="<?= $price_1; ?>"
+                     data-discount-1="0"
+                     data-price-3="<?= $price_3; ?>"
+                     data-discount-3="<?= $disc_3; ?>"
+                     data-price-6="<?= $price_6; ?>"
+                     data-discount-6="<?= $disc_6; ?>"
+                     data-price-12="<?= $price_12; ?>"
+                     data-discount-12="<?= $disc_12; ?>">
+
+                    <div>
+                        <!-- Row 1: Header Row (Title & Badge) -->
+                        <div class="card-header-row">
+                            <h3 class="pricing-plan-name"><?= htmlspecialchars($plan->name); ?></h3>
+                            <span class="card-badge" style="<?= empty($badge_text) ? 'display: none;' : ''; ?>"><?= htmlspecialchars($badge_text); ?></span>
+                        </div>
+
+                        <!-- Row 2: Description -->
+                        <p class="pricing-desc">
+                            <?= htmlspecialchars($plan->description); ?>
+                        </p>
+
+                        <!-- Row 3: Price Area -->
+                        <div class="pricing-price-area">
+                            <span class="pricing-price-strike">Rp <?= number_format($price_1, 0, ',', '.'); ?></span>
+                            <div class="pricing-price-main-row">
+                                <span class="price-currency">Rp</span>
+                                <span class="price-amount"><?= number_format($annual_effective, 0, ',', '.'); ?></span>
+                                <span class="price-period-label">/bln</span>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: CTA Button (Directly below price!) -->
+                        <?php 
+                            $wa_text = urlencode('Halo Tim Vendio, saya tertarik untuk berlangganan Paket ' . $plan->name . ' durasi 12 Bulan (Penawaran Terbaik). Mohon informasi aktivasi dan penawarannya.');
+                            $target_url = 'https://wa.me/6281234567890?text=' . $wa_text;
+                        ?>
+                        <a href="<?= $target_url; ?>" target="_blank"
+                           class="pricing-btn <?= $is_featured ? 'pricing-btn-featured' : 'pricing-btn-light'; ?>">
+                            <span><?= !empty($plan->cta_text) ? htmlspecialchars($plan->cta_text) : 'Pilih Paket'; ?></span>
+                        </a>
+
+                        <!-- Row 5: Billing Note (Directly below CTA!) -->
+                        <?php 
+                            $normal_total_12 = $price_1 * 12;
+                        ?>
+                        <div class="pricing-billing-note">
+                            Beli paket 12 bulan seharga Rp<?= number_format($price_12, 0, ',', '.'); ?> (harga normal Rp<?= number_format($normal_total_12, 0, ',', '.'); ?>). Biaya perpanjangan Rp<?= number_format($price_1, 0, ',', '.'); ?>/bln.
+                        </div>
+
+                        <!-- Row 6: Divider -->
+                        <div class="pricing-divider"></div>
+
+                        <!-- Row 7: Features Checklist -->
+                        <?php 
+                        $features_list = [];
+                        if (!empty($plan->features)) {
+                            $decoded = json_decode($plan->features, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                $features_list = $decoded;
+                            }
+                        }
+                        ?>
+                        <ul class="pricing-features-list">
+                            <?php foreach ($features_list as $feat): ?>
+                                <li class="pricing-feature-item">
+                                    <span class="feat-check"><i class="fa-solid fa-check"></i></span>
+                                    <span><?= htmlspecialchars($feat); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+                <?php 
+                    endforeach; 
+                endif; 
+                ?>
+            </div>
+        </div>
+    </section>
 
     <!-- ==========================================================================
        8. BLOG & ARTIKEL SECTION (Terkoneksi Dinamis dengan Modul Blog)
@@ -3415,6 +4102,115 @@ $admin_btn_text = $is_logged_in ? 'Buka Dashboard' : 'Masuk ke Sistem';
         } else {
             // Fallback for older browsers
             revealElements.forEach(el => el.classList.add('is-revealed'));
+        }
+
+        // ==========================================================================
+        // Pricing Duration Dropdown Selector (1, 3, 6, 12 Bulan matching Image 1)
+        // ==========================================================================
+        const pricingDropdownWrap = document.getElementById('pricingDropdownWrap');
+        const pricingDropdownBtn = document.getElementById('pricingDropdownBtn');
+        const pricingDropdownMenu = document.getElementById('pricingDropdownMenu');
+        const dropdownItems = document.querySelectorAll('.pricing-dropdown-item');
+        const pricingCards = document.querySelectorAll('.pricing-card');
+
+        if (pricingDropdownBtn && pricingDropdownMenu) {
+            // Toggle dropdown open/close
+            pricingDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = this.classList.toggle('is-open');
+                pricingDropdownMenu.classList.toggle('is-show', isOpen);
+                this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            // Close on click outside
+            document.addEventListener('click', function(e) {
+                if (pricingDropdownWrap && !pricingDropdownWrap.contains(e.target)) {
+                    pricingDropdownBtn.classList.remove('is-open');
+                    pricingDropdownMenu.classList.remove('is-show');
+                    pricingDropdownBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Handle option selection
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const duration = parseInt(this.getAttribute('data-duration') || '12', 10);
+                    const labelText = this.querySelector('.dropdown-item-text') ? this.querySelector('.dropdown-item-text').textContent : (duration + ' bulan');
+
+                    // Update dropdown button label
+                    const labelEl = pricingDropdownBtn.querySelector('.pricing-dropdown-label');
+                    if (labelEl) labelEl.textContent = labelText;
+
+                    // Update selected class
+                    dropdownItems.forEach(i => i.classList.remove('is-selected'));
+                    this.classList.add('is-selected');
+
+                    // Close dropdown
+                    pricingDropdownBtn.classList.remove('is-open');
+                    pricingDropdownMenu.classList.remove('is-show');
+                    pricingDropdownBtn.setAttribute('aria-expanded', 'false');
+
+                    // Update each pricing card
+                    pricingCards.forEach(card => {
+                        const strikeEl = card.querySelector('.pricing-price-strike');
+                        const amountEl = card.querySelector('.price-amount');
+                        const periodLabelEl = card.querySelector('.price-period-label');
+                        const billingNoteEl = card.querySelector('.pricing-billing-note');
+                        const badgeEl = card.querySelector('.card-badge');
+                        const btnEl = card.querySelector('.pricing-btn');
+
+                        const planName = card.getAttribute('data-plan-name') || '';
+                        const specialBadge = card.getAttribute('data-special-badge') || '';
+                        const isFeatured = card.classList.contains('is-featured');
+
+                        const baseMonthly = parseInt(card.getAttribute('data-price-1') || '0', 10);
+                        const totalPrice = parseInt(card.getAttribute('data-price-' + duration) || '0', 10);
+                        const discount = parseFloat(card.getAttribute('data-discount-' + duration) || '0');
+
+                        if (duration === 1) {
+                            if (strikeEl) strikeEl.style.display = 'none';
+                            if (amountEl) amountEl.textContent = baseMonthly.toLocaleString('id-ID');
+                            if (periodLabelEl) periodLabelEl.textContent = '/bln';
+                            if (billingNoteEl) billingNoteEl.textContent = 'Biaya perpanjangan Rp' + baseMonthly.toLocaleString('id-ID') + '/bln. Pembayaran bulanan fleksibel.';
+                            if (badgeEl) {
+                                badgeEl.textContent = specialBadge;
+                                badgeEl.style.display = specialBadge ? 'inline-block' : 'none';
+                            }
+                        } else {
+                            const effectiveMonthly = Math.round(totalPrice / duration);
+                            const normalTotal = baseMonthly * duration;
+                            if (strikeEl) {
+                                strikeEl.style.display = 'block';
+                                strikeEl.textContent = 'Rp ' + baseMonthly.toLocaleString('id-ID');
+                            }
+                            if (amountEl) amountEl.textContent = effectiveMonthly.toLocaleString('id-ID');
+                            if (periodLabelEl) periodLabelEl.textContent = '/bln';
+                            if (billingNoteEl) {
+                                billingNoteEl.textContent = 'Beli paket ' + duration + ' bulan seharga Rp' + totalPrice.toLocaleString('id-ID') + ' (harga normal Rp' + normalTotal.toLocaleString('id-ID') + '). Biaya perpanjangan Rp' + baseMonthly.toLocaleString('id-ID') + '/bln.';
+                            }
+                            if (badgeEl) {
+                                if (discount > 0) {
+                                    badgeEl.textContent = 'Diskon ' + discount + '%';
+                                    badgeEl.style.display = 'inline-block';
+                                } else if (specialBadge) {
+                                    badgeEl.textContent = specialBadge;
+                                    badgeEl.style.display = 'inline-block';
+                                } else {
+                                    badgeEl.style.display = 'none';
+                                }
+                            }
+                        }
+
+                        // Dynamically update WhatsApp CTA message with selected duration
+                        if (btnEl) {
+                            const durText = duration === 1 ? '1 Bulan' : (duration === 12 ? '12 Bulan (Penawaran Terbaik)' : duration + ' Bulan');
+                            const waMsg = encodeURIComponent('Halo Tim Vendio, saya tertarik untuk berlangganan Paket ' + planName + ' durasi ' + durText + '. Mohon informasi aktivasi dan penawarannya.');
+                            btnEl.href = 'https://wa.me/6281234567890?text=' + waMsg;
+                        }
+                    });
+                });
+            });
         }
     </script>
 

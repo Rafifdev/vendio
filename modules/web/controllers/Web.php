@@ -33,10 +33,11 @@ class Web extends Front
 
     public function home()
     {
+        $this->data['plans'] = $this->db->where('status', 'active')->order_by('sort_order', 'ASC')->get('plans')->result();
         if (defined('IS_DEMO')) {
-            $this->template->build('home-demo');
+            $this->template->build('home-demo', $this->data);
         } else {
-            $this->template->build('home');
+            $this->template->build('home', $this->data);
         }
     }
 
