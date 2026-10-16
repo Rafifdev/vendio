@@ -170,7 +170,7 @@
 
    .pricing-box-sub {
       font-size: 11.5px;
-      color: #059669;
+      color: #1e293b;
       margin-top: 4px;
       font-weight: 500;
    }
@@ -343,7 +343,7 @@
                                  <div class="pricing-box-label">1 Bulan (Base)</div>
                                  <div class="pricing-box-amount">Rp
                                     <?= number_format($plans->price_monthly, 0, ',', '.'); ?></div>
-                                 <div class="pricing-box-sub" style="color:#64748b;">Harga normal per bulan</div>
+                                 <div class="pricing-box-sub">Harga normal per bulan</div>
                               </div>
 
                               <!-- 3 Months -->
