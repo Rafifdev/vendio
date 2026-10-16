@@ -565,7 +565,19 @@ class Model_order_prizes extends CI_Model
         $shops = [];
         $shopIds = [];
 
-        if ($this->db->field_exists('created_by', 'tiktok_shops')) {
+        if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+            $tenantId = get_active_tenant_id();
+            $direct = $this->db->where('tenant_id', (int)$tenantId)
+                ->order_by('shop_name', 'ASC')
+                ->get('tiktok_shops')
+                ->result_array();
+            foreach ($direct as $s) {
+                if (!in_array($s['id'], $shopIds)) {
+                    $shops[] = $s;
+                    $shopIds[] = $s['id'];
+                }
+            }
+        } elseif ($this->db->field_exists('created_by', 'tiktok_shops')) {
             $direct = $this->db->where('created_by', (int)$userId)
                 ->order_by('shop_name', 'ASC')
                 ->get('tiktok_shops')

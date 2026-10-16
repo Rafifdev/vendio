@@ -755,7 +755,13 @@ class Tiktok_shops extends Admin
 		$this->is_allowed('tiktok_shops_list');
 		$this->load->library('tiktok_api');
 
-		$shops = $this->db->get('tiktok_shops')->result();
+		$shop_filter = [];
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
+		$shops = !empty($shop_filter)
+			? $this->db->get_where('tiktok_shops', $shop_filter)->result()
+			: $this->db->get('tiktok_shops')->result();
 		if (empty($shops)) {
 			set_message('Belum ada akun toko yang terdaftar.', 'warning');
 			redirect('administrator/tiktok_shops');

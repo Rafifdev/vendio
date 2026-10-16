@@ -36,11 +36,20 @@ class Tiktok_finance extends Admin
 		$this->data['tiktok_finances'] = $this->model_tiktok_finance->get($filter, $field, $this->limit_page, $offset, [], $shop_id);
 		$this->data['tiktok_finance_counts'] = $this->model_tiktok_finance->count_all($filter, $field, $shop_id);
 
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$shop_filter = [];
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
+		$this->data['shops'] = !empty($shop_filter)
+			? $this->db->order_by('shop_name', 'ASC')->get_where('tiktok_shops', $shop_filter)->result()
+			: $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
 
 		// Summary KPI keuangan
 		$sum_builder = $this->db->select('SUM(settlement_amount) as total_settlement, SUM(revenue_amount) as total_revenue, SUM(fee_amount) as total_fee, SUM(shipping_fee_amount) as total_shipping')->from('tiktok_finance');
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_finance')) {
+			$sum_builder->where('tiktok_finance.tenant_id', get_active_tenant_id());
+		}
 		if (!empty($shop_id)) {
 			$sum_builder->where('tiktok_shop_id', $shop_id);
 		}

@@ -42,7 +42,13 @@ class Tiktok_unsettled_transactions extends Admin
 		];
 
 		$this->data['pagination'] = $this->pagination($config);
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$shop_filter = [];
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
+		$this->data['shops'] = !empty($shop_filter)
+			? $this->db->order_by('shop_name', 'ASC')->get_where('tiktok_shops', $shop_filter)->result()
+			: $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
 
 		$this->template->title('Dana Tertahan');

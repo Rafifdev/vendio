@@ -56,9 +56,19 @@ class Tiktok_brands extends Admin
 		$this->is_allowed('tiktok_brands_list');
 		$this->load->library('tiktok_api');
 
-		$shop = $this->db->get_where('tiktok_shops', ['is_active' => 1])->row();
+		$shop_filter = ['is_active' => 1];
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
+		$shop = $this->db->get_where('tiktok_shops', $shop_filter)->row();
 		if (!$shop) {
-			$shop = $this->db->get('tiktok_shops')->row();
+			$fallback_filter = [];
+			if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+				$fallback_filter['tenant_id'] = get_active_tenant_id();
+			}
+			$shop = !empty($fallback_filter)
+				? $this->db->get_where('tiktok_shops', $fallback_filter)->row()
+				: $this->db->get('tiktok_shops')->row();
 		}
 		if (!$shop) {
 			set_message('Toko TikTok belum aktif atau belum terhubung.', 'error');

@@ -61,13 +61,22 @@ class Tiktok_orders extends Admin
 		$this->data['tiktok_orderss'] = $orders;
 		$this->data['tiktok_orders_counts'] = $this->model_tiktok_orders->count_all($filter, $field, $shop_id, $status_param, $tab);
 
-		$this->data['shops'] = $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
+		$shop_filter = [];
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_shops')) {
+			$shop_filter['tenant_id'] = get_active_tenant_id();
+		}
+		$this->data['shops'] = !empty($shop_filter)
+			? $this->db->order_by('shop_name', 'ASC')->get_where('tiktok_shops', $shop_filter)->result()
+			: $this->db->order_by('shop_name', 'ASC')->get('tiktok_shops')->result();
 		$this->data['selected_shop_id'] = $shop_id;
 		$this->data['selected_tab'] = $tab;
 		$this->data['selected_status'] = $tab;
 
 		// Hitung counter status untuk navigasi tab horizontal sesuai TikTok Shop Seller Center
 		$counts_builder = $this->db->select('order_status, COUNT(*) as total')->from('tiktok_orders');
+		if (function_exists('get_active_tenant_id') && $this->db->field_exists('tenant_id', 'tiktok_orders')) {
+			$counts_builder->where('tiktok_orders.tenant_id', get_active_tenant_id());
+		}
 		if (!empty($shop_id)) {
 			$counts_builder->where('tiktok_shop_id', $shop_id);
 		}
