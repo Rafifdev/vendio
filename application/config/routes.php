@@ -96,6 +96,8 @@ $route[ADMIN_NAMESPACE_URL.'/(:any)/(:any)/(:any)/(:any)'] = '$1/backend/$1/$2/$
 
 
 
+$route['api/xendit/webhook'] = 'pricing/backend/pricing/xendit_webhook';
+
 $route['api/user/(:any)'] = 'api/user/$1';
 $route['api/group/(:any)'] = 'api/group/$1';
 

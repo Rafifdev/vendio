@@ -451,7 +451,11 @@ $config['csrf_token_name'] = '__0c8w844cos8cwg4kokkco0c800o4o8gsksgc488c';
 $config['csrf_cookie_name'] = '__4ww00kkcgo8wo880ck4o8k4s0g40k8s0gwgsokg4';
 $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = FALSE;
-$config['csrf_exclude_uris'] = array();
+$config['csrf_exclude_uris'] = array(
+    'administrator/pricing/xendit_webhook',
+    'api/xendit/webhook',
+    'pricing/xendit_webhook'
+);
 
 /*
 |--------------------------------------------------------------------------
