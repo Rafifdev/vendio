@@ -23,7 +23,9 @@ class MY_Controller extends MX_Controller  {
         $this->output->set_header("Cache-Control: no-store, no-cache, must-revalidate");
         $this->output->set_header("Cache-Control: private, no-store, max-age=0, no-cache, must-revalidate, post-check=0, pre-check=0");
         $this->output->set_header("Pragma: no-cache"); 
-        $this->output->set_header("Access-Control-Allow-Origin: *"); 
+        $this->output->set_header("X-Frame-Options: SAMEORIGIN");
+        $this->output->set_header("X-Content-Type-Options: nosniff");
+        $this->output->set_header("Referrer-Policy: strict-origin-when-cross-origin");
 
         $this->load->helper(['cookie']);
 

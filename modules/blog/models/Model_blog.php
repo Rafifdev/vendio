@@ -26,7 +26,7 @@ class Model_blog extends MY_Model {
 		$field = $this->scurity($field);
 
         if (!empty($q)) {
-	        if (empty($field)) {
+	        if (empty($field) || !in_array($field, $this->field_search, true)) {
 		        foreach ($this->field_search as $f) {
 		            if ($iterasi == 1) {
 		                $where .= "blog.".$f . " LIKE '%" . $q . "%' ";
@@ -43,7 +43,7 @@ class Model_blog extends MY_Model {
         }
 
         if ($tag) {
-        	$this->db->where('tags LIKE "%'.$tag.'%"');
+        	$this->db->like('blog.tags', $tag);
         }
 		
 		if ($category) {
@@ -66,7 +66,7 @@ class Model_blog extends MY_Model {
 		$field = $this->scurity($field);
 
         if (!empty($q)) {
-	        if (empty($field)) {
+	        if (empty($field) || !in_array($field, $this->field_search, true)) {
 		        foreach ($this->field_search as $f) {
 		            if ($iterasi == 1) {
 		                $where .= "blog.".$f . " LIKE '%" . $q . "%' ";
@@ -82,7 +82,7 @@ class Model_blog extends MY_Model {
 	        }
         }
         if ($tag) {
-        	$this->db->where('tags LIKE "%'.$tag.'%"');
+        	$this->db->like('blog.tags', $tag);
         }
 				
 		if ($category) {

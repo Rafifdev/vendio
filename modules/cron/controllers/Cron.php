@@ -26,6 +26,19 @@ class Cron extends MY_Controller
     {
         parent::__construct();
         $this->output->enable_profiler(FALSE);
+
+        if (!is_cli()) {
+            $is_authorized_admin = isset($this->aauth) && $this->aauth->is_loggedin() && $this->aauth->is_admin();
+            $cron_secret = getenv('CRON_SECRET_KEY') ?: $this->config->item('encryption_key');
+            $provided_key = (string) ($this->input->get('key') ?: $this->input->get_request_header('X-Cron-Key', TRUE));
+            $has_valid_token = !empty($cron_secret) && !empty($provided_key) && hash_equals((string) $cron_secret, $provided_key);
+
+            if (!$is_authorized_admin && !$has_valid_token) {
+                show_error('Forbidden: Cron endpoint requires CLI execution or authorized token.', 403);
+                exit;
+            }
+        }
+
         $this->load->database();
         $this->load->helper('tenant');
         if (function_exists('ensure_multi_tenancy_schema')) {

@@ -90,7 +90,10 @@ class Auth extends Admin
 		$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|is_unique[aauth_users.email]');
 		$this->form_validation->set_rules('phone', 'Nomor WhatsApp', 'trim|required|min_length[8]');
 		$this->form_validation->set_rules('company_name', 'Nama Toko / Perusahaan', 'trim|required|min_length[3]');
-		$this->form_validation->set_rules('password', 'Kata Sandi', 'trim|required|min_length[6]');
+		$this->form_validation->set_rules('password', 'Kata Sandi', 'trim|required|min_length[8]');
+		if ($this->input->post('captcha') !== null) {
+			$this->form_validation->set_rules('captcha', 'Captcha', 'trim|required|callback_valid_captcha');
+		}
 		$this->form_validation->set_rules('agree', 'Syarat Layanan & Kebijakan Privasi', 'trim|required');
 
 		$this->form_validation->set_message('required', '%s wajib diisi.');
@@ -137,7 +140,7 @@ class Auth extends Admin
 				$tenant_id = $this->db->insert_id();
 
 				// Generate 6 digit kode OTP & kedaluwarsa 15 menit
-				$otp_code = (string) mt_rand(100000, 999999);
+				$otp_code = (string) random_int(100000, 999999);
 				$otp_expires_at = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
 				// Update user: tenant_id, banned = 1 (menunggu verifikasi OTP), otp_code, otp_expires_at
@@ -294,7 +297,7 @@ class Auth extends Admin
 		}
 
 		// Buat OTP baru & perpanjang 15 menit
-		$otp_code = (string) mt_rand(100000, 999999);
+		$otp_code = (string) random_int(100000, 999999);
 		$otp_expires_at = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
 		$this->db->where('id', $user->id)->update('aauth_users', [

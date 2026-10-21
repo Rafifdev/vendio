@@ -495,8 +495,12 @@ class Tiktok_shops extends Admin
 	public function auth_status()
 	{
 		$this->output->enable_profiler(FALSE);
-		$status = $this->input->get('status') ?: 'success';
-		$shop_name = $this->input->get('shop') ?: '';
+		$status = $this->input->get('status') ?: 'invalid';
+		$verified_shop = $this->session->flashdata('oauth_verified_shop');
+		$shop_name = !empty($verified_shop) ? $verified_shop : ($this->aauth->is_loggedin() ? ($this->input->get('shop') ?: '') : '');
+		if ($status === 'success' && empty($verified_shop) && !$this->aauth->is_loggedin()) {
+			$status = 'invalid';
+		}
 		$error_message = $this->input->get('msg') ?: '';
 
 		$data = [
@@ -734,6 +738,7 @@ class Tiktok_shops extends Admin
 				set_message('Berhasil menghubungkan Akun Toko TikTok Shop: ' . $shop_name, 'success');
 				redirect('administrator/tiktok_shops');
 			} else {
+				$this->session->set_flashdata('oauth_verified_shop', $shop_name);
 				redirect('administrator/tiktok_shops/auth_status?status=success&shop=' . urlencode($shop_name));
 			}
 		} else {

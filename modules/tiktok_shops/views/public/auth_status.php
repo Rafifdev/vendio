@@ -1,15 +1,12 @@
 <?php
 $ci =& get_instance();
 $shop = null;
-if (!empty($shop_name)) {
+if (!empty($shop_name) && ($status ?? '') === 'success') {
   $shop = $ci->db->get_where('tiktok_shops', ['shop_name' => $shop_name])->row();
 }
-if (!$shop) {
-  $shop = $ci->db->order_by('id', 'DESC')->get('tiktok_shops')->row();
-}
 
-$display_shop_name = !empty($shop_name) ? $shop_name : ($shop ? $shop->shop_name : 'sandbox idmetafora');
-$display_shop_id   = $shop ? $shop->shop_id : '7494874560718407506';
+$display_shop_name = !empty($shop_name) ? $shop_name : ($shop ? $shop->shop_name : '-');
+$display_shop_id   = $shop ? $shop->shop_id : '-';
 $display_region    = ($shop && !empty($shop->seller_base_region)) ? $shop->seller_base_region : 'ID';
 
 $expire_ts = ($shop && !empty($shop->access_token_expire_in)) ? (int)$shop->access_token_expire_in : (time() + 86400 * 7);
